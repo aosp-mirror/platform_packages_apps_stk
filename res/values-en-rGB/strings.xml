@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="alphabet">Alphabets</string>
+  <string name="app_name">SIM Toolkit</string>
+  <string name="button_call">Call</string>
+  <string name="button_cancel">Cancel</string>
+  <string name="button_no">No</string>
+  <string name="button_ok">OK</string>
+  <string name="button_yes">Yes</string>
+  <string name="default_call_setup_msg">Call in progress\u2026</string>
+  <string name="digits">Digits (0-9, *, #, +)</string>
+  <string name="disable_app">Disabled</string>
+  <string name="enable_app">Enabled</string>
+  <string name="help">Help</string>
+  <string name="launch_browser">Launch Browser?</string>
+  <string name="launch_dialer">Launch Dialer?</string>
+  <string name="no_content">No SIM content available!</string>
+  <string name="play_tone">Play tone</string>
+  <string name="service_name">Service name</string>
+  <string name="sim_main_menu">Main menu</string>
+  <string name="stk_app_state">Application state</string>
+  <string name="stk_no_service">No service available</string>
+</resources>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2007 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+  
+          http://www.apache.org/licenses/LICENSE-2.0
+  
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<resources>
+    <string name="app_name">SIM Toolkit</string>
+    <string name="no_content">No SIM content available!</string>
+    <string name="sim_main_menu">Main menu</string>
+    <string name="service_name">Service name</string>
+    <string name="stk_app_state">Application state</string>
+    <string name="stk_no_service">No service available</string>
+    <string name="enable_app">Enabled</string>
+    <string name="disable_app">Disabled</string>
+    <string name="button_ok">OK</string>
+    <string name="button_call">Call</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_yes">Yes</string>
+    <string name="button_no">No</string>
+    <string name="alphabet">Alphabets</string>
+    <string name="digits">Digits (0-9, *, #, +)</string>
+    <string name="launch_dialer">Launch Dialer?</string>
+    <string name="default_call_setup_msg">Call in progress\u2026</string>
+    <string name="launch_browser">Launch Browser?</string>
+    <string name="play_tone">Play tone</string>
+    <string name="help">Help</string>
+</resources>
