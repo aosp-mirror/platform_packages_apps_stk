@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">"SIM-Toolkit"</string>
+    <string name="menu_end_session">"Sitzung beenden"</string>
+    <string name="help">"Hilfe"</string>
+    <string name="menu_back">"Zurück"</string>
+    <string name="service_name">"Name des Dienstes"</string>
+    <string name="stk_no_service">"Kein Dienst verfügbar"</string>
+    <string name="button_ok">"OK"</string>
+    <string name="button_cancel">"Abbrechen"</string>
+    <string name="button_yes">"Ja"</string>
+    <string name="button_no">"Nein"</string>
+    <string name="alphabet">"Buchstaben"</string>
+    <string name="digits">"Ziffern (0-9, *, #, +)"</string>
+    <string name="default_call_setup_msg">"Verbindungsaufbau..."</string>
+    <!-- no translation found for stk_app_state (18582277302584082) -->
+    <skip />
+    <!-- no translation found for enable_app (3701224550936728203) -->
+    <skip />
+    <!-- no translation found for disable_app (6725081975611415214) -->
+    <skip />
+</resources>

@@ -48,7 +48,7 @@ public class TonePlayer {
     private ToneGenerator mToneGenerator = null;
 
     TonePlayer() {
-        mToneGenerator = new ToneGenerator(AudioManager.STREAM_RING, 80);
+        mToneGenerator = new ToneGenerator(AudioManager.STREAM_SYSTEM, 100);
     }
 
     public void play(Tone tone) {

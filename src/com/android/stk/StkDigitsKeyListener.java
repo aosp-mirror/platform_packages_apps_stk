@@ -18,6 +18,7 @@ package com.android.stk;
 
 import android.text.method.NumberKeyListener;
 import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 
 /**
  * For entering dates in a text field.
@@ -28,6 +29,10 @@ public class StkDigitsKeyListener extends NumberKeyListener {
         return CHARACTERS;
     }
 
+    public int getInputType() {
+        return EditorInfo.TYPE_CLASS_PHONE;
+    }
+    
     public static StkDigitsKeyListener getInstance() {
         if (sInstance != null) {
             return sInstance;

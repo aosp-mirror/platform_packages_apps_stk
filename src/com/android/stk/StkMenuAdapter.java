@@ -19,7 +19,6 @@ package com.android.stk;
 import com.android.internal.telephony.gsm.stk.Item;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +26,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -61,6 +59,7 @@ public class StkMenuAdapter extends ArrayAdapter<Item> {
             imageView.setVisibility(View.GONE);
         } else {
             imageView.setImageBitmap(item.icon);
+            imageView.setVisibility(View.VISIBLE);
         }
 
         return convertView;

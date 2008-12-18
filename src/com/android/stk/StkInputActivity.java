@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,26 +17,29 @@
 package com.android.stk;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
-import com.android.internal.telephony.gsm.stk.AppInterface;
-import com.android.internal.telephony.gsm.stk.FontSize;
-import com.android.internal.telephony.gsm.stk.Service;
-import com.android.internal.telephony.gsm.stk.TextAttribute;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.EditText;
+import android.os.Message;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
-import android.graphics.Typeface;
 import android.text.method.PasswordTransformationMethod;
+import android.view.KeyEvent;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.EditText;
+import android.widget.TextView.BufferType;
+
+import com.android.internal.telephony.gsm.stk.AppInterface;
+import com.android.internal.telephony.gsm.stk.FontSize;
+import com.android.internal.telephony.gsm.stk.Input;
+import com.android.internal.telephony.gsm.stk.Service;
 
 /**
  * Display a request for a text input a long with a text edit form.
@@ -46,40 +49,45 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
 
     // Members
     private int mState;
-    private int mMinTextLength = NO_MIN_LIMIT;
+    private Context mContext;
     private EditText mTextIn = null;
     private TextView mPromptView = null;
     private View mYesNoLayout = null;
     private View mNormalLayout = null;
-    private WatchDog mTimeoutWatchDog = null;
-    private boolean mHelpAvailable = false;
+    private Input mStkInput = null;
 
     // Constants
-    private static final String TAG = "STK INPUT ACTIVITY";
+    private static final String TAG = "STK Input";
 
-    private static final int IN_STATE_TEXT = 1;
-    private static final int IN_STATE_KEY = 2;
+    private static final int STATE_TEXT = 1;
+    private static final int STATE_YES_NO = 2;
 
-    private static final int NO_MIN_LIMIT = 0;
-    private static final int INKEY_MAX_LIMIT = 1;
+    static final String YES_STR_RESPONSE = "YES";
+    static final String NO_STR_RESPONSE = "NO";
 
-    private static final String INKEY_MAX_LIMIT_STR = "1";
-
-    // Font size factor values. 
+    // Font size factor values.
     static final float NORMAL_FONT_FACTOR = 1;
     static final float LARGE_FONT_FACTOR = 2;
     static final float SMALL_FONT_FACTOR = (1 / 2);
 
-    private class Terminate implements Runnable {
-        public void run() {
-            setResult(StkApp.RESULT_TIMEDOUT);
-            finish();
+    // message id for time out 
+    private static final int MSG_ID_TIMEOUT = 1;
+
+    Handler mTimeoutHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch(msg.what) {
+            case MSG_ID_TIMEOUT:
+                //mAcceptUsersInput = false;
+                sendResponse(StkAppService.RES_ID_TIMEOUT);
+                finish();
+                break;
+            }
         }
-    }
+    };
 
     // Click listener to handle buttons press..
     public void onClick(View v) {
-        Intent data = new Intent();
+        String input = null;
 
         switch (v.getId()) {
         case R.id.button_ok:
@@ -87,30 +95,18 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             if (!verfiyTypedText()) {
                 return;
             }
-            switch (mState) {
-            case IN_STATE_TEXT:
-                // return input text to the calling activity
-                String input = mTextIn.getText().toString();
-                data.putExtra(Util.INPUT_TYPE_TEXT, input);
-                break;
-            case IN_STATE_KEY:
-                // return input key to the calling activity
-                Character key = new Character(mTextIn.getText().toString()
-                        .charAt(0));
-                data.putExtra(Util.INPUT_TYPE_KEY, key.charValue());
-                break;
-            }
+            input = mTextIn.getText().toString();
             break;
         // Yes/No layout buttons.
         case R.id.button_yes:
-            onYesNoButtonClick(true);
+            input = YES_STR_RESPONSE;
             break;
         case R.id.button_no:
-            onYesNoButtonClick(true);
+            input = NO_STR_RESPONSE;
             break;
         }
 
-        setResult(RESULT_OK, data);
+        sendResponse(StkAppService.RES_ID_INPUT, input, false);
         finish();
     }
 
@@ -119,6 +115,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         super.onCreate(icicle);
 
         // Set the layout for this activity.
+        requestWindowFeature(Window.FEATURE_LEFT_ICON);
         setContentView(R.layout.stk_input);
 
         // Initialize members
@@ -139,18 +136,19 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
 
         // Get the calling intent type: text/key, and setup the 
         // display parameters.
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            // set input state
-            String str = extras.getString(Util.INPUT_TYPE);
-            mState = (str.equals(Util.INPUT_TYPE_TEXT)) ? IN_STATE_TEXT
-                    : IN_STATE_KEY;
-            configInputDisplay(extras);
+        Intent intent = getIntent();
+        if (intent != null) {
+            mStkInput = intent.getParcelableExtra("INPUT");
+            if (mStkInput == null) {
+                finish();
+            } else {
+                mState = mStkInput.yesNo ? STATE_YES_NO : STATE_TEXT;
+                configInputDisplay();
+            }
+        } else {
+            finish();
         }
-        // Create a watch dog to terminate the activity if no input is received
-        // after one minute.
-        mTimeoutWatchDog = new WatchDog(null, new Handler(), new Terminate(),
-                StkApp.UI_TIMEOUT);
+        mContext = getBaseContext();
     }
 
     @Override
@@ -161,49 +159,51 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mTimeoutWatchDog.cancel();
+    public void onResume() {
+        super.onResume();
+
+        startTimeOut();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        cancelTimeOut();
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        AppInterface stkService = Service.getInstance();
-
-        // Reset timeout.
-        mTimeoutWatchDog.reset();
-
         switch (keyCode) {
         case KeyEvent.KEYCODE_BACK:
-            setResult(StkApp.RESULT_BACKWARD);
-            finish();
-            break;
-        case KeyEvent.KEYCODE_HOME:
-            setResult(StkApp.RESULT_END_SESSION);
+            sendResponse(StkAppService.RES_ID_BACKWARD, null, false);
             finish();
             break;
         }
         return super.onKeyDown(keyCode, event);
     }
 
-    @Override
-    public boolean onTrackballEvent(MotionEvent event) {
-        // Reset timeout.
-        mTimeoutWatchDog.reset();
-        return super.onTrackballEvent(event);
+    private void sendResponse(int resId) {
+        sendResponse(resId, null, false);
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        // Reset timeout.
-        mTimeoutWatchDog.reset();
-        return super.onTouchEvent(event);
+    private void sendResponse(int resId, String input, boolean help) {
+        Bundle args = new Bundle();
+        args.putInt(StkAppService.OPCODE, StkAppService.OP_RESPONSE);
+        args.putInt(StkAppService.RES_ID, resId);
+        if (input != null) {
+            args.putString(StkAppService.INPUT, input);
+        }
+        args.putBoolean(StkAppService.HELP, help);
+        mContext.startService(new Intent(mContext, StkAppService.class)
+                .putExtras(args));
     }
 
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
         super.onCreateOptionsMenu(menu);
-        menu.add(0, StkApp.MENU_ID_MAIN, 1, R.string.sim_main_menu);
+        menu.add(android.view.Menu.NONE, StkApp.MENU_ID_END_SESSION, 1,
+                R.string.menu_end_session);
         menu.add(0, StkApp.MENU_ID_HELP, 2, R.string.help);
 
         return true;
@@ -212,8 +212,8 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     @Override
     public boolean onPrepareOptionsMenu(android.view.Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        menu.findItem(StkApp.MENU_ID_MAIN).setVisible(true);
-        menu.findItem(StkApp.MENU_ID_HELP).setVisible(mHelpAvailable);
+        menu.findItem(StkApp.MENU_ID_END_SESSION).setVisible(true);
+        menu.findItem(StkApp.MENU_ID_HELP).setVisible(mStkInput.helpAvailable);
 
         return true;
     }
@@ -223,12 +223,12 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         AppInterface stkService = Service.getInstance();
 
         switch (item.getItemId()) {
-        case StkApp.MENU_ID_MAIN:
-            setResult(StkApp.RESULT_END_SESSION);
+        case StkApp.MENU_ID_END_SESSION:
+            sendResponse(StkAppService.RES_ID_END_SESSION);
             finish();
             return true;
         case StkApp.MENU_ID_HELP:
-            setResult(StkApp.RESULT_HELP);
+            sendResponse(StkAppService.RES_ID_INPUT, "", true);
             finish();
             return true;
         }
@@ -241,118 +241,84 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
 
     public void onTextChanged(CharSequence s, int start, int before, int count) {
         // Reset timeout.
-        mTimeoutWatchDog.reset();
+        startTimeOut();
     }
 
     public void afterTextChanged(Editable s) {
     }
 
-    private void onYesNoButtonClick(boolean yesNo) {
-        Intent data = new Intent();
-        data.putExtra(Util.INPUT_TYPE_KEY, yesNo);
-
-        // End the activity.
-        setResult(StkApp.RESULT_OK, data);
-        finish();
-    }
-
     private boolean verfiyTypedText() {
         // If not enough input was typed in stay on the edit screen.
-        if (mTextIn.getText().length() < mMinTextLength) return false;
+        if (mTextIn.getText().length() < mStkInput.minLen) {
+            return false;
+        }
 
         return true;
     }
 
-    private void configInputDisplay(Bundle extras) {
+    private void cancelTimeOut() {
+        mTimeoutHandler.removeMessages(MSG_ID_TIMEOUT);
+    }
+
+    private void startTimeOut() {
+        cancelTimeOut();
+        mTimeoutHandler.sendMessageDelayed(mTimeoutHandler
+                .obtainMessage(MSG_ID_TIMEOUT), StkApp.UI_TIMEOUT);
+    }
+
+    private void configInputDisplay() {
         TextView numOfCharsView = (TextView) findViewById(R.id.num_of_chars);
         TextView inTypeView = (TextView) findViewById(R.id.input_type);
-        Bundle bundle = extras.getBundle(Util.INPUT_TEXT_ATTRS);
-        Bundle glblAttrs = extras.getBundle(Util.INPUT_GLBL_ATTRS);
-        TextAttribute textAttrs = null;
+
         int inTypeId = R.string.alphabet;
 
         // set the prompt.
-        String prompt = extras.getString(Util.INPUT_PROMPT);
-        if (prompt != null) {
-            mPromptView.setText(prompt);
-        }
-
-        // Unpack text attributes from the bundle.
-        if (bundle != null) textAttrs = Util.unPackTextAttr(bundle);
+        mPromptView.setText(mStkInput.text);
 
         // Set input type (alphabet/digit) info close to the InText form. 
-        if (glblAttrs.getBoolean(Util.INPUT_ATTR_DIGITS)) {
+        if (mStkInput.digitOnly) {
             mTextIn.setKeyListener(StkDigitsKeyListener.getInstance());
             inTypeId = R.string.digits;
-        } 
+        }
         inTypeView.setText(inTypeId);
 
-        if (glblAttrs.getBoolean(Util.INPUT_ATTR_HELP)) {
-            mHelpAvailable = true;
+        if (mStkInput.icon != null) {
+            setFeatureDrawable(Window.FEATURE_LEFT_ICON, new BitmapDrawable(
+                    mStkInput.icon));
         }
 
         // Handle specific global and text attributes.
         switch (mState) {
-        case IN_STATE_TEXT:
-            // Handle text attributes setup for get input.
-            if (textAttrs != null) {
-                // Set font size.
-                float size = mPromptView.getTextSize() * 
-                                getFontSizeFactor(textAttrs.size);
-
-                mPromptView.setTextSize(size);
-
-                // Set prompt to bold.
-                if (textAttrs.bold) {
-                    mPromptView.setTypeface(Typeface.DEFAULT_BOLD);
-                }
-                // Set prompt to italic.
-                if (textAttrs.italic) {
-                    mPromptView.setTypeface(Typeface.create(Typeface.DEFAULT,
-                            Typeface.ITALIC));
-                }
-                // Set text color.
-                mPromptView.setTextColor(textAttrs.color.ordinal());
-            }
-            // Handle global attributes setup.
-            mMinTextLength = glblAttrs.getInt(Util.INPUT_ATTR_MINLEN);
-
-            // Set the maximum number of characters according to the maximum 
-            // input size.
-            int maxTextLength = glblAttrs.getInt(Util.INPUT_ATTR_MAXLEN);
+        case STATE_TEXT:        
+            int maxLen = mStkInput.maxLen;
+            int minLen = mStkInput.minLen;
             mTextIn.setFilters(new InputFilter[] {new InputFilter.LengthFilter(
-                    maxTextLength)});
+                    maxLen)});
  
             // Set number of chars info.
-            String lengthLimit = String.valueOf(mMinTextLength);
-            if (maxTextLength != mMinTextLength) {
-                lengthLimit = mMinTextLength + " - " + maxTextLength;
+            String lengthLimit = String.valueOf(minLen);
+            if (maxLen != minLen) {
+                lengthLimit = minLen + " - " + maxLen;
             }
             numOfCharsView.setText(lengthLimit);
 
-            if (!glblAttrs.getBoolean(Util.INPUT_ATTR_ECHO)) {
+            if (!mStkInput.echo) {
                 mTextIn.setTransformationMethod(PasswordTransformationMethod
                         .getInstance());
             }
             // Set default text if present.
-            String defaultText = extras.getString(Util.INPUT_DEFAULT);
-            if (defaultText != null) {
-                mTextIn.setText(defaultText);
+            if (mStkInput.defaultText != null) {
+                mTextIn.setText(mStkInput.defaultText);
+            } else {
+                // make sure the text is cleared
+                mTextIn.setText("", BufferType.EDITABLE);
             }
 
             break;
-        case IN_STATE_KEY:
+        case STATE_YES_NO:
             // Set display mode - normal / yes-no layout
-            if (glblAttrs.getBoolean(Util.INPUT_ATTR_YES_NO)) {
-                mYesNoLayout.setVisibility(View.VISIBLE);
-                mNormalLayout.setVisibility(View.GONE);
-                break;
-            }
-            // In case of a input key, limit the text in to a single char.
-            mTextIn.setFilters(new InputFilter[] {new InputFilter.LengthFilter(
-                    INKEY_MAX_LIMIT)});
-            mMinTextLength = INKEY_MAX_LIMIT;
-            numOfCharsView.setText(INKEY_MAX_LIMIT_STR);
+            mYesNoLayout.setVisibility(View.VISIBLE);
+            mNormalLayout.setVisibility(View.GONE);
             break;
         }
     }

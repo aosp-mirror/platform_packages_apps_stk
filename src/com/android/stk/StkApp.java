@@ -16,39 +16,36 @@
 
 package com.android.stk;
 
-import android.app.Activity;
 import android.app.Application;
+
 import com.android.internal.telephony.gsm.stk.Duration;
 
 /**
- * Top-level Application class for the Phone app.
+ * Top-level Application class for STK app.
  */
-public class StkApp extends Application {
+abstract class StkApp extends Application {
     // Application constants
     public static final boolean DBG = true;
 
-    // Result values for sub activities started by the main StkActivity.
-    static final int RESULT_OK = Activity.RESULT_OK;
-    static final int RESULT_TIMEDOUT = RESULT_OK + 10;
-    static final int RESULT_BACKWARD = RESULT_OK + 11;
-    static final int RESULT_HELP = RESULT_OK + 12;
-    static final int RESULT_END_SESSION = RESULT_OK + 20;
-
     // Identifiers for option menu items
-    static final int MENU_ID_MAIN = android.view.Menu.FIRST;
-    static final int MENU_ID_HELP = android.view.Menu.FIRST + 1;
+    static final int MENU_ID_END_SESSION = android.view.Menu.FIRST;
+    static final int MENU_ID_BACK = android.view.Menu.FIRST + 1;
+    static final int MENU_ID_HELP = android.view.Menu.FIRST + 2;
 
     // UI timeout, 30 seconds - used for display dialog and activities.
-    static final int UI_TIMEOUT = (20 * 1000);
+    static final int UI_TIMEOUT = (40 * 1000);
 
     // Tone default timeout - 2 seconds
     static final int TONE_DFEAULT_TIMEOUT = (2 * 1000);
 
+    public static final String TAG = "STK App";
+
     /**
-     * This function calculate the time in MS a tone should be played.
+     * This function calculate the time in MS from a duration instance.
+     * returns zero when duration is null.
      */
-    public static int calculateToneDuration(Duration duration) {
-        int timeout = TONE_DFEAULT_TIMEOUT;
+    public static int calculateDurationInMilis(Duration duration) {
+        int timeout = 0;
         if (duration != null) {
             switch (duration.timeUnit) {
             case MINUTE:

@@ -38,7 +38,7 @@
         android:minHeight="?android:attr/listPreferredItemHeight"
 	    android:textAppearance="?android:attr/textAppearanceLarge"
 	    android:gravity="center_vertical"
-	    android:paddingLeft="25dip"
+	    android:layout_marginLeft="9dip"
 	/>
 
 </LinearLayout>
