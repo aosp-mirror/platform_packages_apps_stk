@@ -36,10 +36,9 @@ import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.TextView.BufferType;
 
-import com.android.internal.telephony.gsm.stk.AppInterface;
 import com.android.internal.telephony.gsm.stk.FontSize;
 import com.android.internal.telephony.gsm.stk.Input;
-import com.android.internal.telephony.gsm.stk.Service;
+import com.android.internal.telephony.gsm.stk.StkLog;
 
 /**
  * Display a request for a text input a long with a text edit form.
@@ -57,8 +56,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     private Input mStkInput = null;
 
     // Constants
-    private static final String TAG = "STK Input";
-
     private static final int STATE_TEXT = 1;
     private static final int STATE_YES_NO = 2;
 
@@ -74,6 +71,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     private static final int MSG_ID_TIMEOUT = 1;
 
     Handler mTimeoutHandler = new Handler() {
+        @Override
         public void handleMessage(Message msg) {
             switch(msg.what) {
             case MSG_ID_TIMEOUT:
@@ -220,8 +218,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        AppInterface stkService = Service.getInstance();
-
         switch (item.getItemId()) {
         case StkApp.MENU_ID_END_SESSION:
             sendResponse(StkAppService.RES_ID_END_SESSION);

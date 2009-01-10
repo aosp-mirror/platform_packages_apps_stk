@@ -27,7 +27,6 @@ import com.android.internal.telephony.gsm.stk.Tone;
  * 
  */
 public class TonePlayer {
-    private static final String TAG = "TonePlayer";
     private static final HashMap<Tone, Integer> mToneMap = new HashMap<Tone, Integer>();
 
     static {

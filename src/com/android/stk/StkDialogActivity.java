@@ -39,6 +39,7 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
     TextMessage mTextMsg;
 
     Handler mTimeoutHandler = new Handler() {
+        @Override
         public void handleMessage(Message msg) {
             switch(msg.what) {
             case MSG_ID_TIMEOUT:
@@ -48,9 +49,6 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
             }
         }
     };
-
-    // constants
-    static final String TAG = "STK Dialog";
 
     //keys) for saving the state of the dialog in the icicle
     private static final String TEXT = "text";

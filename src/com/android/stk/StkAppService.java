@@ -101,8 +101,6 @@ public class StkAppService extends Service implements Runnable {
     static final int RES_ID_END_SESSION = 22;
     static final int RES_ID_EXIT = 23;
 
-    private static final String TAG = "StkAppService";
-
     private static final String PACKAGE_NAME = "com.android.stk";
     private static final String MENU_ACTIVITY_NAME = 
                                         PACKAGE_NAME + ".StkMenuActivity";
