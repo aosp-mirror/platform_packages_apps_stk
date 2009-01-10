@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">"Kit di strumenti SIM"</string>
+    <string name="menu_end_session">"Termina sessione"</string>
+    <string name="help">"Guida"</string>
+    <string name="menu_back">"Indietro"</string>
+    <string name="service_name">"Nome servizio"</string>
+    <string name="stk_no_service">"Nessun servizio disponibile"</string>
+    <string name="button_ok">"OK"</string>
+    <string name="button_cancel">"Annulla"</string>
+    <string name="button_yes">"Sì"</string>
+    <string name="button_no">"No"</string>
+    <string name="alphabet">"Caratteri alfabetici"</string>
+    <string name="digits">"Cifre (0-9, *, #, +)"</string>
+    <string name="default_call_setup_msg">"Chiamata in corso..."</string>
+    <!-- no translation found for stk_app_state (18582277302584082) -->
+    <skip />
+    <!-- no translation found for enable_app (3701224550936728203) -->
+    <skip />
+    <!-- no translation found for disable_app (6725081975611415214) -->
+    <skip />
+</resources>
