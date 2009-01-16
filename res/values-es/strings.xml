@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">"Kit de herramientas de aplicaciones SIM"</string>
+    <string name="menu_end_session">"Finalizar sesión"</string>
+    <string name="help">"Ayuda"</string>
+    <string name="menu_back">"Anterior"</string>
+    <string name="service_name">"Nombre de servicio"</string>
+    <string name="stk_no_service">"Ningún servicio disponible"</string>
+    <string name="button_ok">"Aceptar"</string>
+    <string name="button_cancel">"Cancelar"</string>
+    <string name="button_yes">"Sí"</string>
+    <string name="button_no">"No"</string>
+    <string name="alphabet">"Caracteres alfabéticos"</string>
+    <string name="digits">"Caracteres numéricos (0-9, *, #, +)"</string>
+    <string name="default_call_setup_msg">"Llamada en curso..."</string>
+    <string name="stk_app_state">"Estado de la aplicación"</string>
+    <string name="enable_app">"Habilitado"</string>
+    <string name="disable_app">"Inhabilitado"</string>
+</resources>

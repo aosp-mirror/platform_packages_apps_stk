@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">"SIM-toolkit"</string>
+    <string name="menu_end_session">"Sessie beëindigen"</string>
+    <string name="help">"Help"</string>
+    <string name="menu_back">"Terug"</string>
+    <string name="service_name">"Servicenaam"</string>
+    <string name="stk_no_service">"Geen service beschikbaar"</string>
+    <string name="button_ok">"OK"</string>
+    <string name="button_cancel">"Annuleren"</string>
+    <string name="button_yes">"Ja"</string>
+    <string name="button_no">"Nee"</string>
+    <string name="alphabet">"Alfabetten"</string>
+    <string name="digits">"Symbolen (0-9, *, #, +)"</string>
+    <string name="default_call_setup_msg">"Actieve oproep..."</string>
+    <string name="stk_app_state">"Toepassingsstatus"</string>
+    <string name="enable_app">"Ingeschakeld"</string>
+    <string name="disable_app">"Uitgeschakeld"</string>
+</resources>
