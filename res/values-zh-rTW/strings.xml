@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">"SIM 工具箱"</string>
+    <string name="menu_end_session">"結束"</string>
+    <string name="help">"幫助"</string>
+    <string name="menu_back">"上一頁"</string>
+    <string name="service_name">"服務名稱"</string>
+    <string name="stk_no_service">"沒有服務"</string>
+    <string name="button_ok">"確定"</string>
+    <string name="button_cancel">"取消"</string>
+    <string name="button_yes">"是"</string>
+    <string name="button_no">"否"</string>
+    <string name="alphabet">"字母"</string>
+    <string name="digits">"數字與符號 (0-9、*、#、+)"</string>
+    <string name="default_call_setup_msg">"通話中..."</string>
+    <string name="stk_app_state">"應用程式狀態"</string>
+    <string name="enable_app">"已啟用"</string>
+    <string name="disable_app">"已停用"</string>
+</resources>

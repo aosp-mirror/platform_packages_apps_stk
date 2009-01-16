@@ -126,7 +126,7 @@ public class StkAppService extends Service implements Runnable {
     @Override
     public void onCreate() {
         // Initialize members
-        mStkService = com.android.internal.telephony.gsm.stk.Service
+        mStkService = com.android.internal.telephony.gsm.stk.StkService
                 .getInstance();
         if (mStkService == null) {
             StkLog.d(this, " Unable to get Service handle");

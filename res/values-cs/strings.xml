@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">"Nástroje SIM"</string>
+    <string name="menu_end_session">"Ukončit relaci"</string>
+    <string name="help">"Nápověda"</string>
+    <string name="menu_back">"Zpět"</string>
+    <string name="service_name">"Název služby"</string>
+    <string name="stk_no_service">"Žádná služba není dostupná"</string>
+    <string name="button_ok">"OK"</string>
+    <string name="button_cancel">"Zrušit"</string>
+    <string name="button_yes">"Ano"</string>
+    <string name="button_no">"Ne"</string>
+    <string name="alphabet">"Abecedy"</string>
+    <string name="digits">"Číslice (0-9, *, #, +)"</string>
+    <string name="default_call_setup_msg">"Probíhá hovor..."</string>
+    <string name="stk_app_state">"Stav aplikace"</string>
+    <string name="enable_app">"Povoleno"</string>
+    <string name="disable_app">"Vypnuto"</string>
+</resources>
