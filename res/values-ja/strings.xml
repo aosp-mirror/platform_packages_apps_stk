@@ -20,7 +20,7 @@
     <string name="help">"ヘルプ"</string>
     <string name="menu_back">"戻る"</string>
     <string name="service_name">"サービス名"</string>
-    <string name="stk_no_service">"利用できるサービスがありません"</string>
+    <string name="stk_no_service">"利用できるサービスプランがありません"</string>
     <string name="button_ok">"OK"</string>
     <string name="button_cancel">"キャンセル"</string>
     <string name="button_yes">"はい"</string>

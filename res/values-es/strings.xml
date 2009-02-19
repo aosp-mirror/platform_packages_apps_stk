@@ -15,7 +15,7 @@
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name">"Kit de herramientas de aplicaciones SIM"</string>
+    <string name="app_name">"Servicios SIM"</string>
     <string name="menu_end_session">"Finalizar sesión"</string>
     <string name="help">"Ayuda"</string>
     <string name="menu_back">"Anterior"</string>

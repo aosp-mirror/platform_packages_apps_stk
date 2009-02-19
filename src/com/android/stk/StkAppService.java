@@ -73,6 +73,13 @@ public class StkAppService extends Service implements Runnable {
     private BrowserSettings mBrowserSettings = null;
     static StkAppService sInstance = null;
 
+    // Used for setting FLAG_ACTIVITY_NO_USER_ACTION when
+    // creating an intent.
+    private enum InitiatedByUserAction {
+        yes,            // The action was started via a user initiated action
+        unknown,        // Not known for sure if user initated the action
+    }
+
     // constants
     static final String OPCODE = "op";
     static final String CMD_MSG = "cmd message";
@@ -193,8 +200,8 @@ public class StkAppService extends Service implements Runnable {
     /*
      * Package api used by StkMenuActivity to indicate if its on the foreground.
      */
-    void indicateMenuVisibility(boolean visibilty) {
-        mMenuIsVisibile = visibilty;
+    void indicateMenuVisibility(boolean visibility) {
+        mMenuIsVisibile = visibility;
     }
 
     /*
@@ -515,22 +522,46 @@ public class StkAppService extends Service implements Runnable {
         mStkService.onCmdResponse(resMsg);
     }
 
+    /**
+     * Returns 0 or FLAG_ACTIVITY_NO_USER_ACTION, 0 means the user initiated the action.
+     *
+     * @param userAction If the userAction is yes then we always return 0 otherwise
+     * mMenuIsVisible is used to determine what to return. If mMenuIsVisible is true
+     * then we are the foreground app and we'll return 0 as from our perspective a
+     * user action did cause. If it's false than we aren't the foreground app and
+     * FLAG_ACTIVITY_NO_USER_ACTION is returned.
+     * 
+     * @return 0 or FLAG_ACTIVITY_NO_USER_ACTION
+     */
+    private int getFlagActivityNoUserAction(InitiatedByUserAction userAction) {
+        return ((userAction == InitiatedByUserAction.yes) | mMenuIsVisibile) ?
+                                                    0 : Intent.FLAG_ACTIVITY_NO_USER_ACTION;
+    }
+
     private void launchMenuActivity(Menu menu) {
         Intent newIntent = new Intent(Intent.ACTION_VIEW);
-        newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         newIntent.setClassName(PACKAGE_NAME, MENU_ACTIVITY_NAME);
+        int intentFlags = Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_CLEAR_TOP;
         if (menu == null) {
+            // We assume this was initiated by the user pressing the tool kit icon
+            intentFlags |= getFlagActivityNoUserAction(InitiatedByUserAction.yes);
+
             newIntent.putExtra("STATE", StkMenuActivity.STATE_MAIN);
         } else {
+            // We don't know and we'll let getFlagActivityNoUserAction decide.
+            intentFlags |= getFlagActivityNoUserAction(InitiatedByUserAction.unknown);
+
             newIntent.putExtra("STATE", StkMenuActivity.STATE_SECONDARY);
         }
+        newIntent.setFlags(intentFlags);
         mContext.startActivity(newIntent);
     }
 
     private void launchInputActivity() {
         Intent newIntent = new Intent(Intent.ACTION_VIEW);
-        newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                            | getFlagActivityNoUserAction(InitiatedByUserAction.unknown));
         newIntent.setClassName(PACKAGE_NAME, INPUT_ACTIVITY_NAME);
         newIntent.putExtra("INPUT", mCurrentCmd.geInput());
         mContext.startActivity(newIntent);
@@ -541,7 +572,8 @@ public class StkAppService extends Service implements Runnable {
         newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_MULTIPLE_TASK
                 | Intent.FLAG_ACTIVITY_NO_HISTORY
-                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+                | getFlagActivityNoUserAction(InitiatedByUserAction.unknown));
         newIntent.putExtra("TEXT", mCurrentCmd.geTextMessage());
         startActivity(newIntent);
     }
@@ -579,7 +611,8 @@ public class StkAppService extends Service implements Runnable {
         Intent newIntent = new Intent(this, StkDialogActivity.class);
         newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_NO_HISTORY
-                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+                | getFlagActivityNoUserAction(InitiatedByUserAction.unknown));
         newIntent.putExtra("TEXT", msg);
         startActivity(newIntent);
     }
@@ -675,7 +708,8 @@ public class StkAppService extends Service implements Runnable {
         Intent newIntent = new Intent(this, ToneDialog.class);
         newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_NO_HISTORY
-                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+                | getFlagActivityNoUserAction(InitiatedByUserAction.unknown));
         newIntent.putExtra("TEXT", mCurrentCmd.geTextMessage());
         newIntent.putExtra("TONE", mCurrentCmd.getToneSettings());
         startActivity(newIntent);
