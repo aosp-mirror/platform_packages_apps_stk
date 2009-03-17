@@ -15,20 +15,20 @@
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name">"Kit strumenti SIM"</string>
-    <string name="menu_end_session">"Termina sessione"</string>
-    <string name="help">"Guida"</string>
-    <string name="menu_back">"Indietro"</string>
-    <string name="service_name">"Nome servizio"</string>
-    <string name="stk_no_service">"Nessun servizio disponibile"</string>
+    <string name="app_name">"SIM-verktøy"</string>
+    <string name="menu_end_session">"Avslutt økt"</string>
+    <string name="help">"Hjelp"</string>
+    <string name="menu_back">"Tilbake"</string>
+    <string name="service_name">"Tjenestenavn"</string>
+    <string name="stk_no_service">"Ingen tjenester er tilgjengelig"</string>
     <string name="button_ok">"OK"</string>
-    <string name="button_cancel">"Annulla"</string>
-    <string name="button_yes">"Sì"</string>
-    <string name="button_no">"No"</string>
-    <string name="alphabet">"Caratteri alfabetici"</string>
-    <string name="digits">"Cifre (0-9, *, #, +)"</string>
-    <string name="default_call_setup_msg">"Chiamata in corso..."</string>
-    <string name="stk_app_state">"Stato applicazione"</string>
-    <string name="enable_app">"Attivato"</string>
-    <string name="disable_app">"Disattivato"</string>
+    <string name="button_cancel">"Avbryt"</string>
+    <string name="button_yes">"Ja"</string>
+    <string name="button_no">"Nei"</string>
+    <string name="alphabet">"Alfabeter"</string>
+    <string name="digits">"Siffer (0-9, *, #, +)"</string>
+    <string name="default_call_setup_msg">"Anrop underveis…"</string>
+    <string name="stk_app_state">"Applikasjonstilstand"</string>
+    <string name="enable_app">"Aktivert"</string>
+    <string name="disable_app">"Deaktivert"</string>
 </resources>
