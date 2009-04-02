@@ -28,6 +28,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.telephony.TelephonyManager;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -135,7 +136,14 @@ public class StkAppService extends Service implements Runnable {
         // Initialize members
         mStkService = com.android.internal.telephony.gsm.stk.StkService
                 .getInstance();
-        if (mStkService == null) {
+        
+        // WINK:TODO: Teleca, the test for PHONE_TYPE_CDMA is needed so the
+        //            application will boot. This is probably a bug in
+        //            and Wink has been assigned a bug to investigate.
+        //           
+        if ((mStkService == null)
+                && (TelephonyManager.getDefault().getPhoneType()
+                                != TelephonyManager.PHONE_TYPE_CDMA)) {
             StkLog.d(this, " Unable to get Service handle");
             return;
         }
@@ -741,3 +749,4 @@ public class StkAppService extends Service implements Runnable {
         return false;
     }
 }
+
