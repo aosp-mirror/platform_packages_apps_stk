@@ -136,11 +136,11 @@ public class StkAppService extends Service implements Runnable {
         // Initialize members
         mStkService = com.android.internal.telephony.gsm.stk.StkService
                 .getInstance();
-        
-        // WINK:TODO: Teleca, the test for PHONE_TYPE_CDMA is needed so the
-        //            application will boot. This is probably a bug in
-        //            and Wink has been assigned a bug to investigate.
-        //           
+
+        // NOTE mStkService is a singleton and continues to exist even if the GSMPhone is disposed
+        //   after the radio technology change from GSM to CDMA so the PHONE_TYPE_CDMA check is
+        //   needed. In case of switching back from CDMA to GSM the GSMPhone constructor updates
+        //   the instance. (TODO: test).
         if ((mStkService == null)
                 && (TelephonyManager.getDefault().getPhoneType()
                                 != TelephonyManager.PHONE_TYPE_CDMA)) {
@@ -749,4 +749,3 @@ public class StkAppService extends Service implements Runnable {
         return false;
     }
 }
-
