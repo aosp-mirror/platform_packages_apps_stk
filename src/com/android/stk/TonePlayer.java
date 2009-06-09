@@ -24,7 +24,7 @@ import com.android.internal.telephony.gsm.stk.Tone;
 
 /**
  * Class that implements a tones player for the SIM toolkit application.
- * 
+ *
  */
 public class TonePlayer {
     private static final HashMap<Tone, Integer> mToneMap = new HashMap<Tone, Integer>();

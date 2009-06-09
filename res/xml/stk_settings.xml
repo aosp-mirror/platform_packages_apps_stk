@@ -13,18 +13,18 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<PreferenceScreen 
+<PreferenceScreen
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:title="@string/app_name" >
 
-    <PreferenceScreen 
-        android:key="service_name" 
+    <PreferenceScreen
+        android:key="service_name"
         android:title="@string/service_name"
         android:summary="@string/stk_no_service"
         android:persistent="false"/>
 
-    <CheckBoxPreference 
-        android:key="stk_app_enable_disable" 
+    <CheckBoxPreference
+        android:key="stk_app_enable_disable"
         android:title="@string/stk_app_state"
         android:persistent="false"
         android:summaryOn="@string/enable_app"

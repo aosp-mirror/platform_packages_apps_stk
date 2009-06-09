@@ -25,7 +25,7 @@ import android.os.Bundle;
 
 /**
  * Receiver class to get STK intents, broadcasted by telephony layer.
- * 
+ *
  */
 public class StkCmdReceiver extends BroadcastReceiver {
 

@@ -32,7 +32,7 @@ import com.android.internal.telephony.gsm.stk.ToneSettings;
 
 /**
  * Activity used for PLAY TONE command.
- * 
+ *
  */
 public class ToneDialog extends Activity {
     TextMessage toneMsg = null;
@@ -104,7 +104,7 @@ public class ToneDialog extends Activity {
         player.release();
         mVibrator.cancel();
     }
-    
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {

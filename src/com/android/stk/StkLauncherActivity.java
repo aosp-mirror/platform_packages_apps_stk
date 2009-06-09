@@ -21,9 +21,9 @@ import android.content.Intent;
 import android.os.Bundle;
 
 /**
- * Launcher class. Serve as the app's MAIN activity, send an intent to the 
+ * Launcher class. Serve as the app's MAIN activity, send an intent to the
  * StkAppService and finish.
- * 
+ *
  */
 public class StkLauncherActivity extends Activity {
     @Override

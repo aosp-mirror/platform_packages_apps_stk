@@ -4,9 +4,9 @@
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
      You may obtain a copy of the License at
-  
+
           http://www.apache.org/licenses/LICENSE-2.0
-  
+
      Unless required by applicable law or agreed to in writing, software
      distributed under the License is distributed on an "AS IS" BASIS,
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,9 +14,9 @@
      limitations under the License.
 -->
 
- 
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-		package="com.android.stk" 
+		package="com.android.stk"
 		android:sharedUserId="android.uid.phone">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -26,7 +26,7 @@
 		android:clearTaskOnLaunch="true"
 		android:process="com.android.phone">
 
-		<activity android:name="StkLauncherActivity" 
+		<activity android:name="StkLauncherActivity"
 			android:label="@string/app_name"
 			android:enabled="false"	>
 			<intent-filter>
@@ -35,7 +35,7 @@
 			</intent-filter>
 		</activity>
 
-		<activity android:name="StkMenuActivity" 
+		<activity android:name="StkMenuActivity"
              android:launchMode="singleTop">
 	         <intent-filter>
 	             <action android:name="android.intent.action.VIEW" />
@@ -70,7 +70,7 @@
 					android:name="android.intent.category.DEVELOPMENT_PREFERENCE" />
 			</intent-filter>
 		</activity>
-		
+
 		<receiver android:name="com.android.stk.StkCmdReceiver">
             <intent-filter>
                 <action android:name= "android.intent.action.stk.command" />

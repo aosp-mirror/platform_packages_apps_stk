@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -67,7 +67,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     static final float LARGE_FONT_FACTOR = 2;
     static final float SMALL_FONT_FACTOR = (1 / 2);
 
-    // message id for time out 
+    // message id for time out
     private static final int MSG_ID_TIMEOUT = 1;
 
     Handler mTimeoutHandler = new Handler() {
@@ -121,7 +121,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         mPromptView = (TextView) this.findViewById(R.id.prompt);
 
         // Set buttons listeners.
-        Button okButton = (Button) findViewById(R.id.button_ok);     
+        Button okButton = (Button) findViewById(R.id.button_ok);
         Button yesButton = (Button) findViewById(R.id.button_yes);
         Button noButton = (Button) findViewById(R.id.button_no);
 
@@ -132,7 +132,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         mYesNoLayout = findViewById(R.id.yes_no_layout);
         mNormalLayout = findViewById(R.id.normal_layout);
 
-        // Get the calling intent type: text/key, and setup the 
+        // Get the calling intent type: text/key, and setup the
         // display parameters.
         Intent intent = getIntent();
         if (intent != null) {
@@ -271,7 +271,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         // set the prompt.
         mPromptView.setText(mStkInput.text);
 
-        // Set input type (alphabet/digit) info close to the InText form. 
+        // Set input type (alphabet/digit) info close to the InText form.
         if (mStkInput.digitOnly) {
             mTextIn.setKeyListener(StkDigitsKeyListener.getInstance());
             inTypeId = R.string.digits;
@@ -285,12 +285,12 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
 
         // Handle specific global and text attributes.
         switch (mState) {
-        case STATE_TEXT:        
+        case STATE_TEXT:
             int maxLen = mStkInput.maxLen;
             int minLen = mStkInput.minLen;
             mTextIn.setFilters(new InputFilter[] {new InputFilter.LengthFilter(
                     maxLen)});
- 
+
             // Set number of chars info.
             String lengthLimit = String.valueOf(minLen);
             if (maxLen != minLen) {
@@ -320,7 +320,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     }
 
     private float getFontSizeFactor(FontSize size) {
-        final float[] fontSizes = 
+        final float[] fontSizes =
             {NORMAL_FONT_FACTOR, LARGE_FONT_FACTOR, SMALL_FONT_FACTOR};
 
         return fontSizes[size.ordinal()];
