@@ -24,7 +24,7 @@ import android.content.pm.PackageManager;
 
 /**
  * Application installer for SIM Toolkit.
- * 
+ *
  */
 abstract class StkAppInstaller {
     private StkAppInstaller() {}
