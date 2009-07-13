@@ -24,11 +24,11 @@
     <string name="button_ok">"확인"</string>
     <string name="button_cancel">"취소"</string>
     <string name="button_yes">"예"</string>
-    <string name="button_no">"아니오"</string>
+    <string name="button_no">"아니요"</string>
     <string name="alphabet">"영문자"</string>
     <string name="digits">"숫자(0-9, *, #, +)"</string>
     <string name="default_call_setup_msg">"전화 거는 중..."</string>
     <string name="stk_app_state">"응용프로그램 상태"</string>
     <string name="enable_app">"사용"</string>
-    <string name="disable_app">"사용 안 함"</string>
+    <string name="disable_app">"사용 안함"</string>
 </resources>
