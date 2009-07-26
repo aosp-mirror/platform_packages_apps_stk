@@ -32,7 +32,7 @@ import android.widget.TextView;
 
 /**
  * AlretDialog used for DISPLAY TEXT commands.
- * 
+ *
  */
 public class StkDialogActivity extends Activity implements View.OnClickListener {
     // members
@@ -53,7 +53,7 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
     //keys) for saving the state of the dialog in the icicle
     private static final String TEXT = "text";
 
-    // message id for time out 
+    // message id for time out
     private static final int MSG_ID_TIMEOUT = 1;
 
     // buttons id
@@ -85,7 +85,7 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
 
         setTitle(mTextMsg.title);
         if (!(mTextMsg.iconSelfExplanatory && mTextMsg.icon != null)) {
-            mMessageView.setText(mTextMsg.text); 
+            mMessageView.setText(mTextMsg.text);
         }
 
         if (mTextMsg.icon == null) {
@@ -147,7 +147,7 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        
+
         mTextMsg = savedInstanceState.getParcelable(TEXT);
     }
 

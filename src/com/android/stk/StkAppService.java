@@ -28,6 +28,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.telephony.TelephonyManager;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,7 +52,7 @@ import java.util.LinkedList;
 /**
  * SIM toolkit application level service. Interacts with Telephopny messages,
  * application's launch and user input from STK UI elements.
- * 
+ *
  */
 public class StkAppService extends Service implements Runnable {
 
@@ -109,15 +110,15 @@ public class StkAppService extends Service implements Runnable {
     static final int RES_ID_EXIT = 23;
 
     private static final String PACKAGE_NAME = "com.android.stk";
-    private static final String MENU_ACTIVITY_NAME = 
+    private static final String MENU_ACTIVITY_NAME =
                                         PACKAGE_NAME + ".StkMenuActivity";
-    private static final String INPUT_ACTIVITY_NAME = 
+    private static final String INPUT_ACTIVITY_NAME =
                                         PACKAGE_NAME + ".StkInputActivity";
-    
+
     // Notification id used to display Idle Mode text in NotificationManager.
     private static final int STK_NOTIFICATION_ID = 333;
-    
-    // Inner class used for queuing telephony messages (proactive commands, 
+
+    // Inner class used for queuing telephony messages (proactive commands,
     // session end) while the service is busy processing a previous message.
     private class DelayedCmd {
         // members
@@ -135,7 +136,14 @@ public class StkAppService extends Service implements Runnable {
         // Initialize members
         mStkService = com.android.internal.telephony.gsm.stk.StkService
                 .getInstance();
-        if (mStkService == null) {
+
+        // NOTE mStkService is a singleton and continues to exist even if the GSMPhone is disposed
+        //   after the radio technology change from GSM to CDMA so the PHONE_TYPE_CDMA check is
+        //   needed. In case of switching back from CDMA to GSM the GSMPhone constructor updates
+        //   the instance. (TODO: test).
+        if ((mStkService == null)
+                && (TelephonyManager.getDefault().getPhoneType()
+                                != TelephonyManager.PHONE_TYPE_CDMA)) {
             StkLog.d(this, " Unable to get Service handle");
             return;
         }
@@ -249,7 +257,7 @@ public class StkAppService extends Service implements Runnable {
                 // 1. Interactive - user's response is required.
                 // 2. Informative - display a message, no interaction with the user.
                 //
-                // Informative commands can be handled immediately without any delay. 
+                // Informative commands can be handled immediately without any delay.
                 // Interactive commands can't override each other. So if a command
                 // is already in progress, we need to queue the next command until
                 // the user has responded or a timeout expired.
@@ -336,7 +344,7 @@ public class StkAppService extends Service implements Runnable {
     private void handleSessionEnd() {
         mCurrentCmd = mMainCmd;
         lastSelectedItem = null;
-        // In case of SET UP MENU command which removed the app, don't 
+        // In case of SET UP MENU command which removed the app, don't
         // update the current menu member.
         if (mCurrentMenu != null && mMainCmd != null) {
             mCurrentMenu = mMainCmd.getMenu();
@@ -530,7 +538,7 @@ public class StkAppService extends Service implements Runnable {
      * then we are the foreground app and we'll return 0 as from our perspective a
      * user action did cause. If it's false than we aren't the foreground app and
      * FLAG_ACTIVITY_NO_USER_ACTION is returned.
-     * 
+     *
      * @return 0 or FLAG_ACTIVITY_NO_USER_ACTION
      */
     private int getFlagActivityNoUserAction(InitiatedByUserAction userAction) {
@@ -626,7 +634,7 @@ public class StkAppService extends Service implements Runnable {
         intent.setClassName("com.android.browser",
                 "com.android.browser.BrowserActivity");
 
-        // to launch home page, make sure that data Uri is null. 
+        // to launch home page, make sure that data Uri is null.
         Uri data = null;
         if (settings.url != null) {
             data = Uri.parse(settings.url);
@@ -649,7 +657,7 @@ public class StkAppService extends Service implements Runnable {
         // start browser activity
         startActivity(intent);
         // a small delay, let the browser start, before processing the next command.
-        // this is good for scenarios where a related DISPLAY TEXT command is 
+        // this is good for scenarios where a related DISPLAY TEXT command is
         // followed immediately.
         try {
             Thread.sleep(10000);
@@ -730,7 +738,7 @@ public class StkAppService extends Service implements Runnable {
 
     private boolean removeMenu() {
         try {
-            if (mCurrentMenu.items.size() == 1 && 
+            if (mCurrentMenu.items.size() == 1 &&
                 mCurrentMenu.items.get(0) == null) {
                 return true;
             }

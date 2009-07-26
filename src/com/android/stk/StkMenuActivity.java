@@ -36,8 +36,8 @@ import com.android.internal.telephony.gsm.stk.Menu;
 import com.android.internal.telephony.gsm.stk.StkLog;
 
 /**
- * ListActivity used for displaying STK menus. These can be SET UP MENU and 
- * SELECT ITEM menus. This activity is started multiple times with different 
+ * ListActivity used for displaying STK menus. These can be SET UP MENU and
+ * SELECT ITEM menus. This activity is started multiple times with different
  * menu content.
  *
  */
@@ -57,7 +57,7 @@ public class StkMenuActivity extends ListActivity {
     static final int STATE_MAIN = 1;
     static final int STATE_SECONDARY = 2;
 
-    // message id for time out 
+    // message id for time out
     private static final int MSG_ID_TIMEOUT = 1;
 
     Handler mTimeoutHandler = new Handler() {
@@ -78,7 +78,7 @@ public class StkMenuActivity extends ListActivity {
 
         StkLog.d(this, "onCreate");
         // Remove the default title, customized one is used.
-        requestWindowFeature(Window.FEATURE_NO_TITLE);  
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         // Set the layout for this activity.
         setContentView(R.layout.stk_menu_list);
 
@@ -103,7 +103,7 @@ public class StkMenuActivity extends ListActivity {
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
- 
+
         if (!mAcceptUsersInput) {
             return;
         }
@@ -154,7 +154,7 @@ public class StkMenuActivity extends ListActivity {
         displayMenu();
         startTimeOut();
         // whenever this activity is resumed after a sub activity was invoked
-        // (Browser, In call screen) switch back to main state and enable  
+        // (Browser, In call screen) switch back to main state and enable
         // user's input;
         if (!mAcceptUsersInput) {
             mState = STATE_MAIN;
@@ -245,7 +245,7 @@ public class StkMenuActivity extends ListActivity {
         mState = savedInstanceState.getInt("STATE");
         mStkMenu = savedInstanceState.getParcelable("MENU");
     }
-    
+
     private void cancelTimeOut() {
         mTimeoutHandler.removeMessages(MSG_ID_TIMEOUT);
     }
@@ -258,7 +258,7 @@ public class StkMenuActivity extends ListActivity {
                     .obtainMessage(MSG_ID_TIMEOUT), StkApp.UI_TIMEOUT);
         }
     }
-     
+
     // Bind list adapter to the items list.
     private void displayMenu() {
 

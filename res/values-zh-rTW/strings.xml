@@ -17,7 +17,7 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">"SIM 工具箱"</string>
     <string name="menu_end_session">"結束"</string>
-    <string name="help">"幫助"</string>
+    <string name="help">"說明"</string>
     <string name="menu_back">"上一頁"</string>
     <string name="service_name">"服務名稱"</string>
     <string name="stk_no_service">"沒有服務"</string>

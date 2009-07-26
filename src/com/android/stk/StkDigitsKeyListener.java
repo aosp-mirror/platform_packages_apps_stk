@@ -32,7 +32,7 @@ public class StkDigitsKeyListener extends NumberKeyListener {
     public int getInputType() {
         return EditorInfo.TYPE_CLASS_PHONE;
     }
-    
+
     public static StkDigitsKeyListener getInstance() {
         if (sInstance != null) {
             return sInstance;
@@ -43,7 +43,7 @@ public class StkDigitsKeyListener extends NumberKeyListener {
 
     /**
      * The characters that are used.
-     * 
+     *
      * @see KeyEvent#getMatch
      * @see #getAcceptedChars
      */
