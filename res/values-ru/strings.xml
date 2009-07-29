@@ -15,19 +15,19 @@
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name">"Инструментарий SIM"</string>
-    <string name="menu_end_session">"Завершить сеанс"</string>
+    <string name="app_name">"Инструменты SIM-карты"</string>
+    <string name="menu_end_session">"Закончить сеанс"</string>
     <string name="help">"Справка"</string>
     <string name="menu_back">"Назад"</string>
     <string name="service_name">"Название службы"</string>
-    <string name="stk_no_service">"Нет обслуживания"</string>
+    <string name="stk_no_service">"Вне зоны обслуживания"</string>
     <string name="button_ok">"ОК"</string>
     <string name="button_cancel">"Отмена"</string>
     <string name="button_yes">"Да"</string>
     <string name="button_no">"Нет"</string>
-    <string name="alphabet">"Буквы"</string>
+    <string name="alphabet">"Алфавит"</string>
     <string name="digits">"Цифры (0-9, *, #, +)"</string>
-    <string name="default_call_setup_msg">"Идет вызов..."</string>
+    <string name="default_call_setup_msg">"Посылка вызова..."</string>
     <string name="stk_app_state">"Состояние приложения"</string>
     <string name="enable_app">"Включено"</string>
     <string name="disable_app">"Отключено"</string>

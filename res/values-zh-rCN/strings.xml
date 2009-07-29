@@ -20,7 +20,7 @@
     <string name="help">"帮助"</string>
     <string name="menu_back">"返回"</string>
     <string name="service_name">"服务名称"</string>
-    <string name="stk_no_service">"没有可用的服务"</string>
+    <string name="stk_no_service">"无服务可用"</string>
     <string name="button_ok">"确定"</string>
     <string name="button_cancel">"取消"</string>
     <string name="button_yes">"是"</string>
@@ -30,5 +30,5 @@
     <string name="default_call_setup_msg">"正在通话..."</string>
     <string name="stk_app_state">"应用程序状态"</string>
     <string name="enable_app">"已启用"</string>
-    <string name="disable_app">"已禁用"</string>
+    <string name="disable_app">"已停用"</string>
 </resources>
