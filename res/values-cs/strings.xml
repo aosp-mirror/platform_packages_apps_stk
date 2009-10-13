@@ -15,20 +15,20 @@
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name">"Nástroje SIM"</string>
-    <string name="menu_end_session">"Ukončit relaci"</string>
-    <string name="help">"Nápověda"</string>
-    <string name="menu_back">"Zpět"</string>
-    <string name="service_name">"Název služby"</string>
-    <string name="stk_no_service">"Žádná služba není dostupná"</string>
-    <string name="button_ok">"OK"</string>
-    <string name="button_cancel">"Zrušit"</string>
-    <string name="button_yes">"Ano"</string>
-    <string name="button_no">"Ne"</string>
-    <string name="alphabet">"Abecedy"</string>
-    <string name="digits">"Číslice (0-9, *, #, +)"</string>
-    <string name="default_call_setup_msg">"Probíhá hovor..."</string>
-    <string name="stk_app_state">"Stav aplikace"</string>
-    <string name="enable_app">"Povoleno"</string>
-    <string name="disable_app">"Vypnuto"</string>
+    <string name="app_name" msgid="8396461461738434341">"Nástroje SIM"</string>
+    <string name="menu_end_session" msgid="7368541737750982217">"Ukončit relaci"</string>
+    <string name="help" msgid="9209980881219397319">"Nápověda"</string>
+    <string name="menu_back" msgid="301227740977453364">"Zpět"</string>
+    <string name="service_name" msgid="6860303747999592491">"Název služby"</string>
+    <string name="stk_no_service" msgid="5427773116839809131">"Žádná služba není dostupná"</string>
+    <string name="button_ok" msgid="5760722312558549555">"OK"</string>
+    <string name="button_cancel" msgid="1997847915560800261">"Zrušit"</string>
+    <string name="button_yes" msgid="624420260648337203">"Ano"</string>
+    <string name="button_no" msgid="1824959157582605627">"Ne"</string>
+    <string name="alphabet" msgid="1583185545938805861">"Abecedy"</string>
+    <string name="digits" msgid="1746796679021682388">"Číslice (0-9, *, #, +)"</string>
+    <string name="default_call_setup_msg" msgid="7960194995759849940">"Probíhá hovor..."</string>
+    <string name="stk_app_state" msgid="18582277302584082">"Stav aplikace"</string>
+    <string name="enable_app" msgid="3701224550936728203">"Povoleno"</string>
+    <string name="disable_app" msgid="6725081975611415214">"Vypnuto"</string>
 </resources>
