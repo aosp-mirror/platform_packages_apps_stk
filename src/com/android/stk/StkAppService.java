@@ -161,7 +161,14 @@ public class StkAppService extends Service implements Runnable {
     public void onStart(Intent intent, int startId) {
         waitForLooper();
 
+        // onStart() method can be passed a null intent
+        // TODO: replace onStart() with onStartCommand()
+        if (intent == null) {
+            return;
+        }
+
         Bundle args = intent.getExtras();
+
         if (args == null) {
             return;
         }
