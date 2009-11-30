@@ -528,7 +528,17 @@ public class StkAppService extends Service implements Runnable {
             break;
         case RES_ID_TIMEOUT:
             StkLog.d(this, "RES_ID_TIMEOUT");
-            resMsg.setResultCode(ResultCode.NO_RESPONSE_FROM_USER);
+            // GCF test-case 27.22.4.1.1 Expected Sequence 1.5 (DISPLAY TEXT,
+            // Clear message after delay, successful) expects result code OK.
+            // If the command qualifier specifies no user response is required
+            // then send OK instead of NO_RESPONSE_FROM_USER
+            if ((mCurrentCmd.getCmdType().value() == AppInterface.CommandType.DISPLAY_TEXT
+                    .value())
+                    && (mCurrentCmd.geTextMessage().userClear == false)) {
+                resMsg.setResultCode(ResultCode.OK);
+            } else {
+                resMsg.setResultCode(ResultCode.NO_RESPONSE_FROM_USER);
+            }
             break;
         default:
             StkLog.d(this, "Unknown result id");
