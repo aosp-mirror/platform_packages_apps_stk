@@ -16,17 +16,17 @@
 
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical" >
 
     <LinearLayout android:id="@+id/messagePanel"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical">
         <ScrollView android:id="@+id/scrollView"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="2dip"
             android:paddingBottom="12dip"
@@ -34,19 +34,19 @@
             android:paddingRight="10dip">
             <TextView android:id="@+id/dialog_message"
                 style="?android:attr/textAppearanceMedium"
-                android:layout_width="fill_parent"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="5dip" />
         </ScrollView>
     </LinearLayout>
 
 	<LinearLayout android:id="@+id/buttonPanel"
-	    android:layout_width="fill_parent"
+	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
 	    android:minHeight="54dip"
 	    android:orientation="vertical" >
 	    <LinearLayout
-	        android:layout_width="fill_parent"
+	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:orientation="horizontal"
             android:background="@color/ltgrey"

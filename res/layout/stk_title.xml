@@ -15,13 +15,13 @@
 -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
 	android:orientation="vertical"
 	android:fitsSystemWindows="true">
 
 	<LinearLayout android:id="@+id/stk_title"
-		android:layout_width="fill_parent"
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:orientation="horizontal"
 		android:layout_centerVertical="true"
@@ -44,7 +44,7 @@
 
 			<TextView android:id="@+id/title_text"
 				android:gravity="center_vertical"
-				android:layout_width="fill_parent"
+				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				style="@android:style/TextAppearance.WindowTitle" />
         </LinearLayout>
@@ -67,7 +67,7 @@
 	</LinearLayout>
 
 	<FrameLayout android:id="@android:id/content"
-		android:layout_width="fill_parent"
+		android:layout_width="match_parent"
 		android:layout_height="0dip"
 		android:layout_weight="1"
 		android:foregroundGravity="fill_horizontal|top"
