@@ -16,7 +16,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name" msgid="8396461461738434341">"SIM Toolkit"</string>
-    <string name="menu_end_session" msgid="7368541737750982217">"Afslut session"</string>
+    <string name="menu_end_session" msgid="7368541737750982217">"Afslut sessionen"</string>
     <string name="help" msgid="9209980881219397319">"Hjælp"</string>
     <string name="menu_back" msgid="301227740977453364">"Tilbage"</string>
     <string name="service_name" msgid="6860303747999592491">"Tjenestenavn"</string>
