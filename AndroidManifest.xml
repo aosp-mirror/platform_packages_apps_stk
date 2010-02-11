@@ -19,6 +19,8 @@
 		package="com.android.stk"
 		android:sharedUserId="android.uid.phone">
 
+    <original-package android:name="com.android.stk" />
+
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
 	<application android:icon="@drawable/ic_launcher_sim_toolkit"
