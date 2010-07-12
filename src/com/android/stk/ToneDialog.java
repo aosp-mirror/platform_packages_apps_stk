@@ -27,8 +27,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.android.internal.telephony.gsm.stk.TextMessage;
-import com.android.internal.telephony.gsm.stk.ToneSettings;
+import com.android.internal.telephony.cat.TextMessage;
+import com.android.internal.telephony.cat.ToneSettings;
 
 /**
  * Activity used for PLAY TONE command.

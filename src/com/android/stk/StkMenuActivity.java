@@ -31,9 +31,9 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.android.internal.telephony.gsm.stk.Item;
-import com.android.internal.telephony.gsm.stk.Menu;
-import com.android.internal.telephony.gsm.stk.StkLog;
+import com.android.internal.telephony.cat.Item;
+import com.android.internal.telephony.cat.Menu;
+import com.android.internal.telephony.cat.CatLog;
 
 /**
  * ListActivity used for displaying STK menus. These can be SET UP MENU and
@@ -76,7 +76,7 @@ public class StkMenuActivity extends ListActivity {
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
-        StkLog.d(this, "onCreate");
+        CatLog.d(this, "onCreate");
         // Remove the default title, customized one is used.
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         // Set the layout for this activity.
@@ -95,7 +95,7 @@ public class StkMenuActivity extends ListActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-        StkLog.d(this, "onNewIntent");
+        CatLog.d(this, "onNewIntent");
         initFromIntent(intent);
         mAcceptUsersInput = true;
     }
@@ -177,7 +177,7 @@ public class StkMenuActivity extends ListActivity {
     public void onDestroy() {
         super.onDestroy();
 
-        StkLog.d(this, "onDestroy");
+        CatLog.d(this, "onDestroy");
     }
 
     @Override
@@ -306,11 +306,11 @@ public class StkMenuActivity extends ListActivity {
                 item = mStkMenu.items.get(position);
             } catch (IndexOutOfBoundsException e) {
                 if (StkApp.DBG) {
-                    StkLog.d(this, "Invalid menu");
+                    CatLog.d(this, "Invalid menu");
                 }
             } catch (NullPointerException e) {
                 if (StkApp.DBG) {
-                    StkLog.d(this, "Invalid menu");
+                    CatLog.d(this, "Invalid menu");
                 }
             }
         }

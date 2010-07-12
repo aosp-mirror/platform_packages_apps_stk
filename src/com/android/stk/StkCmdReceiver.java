@@ -16,7 +16,7 @@
 
 package com.android.stk;
 
-import com.android.internal.telephony.gsm.stk.AppInterface;
+import com.android.internal.telephony.cat.AppInterface;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -33,9 +33,9 @@ public class StkCmdReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
 
-        if (action.equals(AppInterface.STK_CMD_ACTION)) {
+        if (action.equals(AppInterface.CAT_CMD_ACTION)) {
             handleCommandMessage(context, intent);
-        } else if (action.equals(AppInterface.STK_SESSION_END_ACTION)) {
+        } else if (action.equals(AppInterface.CAT_SESSION_END_ACTION)) {
             handleSessionEnd(context, intent);
         }
     }

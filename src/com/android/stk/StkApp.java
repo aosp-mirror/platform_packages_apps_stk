@@ -18,7 +18,7 @@ package com.android.stk;
 
 import android.app.Application;
 
-import com.android.internal.telephony.gsm.stk.Duration;
+import com.android.internal.telephony.cat.Duration;
 
 /**
  * Top-level Application class for STK app.

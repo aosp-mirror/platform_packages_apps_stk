@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 import android.media.AudioManager;
 import android.media.ToneGenerator;
-import com.android.internal.telephony.gsm.stk.Tone;
+import com.android.internal.telephony.cat.Tone;
 
 /**
  * Class that implements a tones player for the SIM toolkit application.

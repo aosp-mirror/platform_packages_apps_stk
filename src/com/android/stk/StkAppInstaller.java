@@ -16,7 +16,7 @@
 
 package com.android.stk;
 
-import com.android.internal.telephony.gsm.stk.StkLog;
+import com.android.internal.telephony.cat.CatLog;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -55,7 +55,7 @@ abstract class StkAppInstaller {
             pm.setComponentEnabledSetting(cName, state,
                     PackageManager.DONT_KILL_APP);
         } catch (Exception e) {
-            StkLog.d("StkAppInstaller", "Could not change STK app state");
+            CatLog.d("StkAppInstaller", "Could not change STK app state");
         }
     }
 }

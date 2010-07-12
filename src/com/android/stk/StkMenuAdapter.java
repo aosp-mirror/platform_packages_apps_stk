@@ -16,7 +16,7 @@
 
 package com.android.stk;
 
-import com.android.internal.telephony.gsm.stk.Item;
+import com.android.internal.telephony.cat.Item;
 
 import android.content.Context;
 import android.view.LayoutInflater;

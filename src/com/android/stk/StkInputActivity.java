@@ -36,9 +36,8 @@ import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.TextView.BufferType;
 
-import com.android.internal.telephony.gsm.stk.FontSize;
-import com.android.internal.telephony.gsm.stk.Input;
-import com.android.internal.telephony.gsm.stk.StkLog;
+import com.android.internal.telephony.cat.FontSize;
+import com.android.internal.telephony.cat.Input;
 
 /**
  * Display a request for a text input a long with a text edit form.
