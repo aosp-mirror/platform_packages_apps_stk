@@ -40,6 +40,7 @@ import android.widget.Toast;
 import com.android.internal.telephony.cat.AppInterface;
 import com.android.internal.telephony.cat.Menu;
 import com.android.internal.telephony.cat.Item;
+import com.android.internal.telephony.cat.Input;
 import com.android.internal.telephony.cat.ResultCode;
 import com.android.internal.telephony.cat.CatCmdMessage;
 import com.android.internal.telephony.cat.CatCmdMessage.BrowserSettings;
@@ -477,7 +478,8 @@ public class StkAppService extends Service implements Runnable {
         case RES_ID_INPUT:
             CatLog.d(this, "RES_ID_INPUT");
             String input = args.getString(INPUT);
-            if (mCurrentCmd.geInput().yesNo) {
+            Input cmdInput = mCurrentCmd.geInput();
+            if (cmdInput != null && cmdInput.yesNo) {
                 boolean yesNoSelection = input
                         .equals(StkInputActivity.YES_STR_RESPONSE);
                 resMsg.setYesNo(yesNoSelection);
