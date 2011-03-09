@@ -52,7 +52,7 @@ abstract class StkApp extends Application {
                 timeout = 1000 * 60;
                 break;
             case TENTH_SECOND:
-                timeout = 1000 * 10;
+                timeout = 1000 / 10;
                 break;
             case SECOND:
             default:
