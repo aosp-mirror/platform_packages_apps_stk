@@ -648,25 +648,30 @@ public class StkAppService extends Service implements Runnable {
         if (settings == null) {
             return;
         }
-        // Set browser launch mode
-        Intent intent = new Intent();
-        intent.setClassName("com.android.browser",
-                "com.android.browser.BrowserActivity");
 
-        // to launch home page, make sure that data Uri is null.
-        Uri data = null;
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+
+        Uri data;
         if (settings.url != null) {
             data = Uri.parse(settings.url);
+        } else {
+            // If no URL specified, just bring up the "home page".
+            //
+            // (Note we need to specify *something* in the intent's data field
+            // here, since if you fire off a VIEW intent with no data at all
+            // you'll get an activity chooser rather than the browser.  There's
+            // no specific URI that means "use the default home page", so
+            // instead let's just explicitly bring up http://google.com.)
+            data = Uri.parse("http://google.com/");
         }
         intent.setData(data);
+
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         switch (settings.mode) {
         case USE_EXISTING_BROWSER:
-            intent.setAction(Intent.ACTION_VIEW);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             break;
         case LAUNCH_NEW_BROWSER:
-            intent.setAction(Intent.ACTION_VIEW);
             intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
             break;
         case LAUNCH_IF_NOT_ALREADY_LAUNCHED:
