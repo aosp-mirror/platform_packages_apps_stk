@@ -656,7 +656,23 @@ public class StkAppService extends Service implements Runnable {
         // to launch home page, make sure that data Uri is null.
         Uri data = null;
         if (settings.url != null) {
-            data = Uri.parse(settings.url);
+            CatLog.d(this, "settings.url = " + settings.url);
+            if (settings.url.startsWith("http://")) {
+                data = Uri.parse(settings.url);
+            } else {
+                String modifiedUrl = "http://" + settings.url;
+                CatLog.d(this, "modifiedUrl = " + modifiedUrl);
+                data = Uri.parse(modifiedUrl);
+            }
+        } else {
+            // If no URL specified, just bring up the "home page".
+            //
+            // (Note we need to specify *something* in the intent's data field
+            // here, since if you fire off a VIEW intent with no data at all
+            // you'll get an activity chooser rather than the browser.  There's
+            // no specific URI that means "use the default home page", so
+            // instead let's just explicitly bring up http://google.com.)
+            data = Uri.parse("http://google.com/");
         }
         intent.setData(data);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
