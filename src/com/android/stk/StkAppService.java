@@ -653,7 +653,14 @@ public class StkAppService extends Service implements Runnable {
 
         Uri data;
         if (settings.url != null) {
-            data = Uri.parse(settings.url);
+            CatLog.d(this, "settings.url = " + settings.url);
+            if (settings.url.startsWith("http://")) {
+                data = Uri.parse(settings.url);
+            } else {
+                String modifiedUrl = "http://" + settings.url;
+                CatLog.d(this, "modifiedUrl = " + modifiedUrl);
+                data = Uri.parse(modifiedUrl);
+            }
         } else {
             // If no URL specified, just bring up the "home page".
             //
