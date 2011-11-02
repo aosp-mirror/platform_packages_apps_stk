@@ -703,6 +703,10 @@ public class StkAppService extends Service implements Runnable {
 
     private void launchIdleText() {
         TextMessage msg = mCurrentCmd.geTextMessage();
+        if (msg == null) {
+            CatLog.d(this, "mCurrentCmd.getTextMessage is NULL");
+            return;
+        }
         if (msg.text == null) {
             mNotificationManager.cancel(STK_NOTIFICATION_ID);
         } else {
