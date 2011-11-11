@@ -657,7 +657,7 @@ public class StkAppService extends Service implements Runnable {
         Uri data = null;
         if (settings.url != null) {
             CatLog.d(this, "settings.url = " + settings.url);
-            if (settings.url.startsWith("http://")) {
+            if ((settings.url.startsWith("http://") || (settings.url.startsWith("https://")))) {
                 data = Uri.parse(settings.url);
             } else {
                 String modifiedUrl = "http://" + settings.url;
@@ -714,8 +714,10 @@ public class StkAppService extends Service implements Runnable {
 
     private void launchIdleText() {
         TextMessage msg = mCurrentCmd.geTextMessage();
+
         if (msg == null) {
-            CatLog.d(this, "mCurrentCmd.getTextMessage is NULL");
+            CatLog.d(this, "mCurrent.getTextMessage is NULL");
+            mNotificationManager.cancel(STK_NOTIFICATION_ID);
             return;
         }
         if (msg.text == null) {
