@@ -648,13 +648,10 @@ public class StkAppService extends Service implements Runnable {
         if (settings == null) {
             return;
         }
-        // Set browser launch mode
-        Intent intent = new Intent();
-        intent.setClassName("com.android.browser",
-                "com.android.browser.BrowserActivity");
 
-        // to launch home page, make sure that data Uri is null.
-        Uri data = null;
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+
+        Uri data;
         if (settings.url != null) {
             CatLog.d(this, "settings.url = " + settings.url);
             if ((settings.url.startsWith("http://") || (settings.url.startsWith("https://")))) {
@@ -675,14 +672,13 @@ public class StkAppService extends Service implements Runnable {
             data = Uri.parse("http://google.com/");
         }
         intent.setData(data);
+
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         switch (settings.mode) {
         case USE_EXISTING_BROWSER:
-            intent.setAction(Intent.ACTION_VIEW);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             break;
         case LAUNCH_NEW_BROWSER:
-            intent.setAction(Intent.ACTION_VIEW);
             intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
             break;
         case LAUNCH_IF_NOT_ALREADY_LAUNCHED:
