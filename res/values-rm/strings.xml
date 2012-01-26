@@ -32,4 +32,18 @@
     <string name="stk_app_state" msgid="18582277302584082">"Status da l\'applicaziun"</string>
     <string name="enable_app" msgid="3701224550936728203">"Activà"</string>
     <string name="disable_app" msgid="6725081975611415214">"Deactivà"</string>
+    <!-- no translation found for stk_dialog_title (6954825385456886726) -->
+    <skip />
+    <!-- no translation found for default_open_channel_msg (2216070254100295924) -->
+    <skip />
+    <!-- no translation found for default_send_data_msg (6011219698689931272) -->
+    <skip />
+    <!-- no translation found for default_receive_data_msg (618096941772010682) -->
+    <skip />
+    <!-- no translation found for default_close_channel_msg (765364262263839824) -->
+    <skip />
+    <!-- no translation found for stk_dialog_accept (8498901537508923727) -->
+    <skip />
+    <!-- no translation found for stk_dialog_reject (921848059485746796) -->
+    <skip />
 </resources>
