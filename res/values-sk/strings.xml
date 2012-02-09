@@ -32,4 +32,11 @@
     <string name="stk_app_state" msgid="18582277302584082">"Stav aplikácie"</string>
     <string name="enable_app" msgid="3701224550936728203">"Povolené"</string>
     <string name="disable_app" msgid="6725081975611415214">"Zakázané"</string>
+    <string name="stk_dialog_title" msgid="6954825385456886726">"Nástroje SIM"</string>
+    <string name="default_open_channel_msg" msgid="2216070254100295924">"Otvoriť kanál?"</string>
+    <string name="default_send_data_msg" msgid="6011219698689931272">"Prebieha odosielanie údajov"</string>
+    <string name="default_receive_data_msg" msgid="618096941772010682">"Prebieha získavanie údajov"</string>
+    <string name="default_close_channel_msg" msgid="765364262263839824">"Kanál bol uzavretý"</string>
+    <string name="stk_dialog_accept" msgid="8498901537508923727">"ÁNO"</string>
+    <string name="stk_dialog_reject" msgid="921848059485746796">"NIE"</string>
 </resources>
