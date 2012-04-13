@@ -54,7 +54,7 @@ public class ToneDialog extends Activity {
         }
     };
 
-    Vibrator mVibrator = new Vibrator();
+    Vibrator mVibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
 
     // Message id to signal tone duration timeout.
     private static final int MSG_ID_STOP_TONE = 0xda;
