@@ -469,7 +469,10 @@ public class StkAppService extends Service implements Runnable {
                     break;
                 }
             }
-            launchTransientEventMessage();
+            /*
+             * Display indication in the form of a toast to the user if required.
+             */
+            launchEventMessage();
             break;
         }
 
@@ -499,6 +502,7 @@ public class StkAppService extends Service implements Runnable {
 
         // set result code
         boolean helpRequired = args.getBoolean(HELP, false);
+        boolean confirmed    = false;
 
         switch(args.getInt(RES_ID)) {
         case RES_ID_MENU_SELECTION:
@@ -536,7 +540,7 @@ public class StkAppService extends Service implements Runnable {
             break;
         case RES_ID_CONFIRM:
             CatLog.d(this, "RES_ID_CONFIRM");
-            boolean confirmed = args.getBoolean(CONFIRMATION);
+            confirmed = args.getBoolean(CONFIRMATION);
             switch (mCurrentCmd.getCmdType()) {
             case DISPLAY_TEXT:
                 resMsg.setResultCode(confirmed ? ResultCode.OK
@@ -590,12 +594,19 @@ public class StkAppService extends Service implements Runnable {
             switch (choice) {
                 case YES:
                     resMsg.setResultCode(ResultCode.OK);
+                    confirmed = true;
                     break;
                 case NO:
                     resMsg.setResultCode(ResultCode.USER_NOT_ACCEPT);
                     break;
             }
+
+            if (mCurrentCmd.getCmdType().value() == AppInterface.CommandType.OPEN_CHANNEL
+                    .value()) {
+                resMsg.setConfirmation(confirmed);
+            }
             break;
+
         default:
             CatLog.d(this, "Unknown result id");
             return;
