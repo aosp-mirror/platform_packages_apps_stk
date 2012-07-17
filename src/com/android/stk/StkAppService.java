@@ -144,11 +144,6 @@ public class StkAppService extends Service implements Runnable {
     @Override
     public void onCreate() {
         // Initialize members
-        // This can return null if StkService is not yet instantiated, but it's ok
-        // If this is null we will do getInstance before we need to use this
-        mStkService = com.android.internal.telephony.cat.CatService
-                .getInstance();
-
         mCmdsQ = new LinkedList<DelayedCmd>();
         Thread serviceThread = new Thread(null, this, "Stk App Service");
         serviceThread.start();
@@ -160,8 +155,17 @@ public class StkAppService extends Service implements Runnable {
 
     @Override
     public void onStart(Intent intent, int startId) {
-        waitForLooper();
 
+        mStkService = com.android.internal.telephony.cat.CatService
+                .getInstance();
+
+        if (mStkService == null) {
+            stopSelf();
+            CatLog.d(this, " Unable to get Service handle");
+            return;
+        }
+
+        waitForLooper();
         // onStart() method can be passed a null intent
         // TODO: replace onStart() with onStartCommand()
         if (intent == null) {
