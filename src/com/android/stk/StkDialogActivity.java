@@ -112,17 +112,16 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
         switch (v.getId()) {
         case OK_BUTTON:
             CatLog.d(LOG_TAG, "OK Clicked!, mSlotId: " + mSlotId);
-            sendResponse(StkAppService.RES_ID_CONFIRM, true);
             cancelTimeOut();
-            finish();
+            sendResponse(StkAppService.RES_ID_CONFIRM, true);
             break;
         case CANCEL_BUTTON:
             CatLog.d(LOG_TAG, "Cancel Clicked!, mSlotId: " + mSlotId);
-            sendResponse(StkAppService.RES_ID_CONFIRM, false);
             cancelTimeOut();
-            finish();
+            sendResponse(StkAppService.RES_ID_CONFIRM, false);
             break;
         }
+        finish();
     }
 
     @Override
@@ -169,7 +168,16 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
         super.onPause();
         CatLog.d(LOG_TAG, "onPause, sim id: " + mSlotId);
         appService.setDisplayTextDlgVisibility(false, mSlotId);
-        cancelTimeOut();
+
+        /*
+         * do not cancel the timer here cancelTimeOut(). If any higher/lower
+         * priority events such as incoming call, new sms, screen off intent,
+         * notification alerts, user actions such as 'User moving to another activtiy'
+         * etc.. occur during Display Text ongoing session,
+         * this activity would receive 'onPause()' event resulting in
+         * cancellation of the timer. As a result no terminal response is
+         * sent to the card.
+         */
     }
 
     @Override
