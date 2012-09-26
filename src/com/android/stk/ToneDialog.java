@@ -55,7 +55,7 @@ public class ToneDialog extends Activity {
         }
     };
 
-    Vibrator mVibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
+    Vibrator mVibrator;
 
     // Message id to signal tone duration timeout.
     private static final int MSG_ID_STOP_TONE = 0xda;
@@ -64,7 +64,9 @@ public class ToneDialog extends Activity {
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
-       initFromIntent(getIntent());
+        mVibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
+
+        initFromIntent(getIntent());
 
         // remove window title
         View title = findViewById(com.android.internal.R.id.title);
