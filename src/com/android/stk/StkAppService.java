@@ -547,7 +547,7 @@ public class StkAppService extends Service implements Runnable {
                 resMsg.setResultCode(ResultCode.OK);
                 resMsg.setConfirmation(confirmed);
                 if (confirmed) {
-                    launchCallMsg();
+                    launchEventMessage(mCurrentCmd.getCallSettings().callMsg);
                 }
                 break;
             }
@@ -653,7 +653,10 @@ public class StkAppService extends Service implements Runnable {
     }
 
     private void launchEventMessage() {
-        TextMessage msg = mCurrentCmd.geTextMessage();
+        launchEventMessage(mCurrentCmd.geTextMessage());
+    }
+
+    private void launchEventMessage(TextMessage msg) {
         if (msg == null || msg.text == null) {
             return;
         }
@@ -740,19 +743,6 @@ public class StkAppService extends Service implements Runnable {
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {}
-    }
-
-    private void launchCallMsg() {
-        TextMessage msg = mCurrentCmd.getCallSettings().callMsg;
-        if (msg.text == null || msg.text.length() == 0) {
-            return;
-        }
-        msg.title = lastSelectedItem;
-
-        Toast toast = Toast.makeText(mContext.getApplicationContext(), msg.text,
-                Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.BOTTOM, 0, 0);
-        toast.show();
     }
 
     private void launchIdleText() {
