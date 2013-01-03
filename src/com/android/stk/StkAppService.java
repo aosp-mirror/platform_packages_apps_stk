@@ -388,6 +388,7 @@ public class StkAppService extends Service implements Runnable {
         case DISPLAY_TEXT:
             TextMessage msg = cmdMsg.geTextMessage();
             responseNeeded = msg.responseNeeded;
+            waitForUsersResponse = msg.responseNeeded;
             if (lastSelectedItem != null) {
                 msg.title = lastSelectedItem;
             } else if (mMainCmd != null){
@@ -644,7 +645,7 @@ public class StkAppService extends Service implements Runnable {
     private void launchTextDialog() {
         Intent newIntent = new Intent(this, StkDialogActivity.class);
         newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                | Intent.FLAG_ACTIVITY_CLEAR_TASK
                 | Intent.FLAG_ACTIVITY_NO_HISTORY
                 | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
                 | getFlagActivityNoUserAction(InitiatedByUserAction.unknown));
