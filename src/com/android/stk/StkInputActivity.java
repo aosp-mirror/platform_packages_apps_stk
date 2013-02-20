@@ -256,9 +256,14 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     }
 
     private void startTimeOut() {
+        int duration = StkApp.calculateDurationInMilis(mStkInput.duration);
+
+        if (duration <= 0) {
+            duration = StkApp.UI_TIMEOUT;
+        }
         cancelTimeOut();
         mTimeoutHandler.sendMessageDelayed(mTimeoutHandler
-                .obtainMessage(MSG_ID_TIMEOUT), StkApp.UI_TIMEOUT);
+                .obtainMessage(MSG_ID_TIMEOUT), duration);
     }
 
     private void configInputDisplay() {
