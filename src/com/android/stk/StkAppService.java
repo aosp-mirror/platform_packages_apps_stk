@@ -24,6 +24,8 @@ import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -761,33 +763,30 @@ public class StkAppService extends Service implements Runnable {
         if (msg.text == null) {
             mNotificationManager.cancel(STK_NOTIFICATION_ID);
         } else {
-            Notification notification = new Notification();
-            RemoteViews contentView = new RemoteViews(
-                    PACKAGE_NAME,
-                    com.android.internal.R.layout.status_bar_latest_event_content);
-
-            notification.flags |= Notification.FLAG_NO_CLEAR;
-            notification.icon = com.android.internal.R.drawable.stat_notify_sim_toolkit;
-            // Set text and icon for the status bar and notification body.
-            if (!msg.iconSelfExplanatory) {
-                notification.tickerText = msg.text;
-                contentView.setTextViewText(com.android.internal.R.id.text,
-                        msg.text);
-            }
-            if (msg.icon != null) {
-                contentView.setImageViewBitmap(com.android.internal.R.id.icon,
-                        msg.icon);
-            } else {
-                contentView
-                        .setImageViewResource(
-                                com.android.internal.R.id.icon,
-                                com.android.internal.R.drawable.stat_notify_sim_toolkit);
-            }
-            notification.contentView = contentView;
-            notification.contentIntent = PendingIntent.getService(mContext, 0,
+            PendingIntent pendingIntent = PendingIntent.getService(mContext, 0,
                     new Intent(mContext, StkAppService.class), 0);
 
-            mNotificationManager.notify(STK_NOTIFICATION_ID, notification);
+            final Notification.Builder notificationBuilder = new Notification.Builder(
+                    StkAppService.this);
+            notificationBuilder.setContentTitle("");
+            notificationBuilder
+                    .setSmallIcon(com.android.internal.R.drawable.stat_notify_sim_toolkit);
+            notificationBuilder.setContentIntent(pendingIntent);
+            notificationBuilder.setOngoing(true);
+            // Set text and icon for the status bar and notification body.
+            if (!msg.iconSelfExplanatory) {
+                notificationBuilder.setContentText(msg.text);
+            }
+            if (msg.icon != null) {
+                notificationBuilder.setLargeIcon(msg.icon);
+            } else {
+                Bitmap bitmapIcon = BitmapFactory.decodeResource(StkAppService.this
+                    .getResources().getSystem(),
+                    com.android.internal.R.drawable.stat_notify_sim_toolkit);
+                notificationBuilder.setLargeIcon(bitmapIcon);
+            }
+
+            mNotificationManager.notify(STK_NOTIFICATION_ID, notificationBuilder.build());
         }
     }
 
