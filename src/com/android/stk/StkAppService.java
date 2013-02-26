@@ -704,9 +704,9 @@ public class StkAppService extends Service implements Runnable {
             return;
         }
 
-        Intent intent = new Intent(Intent.ACTION_VIEW);
+        Intent intent = null;
+        Uri data = null;
 
-        Uri data;
         if (settings.url != null) {
             CatLog.d(this, "settings.url = " + settings.url);
             if ((settings.url.startsWith("http://") || (settings.url.startsWith("https://")))) {
@@ -716,17 +716,17 @@ public class StkAppService extends Service implements Runnable {
                 CatLog.d(this, "modifiedUrl = " + modifiedUrl);
                 data = Uri.parse(modifiedUrl);
             }
-        } else {
-            // If no URL specified, just bring up the "home page".
-            //
-            // (Note we need to specify *something* in the intent's data field
-            // here, since if you fire off a VIEW intent with no data at all
-            // you'll get an activity chooser rather than the browser.  There's
-            // no specific URI that means "use the default home page", so
-            // instead let's just explicitly bring up http://google.com.)
-            data = Uri.parse("http://google.com/");
         }
-        intent.setData(data);
+        if (data != null) {
+            intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(data);
+        } else {
+            // if the command did not contain a URL,
+            // launch the browser to the default homepage.
+            CatLog.d(this, "launch browser with default URL ");
+            intent = Intent.makeMainSelectorActivity(Intent.ACTION_MAIN,
+                    Intent.CATEGORY_APP_BROWSER);
+        }
 
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         switch (settings.mode) {
