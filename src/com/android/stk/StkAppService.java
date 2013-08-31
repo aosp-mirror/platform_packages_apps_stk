@@ -862,8 +862,12 @@ public class StkAppService extends Service implements Runnable {
             launchConfirmationDialog(mStkContext[slotId].mCurrentCmd.geTextMessage(), slotId);
             break;
         case SET_UP_CALL:
-            launchConfirmationDialog(mStkContext[slotId].mCurrentCmd.getCallSettings()
-                    .confirmMsg, slotId);
+            TextMessage mesg = mStkContext[slotId].mCurrentCmd.getCallSettings().confirmMsg;
+            if((mesg != null) && (mesg.text == null || mesg.text.length() == 0)) {
+                mesg.text = getResources().getString(R.string.default_setup_call_msg);
+            }
+            CatLog.d(this, "SET_UP_CALL mesg.text " + mesg.text);
+            launchConfirmationDialog(mesg, slotId);
             break;
         case PLAY_TONE:
             launchToneDialog(slotId);
