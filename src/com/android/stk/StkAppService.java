@@ -164,6 +164,7 @@ public class StkAppService extends Service implements Runnable {
         if (mStkService == null) {
             stopSelf();
             CatLog.d(this, " Unable to get Service handle");
+            StkAppInstaller.unInstall(mContext);
             return;
         }
 
