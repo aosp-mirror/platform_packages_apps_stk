@@ -1003,7 +1003,8 @@ public class StkAppService extends Service implements Runnable {
                 if (helpRequired) {
                     resMsg.setResultCode(ResultCode.HELP_INFO_REQUIRED);
                 } else {
-                    resMsg.setResultCode(ResultCode.OK);
+                    resMsg.setResultCode(mStkContext[slotId].mCurrentCmd.hasIconLoadFailed() ?
+                            ResultCode.PRFRMD_ICON_NOT_DISPLAYED : ResultCode.OK);
                 }
                 resMsg.setMenuSelection(menuSelection);
                 break;
@@ -1021,7 +1022,8 @@ public class StkAppService extends Service implements Runnable {
                 if (helpRequired) {
                     resMsg.setResultCode(ResultCode.HELP_INFO_REQUIRED);
                 } else {
-                    resMsg.setResultCode(ResultCode.OK);
+                    resMsg.setResultCode(mStkContext[slotId].mCurrentCmd.hasIconLoadFailed() ?
+                            ResultCode.PRFRMD_ICON_NOT_DISPLAYED : ResultCode.OK);
                     resMsg.setInput(input);
                 }
             }
@@ -1031,8 +1033,12 @@ public class StkAppService extends Service implements Runnable {
             confirmed = args.getBoolean(CONFIRMATION);
             switch (mStkContext[slotId].mCurrentCmd.getCmdType()) {
             case DISPLAY_TEXT:
-                resMsg.setResultCode(confirmed ? ResultCode.OK
-                    : ResultCode.UICC_SESSION_TERM_BY_USER);
+                if (confirmed) {
+                    resMsg.setResultCode(mStkContext[slotId].mCurrentCmd.hasIconLoadFailed() ?
+                            ResultCode.PRFRMD_ICON_NOT_DISPLAYED : ResultCode.OK);
+                } else {
+                    resMsg.setResultCode(ResultCode.UICC_SESSION_TERM_BY_USER);
+                }
                 break;
             case LAUNCH_BROWSER:
                 resMsg.setResultCode(confirmed ? ResultCode.OK
@@ -1406,7 +1412,14 @@ public class StkAppService extends Service implements Runnable {
         } else {
             iv.setVisibility(View.GONE);
         }
-        if (!msg.iconSelfExplanatory) {
+        /* In case of 'self explanatory' stkapp should display the specified
+         * icon in proactive command (but not the alpha string).
+         * If icon is non-self explanatory and if the icon could not be displayed
+         * then alpha string or text data should be displayed
+         * Ref: ETSI 102.223,section 6.5.4
+         */
+        if (mStkContext[slotId].mCurrentCmd.hasIconLoadFailed() ||
+                msg.icon == null || !msg.iconSelfExplanatory) {
             tv.setText(msg.text);
         }
 
@@ -1517,7 +1530,8 @@ public class StkAppService extends Service implements Runnable {
             notificationBuilder.setContentIntent(pendingIntent);
             notificationBuilder.setOngoing(true);
             // Set text and icon for the status bar and notification body.
-            if (!msg.iconSelfExplanatory) {
+            if (mStkContext[slotId].mIdleModeTextCmd.hasIconLoadFailed() ||
+                    !msg.iconSelfExplanatory) {
                 notificationBuilder.setContentText(msg.text);
                 notificationBuilder.setTicker(msg.text);
             }
