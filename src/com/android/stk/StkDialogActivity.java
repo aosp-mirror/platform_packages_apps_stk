@@ -159,6 +159,8 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
             return;
         }
 
+        appService.setDisplayTextDlgVisibility(true, mSlotId);
+
         startTimeOut(mTextMsg.userClear);
     }
 
@@ -166,6 +168,7 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
     public void onPause() {
         super.onPause();
         CatLog.d(LOG_TAG, "onPause, sim id: " + mSlotId);
+        appService.setDisplayTextDlgVisibility(false, mSlotId);
         cancelTimeOut();
     }
 
