@@ -780,7 +780,11 @@ public class StkAppService extends Service implements Runnable {
 
             final Notification.Builder notificationBuilder = new Notification.Builder(
                     StkAppService.this);
-            notificationBuilder.setContentTitle("");
+            if (mMainCmd != null && mMainCmd.getMenu() != null) {
+                notificationBuilder.setContentTitle(mMainCmd.getMenu().title);
+            } else {
+                notificationBuilder.setContentTitle("");
+            }
             notificationBuilder
                     .setSmallIcon(com.android.internal.R.drawable.stat_notify_sim_toolkit);
             notificationBuilder.setContentIntent(pendingIntent);
@@ -788,6 +792,7 @@ public class StkAppService extends Service implements Runnable {
             // Set text and icon for the status bar and notification body.
             if (!msg.iconSelfExplanatory) {
                 notificationBuilder.setContentText(msg.text);
+                notificationBuilder.setTicker(msg.text);
             }
             if (msg.icon != null) {
                 notificationBuilder.setLargeIcon(msg.icon);
