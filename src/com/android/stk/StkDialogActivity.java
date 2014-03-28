@@ -16,6 +16,7 @@
 
 package com.android.stk;
 
+import com.android.internal.telephony.cat.CatLog;
 import com.android.internal.telephony.cat.TextMessage;
 
 import android.app.Activity;
@@ -126,6 +127,23 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
     @Override
     public void onResume() {
         super.onResume();
+
+        /*
+         * The user should be shown the message forever or until some high
+         * priority event occurs (such as incoming call, MMI code execution
+         * etc as mentioned in ETSI 102.223, 6.4.1).
+         *
+         * Since mTextMsg.responseNeeded is false (because the response has
+         * already been sent) and duration of the dialog is zero and userClear
+         * is true, don't set the timeout.
+         */
+        if (!mTextMsg.responseNeeded &&
+                StkApp.calculateDurationInMilis(mTextMsg.duration) == 0 &&
+                mTextMsg.userClear) {
+            CatLog.d(this, "User should clear text..show message forever");
+            return;
+        }
+
         startTimeOut(mTextMsg.userClear);
     }
 
