@@ -23,6 +23,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -118,6 +119,17 @@ public class ToneDialog extends Activity {
             break;
         }
         return false;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()) {
+        case MotionEvent.ACTION_DOWN:
+            sendResponse(StkAppService.RES_ID_END_SESSION);
+            finish();
+            return true;
+        }
+        return super.onTouchEvent(event);
     }
 
     private void initFromIntent(Intent intent) {
