@@ -310,22 +310,20 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     private void displayMenu() {
 
         if (mStkMenu != null) {
+            String title = mStkMenu.title == null ? getString(R.string.app_name) : mStkMenu.title;
             // Display title & title icon
             if (mStkMenu.titleIcon != null) {
                 mTitleIconView.setImageBitmap(mStkMenu.titleIcon);
                 mTitleIconView.setVisibility(View.VISIBLE);
-            } else {
-                mTitleIconView.setVisibility(View.GONE);
-            }
-            if (!mStkMenu.titleIconSelfExplanatory) {
-                mTitleTextView.setVisibility(View.VISIBLE);
-                if (mStkMenu.title == null) {
-                    mTitleTextView.setText(R.string.app_name);
-                } else {
-                    mTitleTextView.setText(mStkMenu.title);
+                mTitleTextView.setVisibility(View.INVISIBLE);
+                if (!mStkMenu.titleIconSelfExplanatory) {
+                    mTitleTextView.setText(title);
+                    mTitleTextView.setVisibility(View.VISIBLE);
                 }
             } else {
-                mTitleTextView.setVisibility(View.INVISIBLE);
+                mTitleIconView.setVisibility(View.GONE);
+                mTitleTextView.setVisibility(View.VISIBLE);
+                mTitleTextView.setText(title);
             }
             // create an array adapter for the menu list
             StkMenuAdapter adapter = new StkMenuAdapter(this,
