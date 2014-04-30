@@ -330,7 +330,6 @@ public class StkAppService extends Service implements Runnable {
         case SEND_USSD:
         case SET_UP_IDLE_MODE_TEXT:
         case SET_UP_MENU:
-        case REFRESH:
         case CLOSE_CHANNEL:
         case RECEIVE_DATA:
         case SEND_DATA:
@@ -440,16 +439,6 @@ public class StkAppService extends Service implements Runnable {
         case SEND_USSD:
             waitForUsersResponse = false;
             launchEventMessage();
-            break;
-        case REFRESH:
-            waitForUsersResponse = false;
-            launchEventMessage();
-            // Idle mode text needs to be cleared for init or reset modes of refresh.
-            if (cmdMsg.isRefreshResetOrInit()) {
-                mNotificationManager.cancel(STK_NOTIFICATION_ID);
-                mIdleModeTextCmd = null;
-                CatLog.d(this, "Clean idle mode text due to refresh");
-            }
             break;
         case LAUNCH_BROWSER:
             launchConfirmationDialog(mCurrentCmd.geTextMessage());
