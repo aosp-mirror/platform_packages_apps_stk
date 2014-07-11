@@ -330,7 +330,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
 
         menu.findItem(StkApp.MENU_ID_END_SESSION).setVisible(mainVisible);
 
-        return true;
+        return mainVisible;
     }
 
     @Override
