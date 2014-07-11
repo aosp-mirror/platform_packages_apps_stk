@@ -81,6 +81,7 @@
             <intent-filter>
                 <action android:name= "android.intent.action.stk.command" />
                 <action android:name= "android.intent.action.stk.session_end" />
+                <action android:name= "qualcomm.intent.action.stk.icc_status_change" />
             </intent-filter>
         </receiver>
 
