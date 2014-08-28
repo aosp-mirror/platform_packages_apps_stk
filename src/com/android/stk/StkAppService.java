@@ -840,7 +840,8 @@ public class StkAppService extends Service implements Runnable {
                     com.android.internal.R.drawable.stat_notify_sim_toolkit);
                 notificationBuilder.setLargeIcon(bitmapIcon);
             }
-
+            notificationBuilder.setColor(mContext.getResources().getColor(
+                    com.android.internal.R.color.system_notification_accent_color));
             mNotificationManager.notify(STK_NOTIFICATION_ID, notificationBuilder.build());
         }
     }
