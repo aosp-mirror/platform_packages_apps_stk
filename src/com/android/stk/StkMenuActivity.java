@@ -81,8 +81,6 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         super.onCreate(icicle);
 
         CatLog.d(this, "onCreate");
-        // Remove the default title, customized one is used.
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         // Set the layout for this activity.
         setContentView(R.layout.stk_menu_list);
 
@@ -166,6 +164,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
             mState = STATE_MAIN;
             mAcceptUsersInput = true;
         }
+        invalidateOptionsMenu();
         // make sure the progress bar is not shown.
         mProgressView.setIndeterminate(false);
         mProgressView.setVisibility(View.GONE);
