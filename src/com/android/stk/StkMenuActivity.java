@@ -17,6 +17,7 @@
 package com.android.stk;
 
 import android.app.ListActivity;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ import android.widget.TextView;
 import com.android.internal.telephony.cat.Item;
 import com.android.internal.telephony.cat.Menu;
 import com.android.internal.telephony.cat.CatLog;
+import android.telephony.TelephonyManager;
 
 /**
  * ListActivity used for displaying STK menus. These can be SET UP MENU and
@@ -49,16 +51,27 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     private Menu mStkMenu = null;
     private int mState = STATE_MAIN;
     private boolean mAcceptUsersInput = true;
+    private int mSlotId = -1;
+    private boolean mIsResponseSent = false;
+    Activity mInstance = null;
 
     private TextView mTitleTextView = null;
     private ImageView mTitleIconView = null;
     private ProgressBar mProgressView = null;
+    private static final String className = new Object(){}.getClass().getEnclosingClass().getName();
+    private static final String LOG_TAG = className.substring(className.lastIndexOf('.') + 1);
 
-    StkAppService appService = StkAppService.getInstance();
+    private StkAppService appService = StkAppService.getInstance();
 
     // Internal state values
+    static final int STATE_INIT = 0;
     static final int STATE_MAIN = 1;
     static final int STATE_SECONDARY = 2;
+
+    // Finish result
+    static final int FINISH_CAUSE_NORMAL = 1;
+    static final int FINISH_CAUSE_NULL_SERVICE = 2;
+    static final int FINISH_CAUSE_NULL_MENU = 3;
 
     // message id for time out
     private static final int MSG_ID_TIMEOUT = 1;
@@ -69,8 +82,13 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         public void handleMessage(Message msg) {
             switch(msg.what) {
             case MSG_ID_TIMEOUT:
+                CatLog.d(LOG_TAG, "MSG_ID_TIMEOUT mState: " + mState);
                 mAcceptUsersInput = false;
+                if (mState == STATE_SECONDARY) {
+                    appService.getStkContext(mSlotId).setPendingActivityInstance(mInstance);
+                }
                 sendResponse(StkAppService.RES_ID_TIMEOUT);
+                //finish();//We wait the following commands to trigger onStop of this activity.
                 break;
             }
         }
@@ -80,28 +98,19 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
-        CatLog.d(this, "onCreate");
+        CatLog.d(LOG_TAG, "onCreate");
+        // Remove the default title, customized one is used.
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         // Set the layout for this activity.
         setContentView(R.layout.stk_menu_list);
-
+        mInstance = this;
         mTitleTextView = (TextView) findViewById(R.id.title_text);
         mTitleIconView = (ImageView) findViewById(R.id.title_icon);
         mProgressView = (ProgressBar) findViewById(R.id.progress_bar);
         mContext = getBaseContext();
-
-        initFromIntent(getIntent());
         mAcceptUsersInput = true;
-
         getListView().setOnCreateContextMenuListener(this);
-    }
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-
-        CatLog.d(this, "onNewIntent");
-        initFromIntent(intent);
-        mAcceptUsersInput = true;
+        initFromIntent(getIntent());
     }
 
     @Override
@@ -109,12 +118,19 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         super.onListItemClick(l, v, position, id);
 
         if (!mAcceptUsersInput) {
+            CatLog.d(LOG_TAG, "mAcceptUsersInput:false");
             return;
         }
 
         Item item = getSelectedItem(position);
         if (item == null) {
+            CatLog.d(LOG_TAG, "Item is null");
             return;
+        }
+        CatLog.d(LOG_TAG, "onListItemClick Id: " + item.id + ", mState: " + mState);
+        // ONLY set SECONDARY menu. It will be finished when the following command is comming.
+        if (mState == STATE_SECONDARY) {
+            appService.getStkContext(mSlotId).setPendingActivityInstance(this);
         }
         sendResponse(StkAppService.RES_ID_MENU_SELECTION, item.id, false);
         mAcceptUsersInput = false;
@@ -124,21 +140,28 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-
+        CatLog.d(LOG_TAG, "mAcceptUsersInput: " + mAcceptUsersInput);
         if (!mAcceptUsersInput) {
             return true;
         }
 
         switch (keyCode) {
         case KeyEvent.KEYCODE_BACK:
+            CatLog.d(LOG_TAG, "KEYCODE_BACK - mState[" + mState + "]");
             switch (mState) {
             case STATE_SECONDARY:
+                CatLog.d(LOG_TAG, "STATE_SECONDARY");
                 cancelTimeOut();
                 mAcceptUsersInput = false;
+                appService.getStkContext(mSlotId).setPendingActivityInstance(this);
                 sendResponse(StkAppService.RES_ID_BACKWARD);
                 return true;
             case STATE_MAIN:
-                break;
+                CatLog.d(LOG_TAG, "STATE_MAIN");
+                appService.getStkContext(mSlotId).setMainActivityInstance(null);
+                cancelTimeOut();
+                finish();
+                return true;
             }
             break;
         }
@@ -146,14 +169,33 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     }
 
     @Override
+    public void onRestart() {
+        super.onRestart();
+        CatLog.d(LOG_TAG, "onRestart, slot id: " + mSlotId);
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
 
-        appService.indicateMenuVisibility(true);
-        mStkMenu = appService.getMenu();
+        CatLog.d(LOG_TAG, "onResume, slot id: " + mSlotId + "," + mState);
+        appService.indicateMenuVisibility(true, mSlotId);
+        if (mState == STATE_MAIN) {
+            mStkMenu = appService.getMainMenu(mSlotId);
+        } else {
+            mStkMenu = appService.getMenu(mSlotId);
+        }
         if (mStkMenu == null) {
+            CatLog.d(LOG_TAG, "menu is null");
+            cancelTimeOut();
             finish();
             return;
+        }
+        //Set main menu instance here for clean up stack by other SIMs
+        //when receiving OP_LAUNCH_APP.
+        if (mState == STATE_MAIN) {
+            CatLog.d(LOG_TAG, "set main menu instance.");
+            appService.getStkContext(mSlotId).setMainActivityInstance(this);
         }
         displayMenu();
         startTimeOut();
@@ -161,10 +203,11 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         // (Browser, In call screen) switch back to main state and enable
         // user's input;
         if (!mAcceptUsersInput) {
-            mState = STATE_MAIN;
+            //Remove set mState to STATE_MAIN. This is for single instance flow.
             mAcceptUsersInput = true;
         }
         invalidateOptionsMenu();
+
         // make sure the progress bar is not shown.
         mProgressView.setIndeterminate(false);
         mProgressView.setVisibility(View.GONE);
@@ -173,17 +216,63 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     @Override
     public void onPause() {
         super.onPause();
-
-        appService.indicateMenuVisibility(false);
+        CatLog.d(LOG_TAG, "onPause, slot id: " + mSlotId + "," + mState);
+        //If activity is finished in onResume and it reaults from null appService.
+        if (appService != null) {
+            appService.indicateMenuVisibility(false, mSlotId);
+        } else {
+            CatLog.d(LOG_TAG, "onPause: null appService.");
+        }
         cancelTimeOut();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        CatLog.d(LOG_TAG, "onStop, slot id: " + mSlotId + "," + mIsResponseSent + "," + mState);
+        //The menu should stay in background, if
+        //1. the dialog is pop up in the screen, but the user does not response to the dialog.
+        //2. the menu activity enters Stop state (e.g pressing HOME key) but mIsResponseSent is false.
+        if (mIsResponseSent) {
+            // ONLY finish SECONDARY menu. MAIN menu should always stay in the root of stack.
+            if (mState == STATE_SECONDARY) {
+                if (!appService.isStkDialogActivated(mContext)) {
+                    CatLog.d(LOG_TAG, "STATE_SECONDARY finish.");
+                    cancelTimeOut();//To avoid the timer time out and send TR again.
+                    finish();
+                } else {
+                     if (appService != null) {
+                         appService.getStkContext(mSlotId).setPendingActivityInstance(this);
+                     }
+                }
+            }
+        } else {
+            if (appService != null) {
+                appService.getStkContext(mSlotId).setPendingActivityInstance(this);
+            } else {
+                CatLog.d(LOG_TAG, "onStop: null appService.");
+            }
+        }
     }
 
     @Override
     public void onDestroy() {
         getListView().setOnCreateContextMenuListener(null);
         super.onDestroy();
-
-        CatLog.d(this, "onDestroy");
+        CatLog.d(LOG_TAG, "onDestroy" + "," + mState);
+        //isMenuPending: if input act is finish by stkappservice when OP_LAUNCH_APP again,
+        //we can not send TR here, since the input cmd is waiting user to process.
+        if (!mIsResponseSent && !appService.isMenuPending(mSlotId)) {
+            CatLog.d(LOG_TAG, "handleDestroy - Send End Session");
+            sendResponse(StkAppService.RES_ID_END_SESSION);
+        }
+        if (mState == STATE_MAIN) {
+            if (appService != null) {
+                appService.getStkContext(mSlotId).setMainActivityInstance(null);
+            } else {
+                CatLog.d(LOG_TAG, "onDestroy: null appService.");
+            }
+        }
     }
 
     @Override
@@ -224,6 +313,8 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
             mAcceptUsersInput = false;
             // send session end response.
             sendResponse(StkAppService.RES_ID_END_SESSION);
+            cancelTimeOut();
+            finish();
             return true;
         case StkApp.MENU_ID_HELP:
             cancelTimeOut();
@@ -282,17 +373,22 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        CatLog.d(LOG_TAG, "onSaveInstanceState: " + mSlotId);
         outState.putInt("STATE", mState);
         outState.putParcelable("MENU", mStkMenu);
+        outState.putBoolean("ACCEPT_USERS_INPUT", mAcceptUsersInput);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        CatLog.d(LOG_TAG, "onRestoreInstanceState: " + mSlotId);
         mState = savedInstanceState.getInt("STATE");
         mStkMenu = savedInstanceState.getParcelable("MENU");
+        mAcceptUsersInput = savedInstanceState.getBoolean("ACCEPT_USERS_INPUT");
     }
 
     private void cancelTimeOut() {
+        CatLog.d(LOG_TAG, "cancelTimeOut: " + mSlotId);
         mTimeoutHandler.removeMessages(MSG_ID_TIMEOUT);
     }
 
@@ -300,6 +396,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         if (mState == STATE_SECONDARY) {
             // Reset timeout.
             cancelTimeOut();
+            CatLog.d(LOG_TAG, "startTimeOut: " + mSlotId);
             mTimeoutHandler.sendMessageDelayed(mTimeoutHandler
                     .obtainMessage(MSG_ID_TIMEOUT), StkApp.UI_TIMEOUT);
         }
@@ -338,7 +435,10 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
 
         if (intent != null) {
             mState = intent.getIntExtra("STATE", STATE_MAIN);
+            mSlotId = intent.getIntExtra(StkAppService.SLOT_ID, -1);
+            CatLog.d(LOG_TAG, "slot id: " + mSlotId + ", state: " + mState);
         } else {
+            CatLog.d(LOG_TAG, "finish!");
             finish();
         }
     }
@@ -350,11 +450,11 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
                 item = mStkMenu.items.get(position);
             } catch (IndexOutOfBoundsException e) {
                 if (StkApp.DBG) {
-                    CatLog.d(this, "Invalid menu");
+                    CatLog.d(LOG_TAG, "IOOBE Invalid menu");
                 }
             } catch (NullPointerException e) {
                 if (StkApp.DBG) {
-                    CatLog.d(this, "Invalid menu");
+                    CatLog.d(LOG_TAG, "NPE Invalid menu");
                 }
             }
         }
@@ -366,8 +466,12 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     }
 
     private void sendResponse(int resId, int itemId, boolean help) {
+        CatLog.d(LOG_TAG, "sendResponse resID[" + resId + "] itemId[" + itemId +
+            "] help[" + help + "]");
+        mIsResponseSent = true;
         Bundle args = new Bundle();
         args.putInt(StkAppService.OPCODE, StkAppService.OP_RESPONSE);
+        args.putInt(StkAppService.SLOT_ID, mSlotId);
         args.putInt(StkAppService.RES_ID, resId);
         args.putInt(StkAppService.MENU_SELECTION, itemId);
         args.putBoolean(StkAppService.HELP, help);

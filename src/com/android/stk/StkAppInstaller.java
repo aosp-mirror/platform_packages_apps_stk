@@ -17,45 +17,65 @@
 package com.android.stk;
 
 import com.android.internal.telephony.cat.CatLog;
+import com.android.internal.telephony.PhoneConstants;
+import com.android.internal.telephony.TelephonyProperties;
 
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.telephony.TelephonyManager;
+import android.os.SystemProperties;
 
 /**
  * Application installer for SIM Toolkit.
  *
  */
 abstract class StkAppInstaller {
-    private StkAppInstaller() {}
+    private static final String STK_LAUNCHER_ACTIVITY = "com.android.stk.StkLauncherActivity";
+    private static final String LOG_TAG = "StkAppInstaller";
 
-    static void install(Context context) {
+    private StkAppInstaller() {
+        CatLog.d(LOG_TAG, "init");
+    }
+
+    public static void install(Context context) {
         setAppState(context, true);
     }
 
-    static void unInstall(Context context) {
+    public static void unInstall(Context context) {
         setAppState(context, false);
     }
 
     private static void setAppState(Context context, boolean install) {
+        CatLog.d(LOG_TAG, "[setAppState]+");
         if (context == null) {
+            CatLog.d(LOG_TAG, "[setAppState]- no context, just return.");
             return;
         }
         PackageManager pm = context.getPackageManager();
         if (pm == null) {
+            CatLog.d(LOG_TAG, "[setAppState]- no package manager, just return.");
             return;
         }
-        // check that STK app package is known to the PackageManager
-        ComponentName cName = new ComponentName("com.android.stk",
-                "com.android.stk.StkLauncherActivity");
+        ComponentName cName = new ComponentName("com.android.stk", STK_LAUNCHER_ACTIVITY);
         int state = install ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
                 : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
 
-        try {
-            pm.setComponentEnabledSetting(cName, state,
-                    PackageManager.DONT_KILL_APP);
-        } catch (Exception e) {
-            CatLog.d("StkAppInstaller", "Could not change STK app state");
+        if (((PackageManager.COMPONENT_ENABLED_STATE_ENABLED == state) &&
+                (PackageManager.COMPONENT_ENABLED_STATE_ENABLED ==
+                pm.getComponentEnabledSetting(cName))) ||
+                ((PackageManager.COMPONENT_ENABLED_STATE_DISABLED == state) &&
+                (PackageManager.COMPONENT_ENABLED_STATE_DISABLED ==
+                pm.getComponentEnabledSetting(cName)))) {
+            CatLog.d(LOG_TAG, "Need not change app state!!");
+        } else {
+            CatLog.d(LOG_TAG, "Change app state[" + install + "]");
+            try {
+                pm.setComponentEnabledSetting(cName, state, PackageManager.DONT_KILL_APP);
+            } catch (Exception e) {
+                CatLog.d(LOG_TAG, "Could not change STK app state");
+            }
         }
+        CatLog.d(LOG_TAG, "[setAppState]-");
     }
 }
