@@ -27,11 +27,11 @@
     <application android:icon="@drawable/ic_launcher_sim_toolkit"
         android:label="@string/app_name"
         android:clearTaskOnLaunch="true"
-        android:process="com.android.phone">
-
+        android:process="com.android.phone"
+        android:taskAffinity="android.task.stk">
         <activity android:name="StkLauncherActivity"
-            android:label="@string/app_name"
-            android:enabled="false">
+            android:theme="@android:style/Theme.NoTitleBar"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -39,27 +39,34 @@
         </activity>
 
         <activity android:name="StkMenuActivity"
-             android:configChanges="orientation|screenSize|keyboardHidden|mnc|mcc"
-             android:launchMode="singleTop">
-             <intent-filter>
-                 <action android:name="android.intent.action.VIEW" />
-                 <action android:name="android.intent.action.PICK" />
-                 <category android:name="android.intent.category.DEFAULT" />
-             </intent-filter>
-         </activity>
-
-         <activity android:name="StkInputActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden">
+            android:theme="@android:style/Theme.NoTitleBar"
+            android:icon="@drawable/ic_launcher_sim_toolkit"
+            android:label="@string/app_name"
+            android:configChanges="orientation|locale|screenSize|keyboardHidden|mnc|mcc"
+            android:taskAffinity="android.task.stk.StkLauncherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-                <action android:name="android.intent.action.EDIT" />
+                <action android:name="android.intent.action.PICK" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
+        <activity android:name="StkInputActivity"
+            android:label="@string/app_name"
+            android:icon="@drawable/ic_launcher_sim_toolkit"
+            android:theme="@android:style/Theme.Holo"
+            android:configChanges="orientation|locale|screenSize|keyboardHidden"
+            android:taskAffinity="android.task.stk.StkLauncherActivity">
+                <intent-filter>
+                        <action android:name="android.intent.action.VIEW" />
+                        <action android:name="android.intent.action.EDIT" />
+                        <category android:name="android.intent.category.DEFAULT" />
+                </intent-filter>
+        </activity>
         <activity android:name="StkDialogActivity"
+            android:configChanges="orientation|locale|screenSize|keyboardHidden"
             android:theme="@android:style/Theme.Dialog"
-            android:configChanges="orientation|screenSize|keyboardHidden">
+            android:taskAffinity="android.task.stk.StkLauncherActivity">
         </activity>
 
         <activity android:name="ToneDialog"

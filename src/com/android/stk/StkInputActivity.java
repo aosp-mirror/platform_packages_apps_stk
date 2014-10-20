@@ -36,7 +36,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.TextView.BufferType;
-
+import com.android.internal.telephony.cat.CatLog;
 import com.android.internal.telephony.cat.FontSize;
 import com.android.internal.telephony.cat.Input;
 
@@ -53,8 +53,13 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     private TextView mPromptView = null;
     private View mYesNoLayout = null;
     private View mNormalLayout = null;
-    private Input mStkInput = null;
 
+    // Constants
+    private static final String className = new Object(){}.getClass().getEnclosingClass().getName();
+    private static final String LOG_TAG = className.substring(className.lastIndexOf('.') + 1);
+
+    private Input mStkInput = null;
+    private boolean mAcceptUsersInput = true;
     // Constants
     private static final int STATE_TEXT = 1;
     private static final int STATE_YES_NO = 2;
@@ -69,15 +74,21 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
 
     // message id for time out
     private static final int MSG_ID_TIMEOUT = 1;
+    private StkAppService appService = StkAppService.getInstance();
+
+    private boolean mIsResponseSent = false;
+    private int mSlotId = -1;
+    Activity mInstance = null;
 
     Handler mTimeoutHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch(msg.what) {
             case MSG_ID_TIMEOUT:
-                //mAcceptUsersInput = false;
+                CatLog.d(LOG_TAG, "Msg timeout.");
+                mAcceptUsersInput = false;
+                appService.getStkContext(mSlotId).setPendingActivityInstance(mInstance);
                 sendResponse(StkAppService.RES_ID_TIMEOUT);
-                finish();
                 break;
             }
         }
@@ -86,39 +97,50 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     // Click listener to handle buttons press..
     public void onClick(View v) {
         String input = null;
+        if (!mAcceptUsersInput) {
+            CatLog.d(LOG_TAG, "mAcceptUsersInput:false");
+            return;
+        }
 
         switch (v.getId()) {
         case R.id.button_ok:
             // Check that text entered is valid .
             if (!verfiyTypedText()) {
+                CatLog.d(LOG_TAG, "handleClick, invalid text");
                 return;
             }
+            mAcceptUsersInput = false;
             input = mTextIn.getText().toString();
             break;
         // Yes/No layout buttons.
         case R.id.button_yes:
+            mAcceptUsersInput = false;
             input = YES_STR_RESPONSE;
             break;
         case R.id.button_no:
+            mAcceptUsersInput = false;
             input = NO_STR_RESPONSE;
             break;
         }
-
+        CatLog.d(LOG_TAG, "handleClick, ready to response");
+        appService.getStkContext(mSlotId).setPendingActivityInstance(this);
         sendResponse(StkAppService.RES_ID_INPUT, input, false);
-        finish();
     }
 
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
+        CatLog.d(LOG_TAG, "onCreate - mIsResponseSent[" + mIsResponseSent + "]");
+
         // Set the layout for this activity.
+        requestWindowFeature(Window.FEATURE_LEFT_ICON);
         setContentView(R.layout.stk_input);
 
         // Initialize members
         mTextIn = (EditText) this.findViewById(R.id.in_text);
         mPromptView = (TextView) this.findViewById(R.id.prompt);
-
+        mInstance = this;
         // Set buttons listeners.
         Button okButton = (Button) findViewById(R.id.button_ok);
         Button yesButton = (Button) findViewById(R.id.button_yes);
@@ -130,22 +152,9 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
 
         mYesNoLayout = findViewById(R.id.yes_no_layout);
         mNormalLayout = findViewById(R.id.normal_layout);
-
-        // Get the calling intent type: text/key, and setup the
-        // display parameters.
-        Intent intent = getIntent();
-        if (intent != null) {
-            mStkInput = intent.getParcelableExtra("INPUT");
-            if (mStkInput == null) {
-                finish();
-            } else {
-                mState = mStkInput.yesNo ? STATE_YES_NO : STATE_TEXT;
-                configInputDisplay();
-            }
-        } else {
-            finish();
-        }
+        initFromIntent(getIntent());
         mContext = getBaseContext();
+        mAcceptUsersInput = true;
     }
 
     @Override
@@ -158,35 +167,84 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     @Override
     public void onResume() {
         super.onResume();
-
+        CatLog.d(LOG_TAG, "onResume - mIsResponseSent[" + mIsResponseSent +
+                "], slot id: " + mSlotId);
         startTimeOut();
+        appService.getStkContext(mSlotId).setPendingActivityInstance(null);
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        CatLog.d(LOG_TAG, "onPause - mIsResponseSent[" + mIsResponseSent + "]");
+    }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        CatLog.d(LOG_TAG, "onStop - mIsResponseSent[" + mIsResponseSent + "]");
+        if (mIsResponseSent) {
+            cancelTimeOut();
+            finish();
+        } else {
+            appService.getStkContext(mSlotId).setPendingActivityInstance(this);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        CatLog.d(LOG_TAG, "onDestroy - before Send End Session mIsResponseSent[" +
+                mIsResponseSent + " , " + mSlotId + "]");
+        //If the input activity is finished by stkappservice
+        //when receiving OP_LAUNCH_APP from the other SIM, we can not send TR here
+        //, since the input cmd is waiting user to process.
+        if (!mIsResponseSent && !appService.isInputPending(mSlotId)) {
+            CatLog.d(LOG_TAG, "handleDestroy - Send End Session");
+            sendResponse(StkAppService.RES_ID_END_SESSION);
+        }
         cancelTimeOut();
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (!mAcceptUsersInput) {
+            CatLog.d(LOG_TAG, "mAcceptUsersInput:false");
+            return true;
+        }
+
         switch (keyCode) {
         case KeyEvent.KEYCODE_BACK:
+            CatLog.d(LOG_TAG, "onKeyDown - KEYCODE_BACK");
+            mAcceptUsersInput = false;
+            appService.getStkContext(mSlotId).setPendingActivityInstance(this);
             sendResponse(StkAppService.RES_ID_BACKWARD, null, false);
-            finish();
-            break;
+            return true;
         }
         return super.onKeyDown(keyCode, event);
     }
 
-    private void sendResponse(int resId) {
+    void sendResponse(int resId) {
         sendResponse(resId, null, false);
     }
 
-    private void sendResponse(int resId, String input, boolean help) {
+    void sendResponse(int resId, String input, boolean help) {
+        if (mSlotId == -1) {
+            CatLog.d(LOG_TAG, "slot id is invalid");
+            return;
+        }
+
+        if (StkAppService.getInstance() == null) {
+            CatLog.d(LOG_TAG, "StkAppService is null, Ignore response: id is " + resId);
+            return;
+        }
+
+        CatLog.d(LOG_TAG, "sendResponse resID[" + resId + "] input[" + input +
+                "] help[" + help + "]");
+        mIsResponseSent = true;
         Bundle args = new Bundle();
         args.putInt(StkAppService.OPCODE, StkAppService.OP_RESPONSE);
+        args.putInt(StkAppService.SLOT_ID, mSlotId);
         args.putInt(StkAppService.RES_ID, resId);
         if (input != null) {
             args.putString(StkAppService.INPUT, input);
@@ -217,17 +275,37 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (!mAcceptUsersInput) {
+            CatLog.d(LOG_TAG, "mAcceptUsersInput:false");
+            return true;
+        }
         switch (item.getItemId()) {
         case StkApp.MENU_ID_END_SESSION:
+            mAcceptUsersInput = false;
+            cancelTimeOut();
             sendResponse(StkAppService.RES_ID_END_SESSION);
             finish();
             return true;
         case StkApp.MENU_ID_HELP:
+            mAcceptUsersInput = false;
+            cancelTimeOut();
             sendResponse(StkAppService.RES_ID_INPUT, "", true);
             finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        CatLog.d(LOG_TAG, "onSaveInstanceState: " + mSlotId);
+        outState.putBoolean("ACCEPT_USERS_INPUT", mAcceptUsersInput);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        CatLog.d(LOG_TAG, "onRestoreInstanceState: " + mSlotId);
+        mAcceptUsersInput = savedInstanceState.getBoolean("ACCEPT_USERS_INPUT");
     }
 
     public void beforeTextChanged(CharSequence s, int start, int count,
@@ -328,5 +406,25 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             {NORMAL_FONT_FACTOR, LARGE_FONT_FACTOR, SMALL_FONT_FACTOR};
 
         return fontSizes[size.ordinal()];
+    }
+
+    private void initFromIntent(Intent intent) {
+        // Get the calling intent type: text/key, and setup the
+        // display parameters.
+        CatLog.d(LOG_TAG, "initFromIntent - slot id: " + mSlotId);
+        if (intent != null) {
+            mStkInput = intent.getParcelableExtra("INPUT");
+            mSlotId = intent.getIntExtra(StkAppService.SLOT_ID, -1);
+            CatLog.d(LOG_TAG, "onCreate - slot id: " + mSlotId);
+            if (mStkInput == null) {
+                finish();
+            } else {
+                mState = mStkInput.yesNo ? STATE_YES_NO :
+                        STATE_TEXT;
+                configInputDisplay();
+            }
+        } else {
+            finish();
+        }
     }
 }
