@@ -37,14 +37,19 @@ import android.widget.TextView;
  */
 public class StkDialogActivity extends Activity implements View.OnClickListener {
     // members
-    TextMessage mTextMsg;
-
+    private static final String className = new Object(){}.getClass().getEnclosingClass().getName();
+    private static final String LOG_TAG = className.substring(className.lastIndexOf('.') + 1);
+    TextMessage mTextMsg = null;
+    private int mSlotId = -1;
+    private StkAppService appService = StkAppService.getInstance();
     private boolean mIsResponseSent = false;
+
     Handler mTimeoutHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch(msg.what) {
             case MSG_ID_TIMEOUT:
+                CatLog.d(LOG_TAG, "MSG_ID_TIMEOUT finish.");
                 sendResponse(StkAppService.RES_ID_TIMEOUT);
                 finish();
                 break;
@@ -66,6 +71,7 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
+        CatLog.d(LOG_TAG, "onCreate");
         initFromIntent(getIntent());
         if (mTextMsg == null) {
             finish();
@@ -91,6 +97,7 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
         }
 
         if (mTextMsg.icon == null) {
+            CatLog.d(LOG_TAG, "onCreate icon is null");
             window.setFeatureDrawableResource(Window.FEATURE_LEFT_ICON,
                     com.android.internal.R.drawable.stat_notify_sim_toolkit);
         } else {
@@ -104,11 +111,15 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
 
         switch (v.getId()) {
         case OK_BUTTON:
+            CatLog.d(LOG_TAG, "OK Clicked!, mSlotId: " + mSlotId);
             sendResponse(StkAppService.RES_ID_CONFIRM, true);
+            cancelTimeOut();
             finish();
             break;
         case CANCEL_BUTTON:
+            CatLog.d(LOG_TAG, "Cancel Clicked!, mSlotId: " + mSlotId);
             sendResponse(StkAppService.RES_ID_CONFIRM, false);
+            cancelTimeOut();
             finish();
             break;
         }
@@ -118,6 +129,8 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
         case KeyEvent.KEYCODE_BACK:
+            CatLog.d(LOG_TAG, "onKeyDown - KEYCODE_BACK");
+            cancelTimeOut();
             sendResponse(StkAppService.RES_ID_BACKWARD);
             finish();
             break;
@@ -128,7 +141,8 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
     @Override
     public void onResume() {
         super.onResume();
-
+        CatLog.d(LOG_TAG, "onResume - mIsResponseSent[" + mIsResponseSent +
+                "], sim id: " + mSlotId);
         /*
          * The user should be shown the message forever or until some high
          * priority event occurs (such as incoming call, MMI code execution
@@ -151,7 +165,7 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
     @Override
     public void onPause() {
         super.onPause();
-
+        CatLog.d(LOG_TAG, "onPause, sim id: " + mSlotId);
         cancelTimeOut();
     }
 
@@ -164,13 +178,37 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
     @Override
     public void onStop() {
         super.onStop();
+        CatLog.d(LOG_TAG, "onStop - before Send CONFIRM false mIsResponseSent[" +
+                mIsResponseSent + "], sim id: " + mSlotId);
         if (!mIsResponseSent) {
-            sendResponse(StkAppService.RES_ID_TIMEOUT);
+            appService.getStkContext(mSlotId).setPendingDialogInstance(this);
+        } else {
+            CatLog.d(LOG_TAG, "finish.");
+            appService.getStkContext(mSlotId).setPendingDialogInstance(null);
+            cancelTimeOut();
+            finish();
+            CatLog.d(LOG_TAG, "finish.");
         }
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        CatLog.d(LOG_TAG, "onDestroy - mIsResponseSent[" + mIsResponseSent +
+                "], sim id: " + mSlotId);
+        // if dialog activity is finished by stkappservice
+        // when receiving OP_LAUNCH_APP from the other SIM, we can not send TR here
+        // , since the dialog cmd is waiting user to process.
+        if (!mIsResponseSent && !appService.isDialogPending(mSlotId)) {
+            sendResponse(StkAppService.RES_ID_CONFIRM, false);
+        }
+        cancelTimeOut();
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
+        CatLog.d(LOG_TAG, "onSaveInstanceState");
+
         super.onSaveInstanceState(outState);
 
         outState.putParcelable(TEXT, mTextMsg);
@@ -181,11 +219,25 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
         super.onRestoreInstanceState(savedInstanceState);
 
         mTextMsg = savedInstanceState.getParcelable(TEXT);
+        CatLog.d(LOG_TAG, "onRestoreInstanceState - [" + mTextMsg + "]");
     }
 
     private void sendResponse(int resId, boolean confirmed) {
+        if (mSlotId == -1) {
+            CatLog.d(LOG_TAG, "sim id is invalid");
+            return;
+        }
+
+        if (StkAppService.getInstance() == null) {
+            CatLog.d(LOG_TAG, "Ignore response: id is " + resId);
+            return;
+        }
+
+        CatLog.d(LOG_TAG, "sendResponse resID[" + resId + "] confirmed[" + confirmed + "]");
+
         Bundle args = new Bundle();
         args.putInt(StkAppService.OPCODE, StkAppService.OP_RESPONSE);
+        args.putInt(StkAppService.SLOT_ID, mSlotId);
         args.putInt(StkAppService.RES_ID, resId);
         args.putBoolean(StkAppService.CONFIRMATION, confirmed);
         startService(new Intent(this, StkAppService.class).putExtras(args));
@@ -200,12 +252,16 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
 
         if (intent != null) {
             mTextMsg = intent.getParcelableExtra("TEXT");
+            mSlotId = intent.getIntExtra(StkAppService.SLOT_ID, -1);
         } else {
             finish();
         }
+
+        CatLog.d(LOG_TAG, "initFromIntent - [" + mTextMsg + "], sim id: " + mSlotId);
     }
 
     private void cancelTimeOut() {
+        CatLog.d(LOG_TAG, "cancelTimeOut: " + mSlotId);
         mTimeoutHandler.removeMessages(MSG_ID_TIMEOUT);
     }
 
@@ -215,14 +271,20 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
         int dialogDuration = StkApp.calculateDurationInMilis(mTextMsg.duration);
         // If duration is specified, this has priority. If not, set timeout
         // according to condition given by the card.
-        if (dialogDuration == 0) {
-            if (waitForUserToClear) {
-                dialogDuration = StkApp.DISP_TEXT_WAIT_FOR_USER_TIMEOUT;
-            } else {
-                dialogDuration = StkApp.DISP_TEXT_CLEAR_AFTER_DELAY_TIMEOUT;
+        if (mTextMsg.userClear == true && mTextMsg.responseNeeded == false) {
+            return;
+        } else {
+            // userClear = false. will dissapear after a while.
+            if (dialogDuration == 0) {
+                if (waitForUserToClear) {
+                    dialogDuration = StkApp.DISP_TEXT_WAIT_FOR_USER_TIMEOUT;
+                } else {
+                    dialogDuration = StkApp.DISP_TEXT_CLEAR_AFTER_DELAY_TIMEOUT;
+                }
             }
-        }
-        mTimeoutHandler.sendMessageDelayed(mTimeoutHandler
+            CatLog.d(LOG_TAG, "startTimeOut: " + mSlotId);
+            mTimeoutHandler.sendMessageDelayed(mTimeoutHandler
                 .obtainMessage(MSG_ID_TIMEOUT), dialogDuration);
+        }
     }
 }

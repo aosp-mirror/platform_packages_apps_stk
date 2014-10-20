@@ -20,6 +20,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import com.android.internal.telephony.cat.CatLog;
 
 /**
  * Boot completed receiver. used to reset the app install state every time the
@@ -27,6 +28,8 @@ import android.os.Bundle;
  *
  */
 public class BootCompletedReceiver extends BroadcastReceiver {
+    private static final String LOG_TAG = new Object(){}.getClass().getEnclosingClass().getName();
+
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
@@ -37,6 +40,7 @@ public class BootCompletedReceiver extends BroadcastReceiver {
             args.putInt(StkAppService.OPCODE, StkAppService.OP_BOOT_COMPLETED);
             context.startService(new Intent(context, StkAppService.class)
                     .putExtras(args));
+            CatLog.d(LOG_TAG, "[ACTION_BOOT_COMPLETED]");
         }
     }
 }
