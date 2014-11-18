@@ -42,6 +42,10 @@ public class StkCmdReceiver extends BroadcastReceiver {
             handleAction(context, intent, StkAppService.OP_END_SESSION);
         } else if (action.equals(AppInterface.CAT_ICC_STATUS_CHANGE)) {
             handleAction(context, intent, StkAppService.OP_CARD_STATUS_CHANGED);
+        } else if (action.equals(AppInterface.CAT_IDLE_SCREEN_ACTION)) {
+            handleScreenStatus(context, intent.getBooleanExtra("SCREEN_IDLE",true));
+        } else if (action.equals(Intent.ACTION_LOCALE_CHANGED)) {
+            handleLocaleChange(context);
         } else if (action.equals(AppInterface.CAT_ALPHA_NOTIFY_ACTION)) {
             handleAction(context, intent, StkAppService.OP_ALPHA_NOTIFY);
         }
@@ -80,5 +84,20 @@ public class StkCmdReceiver extends BroadcastReceiver {
         Intent toService = new Intent(context, StkAppService.class);
         toService.putExtras(args);
         context.startService(toService);
+    }
+
+    private void handleScreenStatus(Context context, boolean mScreenIdle) {
+        Bundle args = new Bundle();
+        args.putInt(StkAppService.OPCODE, StkAppService.OP_IDLE_SCREEN);
+        args.putBoolean(StkAppService.SCREEN_STATUS,  mScreenIdle);
+        context.startService(new Intent(context, StkAppService.class)
+                .putExtras(args));
+    }
+
+    private void handleLocaleChange(Context context) {
+        Bundle args = new Bundle();
+        args.putInt(StkAppService.OPCODE, StkAppService.OP_LOCALE_CHANGED);
+        context.startService(new Intent(context, StkAppService.class)
+                .putExtras(args));
     }
 }
