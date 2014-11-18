@@ -117,7 +117,7 @@ public class StkAppService extends Service implements Runnable {
         private boolean mBackGroundTRSent = false;
         private int mSlotId = 0;
         private CatCmdMessage mIdleModeTextCmd = null;
-        private boolean mDisplayText = false;
+        private boolean mIsDisplayTextPending = false;
         private boolean mScreenIdle = true;
         private SetupEventListSettings mSetupEventListSettings = null;
         private boolean mClearSelectItem = false;
@@ -558,17 +558,15 @@ public class StkAppService extends Service implements Runnable {
                 }
                 break;
             case OP_RESPONSE:
-                if (mStkContext[slotId].responseNeeded) {
-                    handleCmdResponse((Bundle) msg.obj, slotId);
-                }
+                handleCmdResponse((Bundle) msg.obj, slotId);
                 // call delayed commands if needed.
                 if (mStkContext[slotId].mCmdsQ.size() != 0) {
                     callDelayedMsg(slotId);
                 } else {
                     mStkContext[slotId].mCmdInProgress = false;
                 }
-                // reset response needed state var to its original value.
-                mStkContext[slotId].responseNeeded = true;
+                //reset mIsDisplayTextPending after sending the  response.
+                mStkContext[slotId].mIsDisplayTextPending = false;
                 break;
             case OP_END_SESSION:
                 if (!mStkContext[slotId].mCmdInProgress) {
@@ -700,13 +698,15 @@ public class StkAppService extends Service implements Runnable {
         if (mStkContext[slotId].mIdleModeTextCmd != null && mStkContext[slotId].mScreenIdle) {
            launchIdleText(slotId);
         }
-        if (mStkContext[slotId].mDisplayText) {
+        // Show user the display text or send screen busy response
+        // if previous display text command is pending.
+        if (mStkContext[slotId].mIsDisplayTextPending) {
             if (!mStkContext[slotId].mScreenIdle) {
                 sendScreenBusyResponse(slotId);
             } else {
                 launchTextDialog(slotId);
             }
-            mStkContext[slotId].mDisplayText = false;
+            mStkContext[slotId].mIsDisplayTextPending = false;
             // If an idle text proactive command is set then the
             // request for getting screen status still holds true.
             if (mStkContext[slotId].mIdleModeTextCmd == null) {
@@ -725,8 +725,6 @@ public class StkAppService extends Service implements Runnable {
         CatLog.d(this, "SCREEN_BUSY");
         resMsg.setResultCode(ResultCode.TERMINAL_CRNTLY_UNABLE_TO_PROCESS);
         mStkService[slotId].onCmdResponse(resMsg);
-        // reset response needed state var to its original value.
-        mStkContext[slotId].responseNeeded = true;
         if (mStkContext[slotId].mCmdsQ.size() != 0) {
             callDelayedMsg(slotId);
         } else {
@@ -872,7 +870,6 @@ public class StkAppService extends Service implements Runnable {
         switch (cmdMsg.getCmdType()) {
         case DISPLAY_TEXT:
             TextMessage msg = cmdMsg.geTextMessage();
-            mStkContext[slotId].responseNeeded = msg.responseNeeded;
             waitForUsersResponse = msg.responseNeeded;
             if (mStkContext[slotId].lastSelectedItem != null) {
                 msg.title = mStkContext[slotId].lastSelectedItem;
@@ -894,7 +891,7 @@ public class StkAppService extends Service implements Runnable {
                 Intent StkIntent = new Intent(AppInterface.CHECK_SCREEN_IDLE_ACTION);
                 StkIntent.putExtra(SCREEN_STATUS_REQUEST, true);
                 sendBroadcast(StkIntent);
-                mStkContext[slotId].mDisplayText = true;
+                mStkContext[slotId].mIsDisplayTextPending = true;
             } else {
                 launchTextDialog(slotId);
             }
@@ -1006,8 +1003,7 @@ public class StkAppService extends Service implements Runnable {
             mStkContext[slotId].mCurrentSetupEventCmd = mStkContext[slotId].mCurrentCmd;
             mStkContext[slotId].mCurrentCmd = mStkContext[slotId].mMainCmd;
             if ((mStkContext[slotId].mIdleModeTextCmd == null)
-                    && (!mStkContext[slotId].mDisplayText)) {
-
+                    && (!mStkContext[slotId].mIsDisplayTextPending)) {
                 for (int i : mStkContext[slotId].mSetupEventListSettings.eventList) {
                     if (i == IDLE_SCREEN_AVAILABLE_EVENT) {
                         CatLog.d(this," IDLE_SCREEN_AVAILABLE_EVENT present in List");
@@ -1353,6 +1349,12 @@ public class StkAppService extends Service implements Runnable {
             newIntent.putExtra("TEXT", mStkContext[slotId].mCurrentCmd.geTextMessage());
             newIntent.putExtra(SLOT_ID, slotId);
             startActivity(newIntent);
+            // For display texts with immediate response, send the terminal response
+            // immediately. responseNeeded will be false, if display text command has
+            // the immediate response tlv.
+            if (!mStkContext[slotId].mCurrentCmd.geTextMessage().responseNeeded) {
+                sendResponse(RES_ID_CONFIRM, slotId, true);
+            }
         }
     }
 
@@ -1372,7 +1374,7 @@ public class StkAppService extends Service implements Runnable {
     }
 
     private void sendSetUpEventResponse(int event, byte[] addedInfo, int slotId) {
-        CatLog.d(this, "sendSetUpEventResponse: event : " + event);
+        CatLog.d(this, "sendSetUpEventResponse: event : " + event + "slotId = " + slotId);
 
         if (mStkContext[slotId].mCurrentSetupEventCmd == null){
             CatLog.e(this, "mCurrentSetupEventCmd is null");
