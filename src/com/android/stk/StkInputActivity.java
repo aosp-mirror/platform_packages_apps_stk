@@ -123,6 +123,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             break;
         }
         CatLog.d(LOG_TAG, "handleClick, ready to response");
+        cancelTimeOut();
         appService.getStkContext(mSlotId).setPendingActivityInstance(this);
         sendResponse(StkAppService.RES_ID_INPUT, input, false);
     }
@@ -217,6 +218,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         case KeyEvent.KEYCODE_BACK:
             CatLog.d(LOG_TAG, "onKeyDown - KEYCODE_BACK");
             mAcceptUsersInput = false;
+            cancelTimeOut();
             appService.getStkContext(mSlotId).setPendingActivityInstance(this);
             sendResponse(StkAppService.RES_ID_BACKWARD, null, false);
             return true;
