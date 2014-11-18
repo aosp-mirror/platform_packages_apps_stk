@@ -127,11 +127,13 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
             CatLog.d(LOG_TAG, "Item is null");
             return;
         }
+
         CatLog.d(LOG_TAG, "onListItemClick Id: " + item.id + ", mState: " + mState);
         // ONLY set SECONDARY menu. It will be finished when the following command is comming.
         if (mState == STATE_SECONDARY) {
             appService.getStkContext(mSlotId).setPendingActivityInstance(this);
         }
+        cancelTimeOut();
         sendResponse(StkAppService.RES_ID_MENU_SELECTION, item.id, false);
         mAcceptUsersInput = false;
         mProgressView.setVisibility(View.VISIBLE);
@@ -223,7 +225,17 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         } else {
             CatLog.d(LOG_TAG, "onPause: null appService.");
         }
-        cancelTimeOut();
+
+        /*
+         * do not cancel the timer here cancelTimeOut(). If any higher/lower
+         * priority events such as incoming call, new sms, screen off intent,
+         * notification alerts, user actions such as 'User moving to another activtiy'
+         * etc.. occur during SELECT ITEM ongoing session,
+         * this activity would receive 'onPause()' event resulting in
+         * cancellation of the timer. As a result no terminal response is
+         * sent to the card.
+         */
+
     }
 
     @Override
