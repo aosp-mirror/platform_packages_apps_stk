@@ -19,7 +19,9 @@ package com.android.stk;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+
 import com.android.internal.telephony.cat.CatLog;
 
 /**
@@ -36,6 +38,13 @@ public class BootCompletedReceiver extends BroadcastReceiver {
 
         // make sure the app icon is removed every time the device boots.
         if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
+            if (!android.os.Process.myUserHandle().isOwner()) {
+                //Disable package for all secondary users. Package is only required for device
+                //owner.
+                context.getPackageManager().setApplicationEnabledSetting(context.getPackageName(),
+                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED, 0);
+                return;
+            }
             Bundle args = new Bundle();
             args.putInt(StkAppService.OPCODE, StkAppService.OP_BOOT_COMPLETED);
             context.startService(new Intent(context, StkAppService.class)
