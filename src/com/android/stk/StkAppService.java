@@ -174,6 +174,7 @@ public class StkAppService extends Service implements Runnable {
     static final int OP_SET_ACT_INST = 8;
     static final int OP_SET_DAL_INST = 9;
     static final int OP_SET_MAINACT_INST = 10;
+    static final int OP_ALPHA_NOTIFY = 13;
 
     // Response ids
     static final int RES_ID_MENU_SELECTION = 11;
@@ -315,6 +316,7 @@ public class StkAppService extends Service implements Runnable {
             break;
         case OP_RESPONSE:
         case OP_CARD_STATUS_CHANGED:
+        case OP_ALPHA_NOTIFY:
             msg.obj = args;
             /* falls through */
         case OP_LAUNCH_APP:
@@ -570,6 +572,9 @@ public class StkAppService extends Service implements Runnable {
                 mainAct = (Activity) msg.obj;
                 CatLog.d(LOG_TAG, "Set activity instance. " + mainAct);
                 mStkContext[slotId].mMainActivityInstance = mainAct;
+                break;
+            case OP_ALPHA_NOTIFY:
+                handleAlphaNotify((Bundle) msg.obj);
                 break;
             }
         }
@@ -1485,6 +1490,7 @@ public class StkAppService extends Service implements Runnable {
         mStkContext[slotId].mSetupMenuState = STATE_EXIST;
         return false;
     }
+
     StkContext getStkContext(int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             return mStkContext[slotId];
@@ -1492,5 +1498,14 @@ public class StkAppService extends Service implements Runnable {
             CatLog.d(LOG_TAG, "invalid slotId: " + slotId);
             return null;
         }
+    }
+
+    private void handleAlphaNotify(Bundle args) {
+        String alphaString = args.getString(AppInterface.ALPHA_STRING);
+
+        CatLog.d(this, "Alpha string received from card: " + alphaString);
+        Toast toast = Toast.makeText(sInstance, alphaString, Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.TOP, 0, 0);
+        toast.show();
     }
 }

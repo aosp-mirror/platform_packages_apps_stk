@@ -42,12 +42,14 @@ public class StkCmdReceiver extends BroadcastReceiver {
             handleAction(context, intent, StkAppService.OP_END_SESSION);
         } else if (action.equals(AppInterface.CAT_ICC_STATUS_CHANGE)) {
             handleAction(context, intent, StkAppService.OP_CARD_STATUS_CHANGED);
+        } else if (action.equals(AppInterface.CAT_ALPHA_NOTIFY_ACTION)) {
+            handleAction(context, intent, StkAppService.OP_ALPHA_NOTIFY);
         }
     }
 
     private void handleAction(Context context, Intent intent, int op) {
         Bundle args = new Bundle();
-        int slot_id = intent.getIntExtra(StkAppService.SLOT_ID,0);
+        int slot_id = intent.getIntExtra(StkAppService.SLOT_ID, 0);
 
         args.putInt(StkAppService.OPCODE, op);
         args.putInt(StkAppService.SLOT_ID, slot_id);
@@ -68,7 +70,11 @@ public class StkCmdReceiver extends BroadcastReceiver {
             args.putInt(AppInterface.REFRESH_RESULT,
                     intent.getIntExtra(AppInterface.REFRESH_RESULT,
                     IccRefreshResponse.REFRESH_RESULT_FILE_UPDATE));
+        } else if (StkAppService.OP_ALPHA_NOTIFY == op) {
+            String alphaString = intent.getStringExtra(AppInterface.ALPHA_STRING);
+            args.putString(AppInterface.ALPHA_STRING, alphaString);
         }
+
         CatLog.d("StkCmdReceiver", "handleAction, op: " + op +
                 "args: " + args + ", slot id: " + slot_id);
         Intent toService = new Intent(context, StkAppService.class);
