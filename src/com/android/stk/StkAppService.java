@@ -80,8 +80,6 @@ import java.lang.System;
 import java.util.List;
 
 import static com.android.internal.telephony.cat.CatCmdMessage.
-                   SetupEventListConstants.IDLE_SCREEN_AVAILABLE_EVENT;
-import static com.android.internal.telephony.cat.CatCmdMessage.
                    SetupEventListConstants.LANGUAGE_SELECTION_EVENT;
 
 /**
@@ -116,9 +114,6 @@ public class StkAppService extends Service implements Runnable {
         private Activity mMainActivityInstance = null;
         private boolean mBackGroundTRSent = false;
         private int mSlotId = 0;
-        private CatCmdMessage mIdleModeTextCmd = null;
-        private boolean mIsDisplayTextPending = false;
-        private boolean mScreenIdle = true;
         private SetupEventListSettings mSetupEventListSettings = null;
         private boolean mClearSelectItem = false;
         private boolean mDisplayTextDlgIsVisibile = false;
@@ -183,8 +178,6 @@ public class StkAppService extends Service implements Runnable {
     static final String STK_MENU_URI = "stk://com.android.stk/menu/";
     static final String STK_INPUT_URI = "stk://com.android.stk/input/";
     static final String STK_TONE_URI = "stk://com.android.stk/tone/";
-    static final String SCREEN_STATUS = "screen status";
-    static final String SCREEN_STATUS_REQUEST = "SCREEN_STATUS_REQUEST";
 
     // These below constants are used for SETUP_EVENT_LIST
     static final String SETUP_EVENT_TYPE = "event";
@@ -201,9 +194,8 @@ public class StkAppService extends Service implements Runnable {
     static final int OP_SET_ACT_INST = 8;
     static final int OP_SET_DAL_INST = 9;
     static final int OP_SET_MAINACT_INST = 10;
-    static final int OP_IDLE_SCREEN = 11;
-    static final int OP_LOCALE_CHANGED = 12;
-    static final int OP_ALPHA_NOTIFY = 13;
+    static final int OP_LOCALE_CHANGED = 11;
+    static final int OP_ALPHA_NOTIFY = 12;
 
     //Invalid SetupEvent
     static final int INVALID_SETUP_EVENT = 0xFF;
@@ -348,7 +340,6 @@ public class StkAppService extends Service implements Runnable {
             break;
         case OP_RESPONSE:
         case OP_CARD_STATUS_CHANGED:
-        case OP_IDLE_SCREEN:
         case OP_LOCALE_CHANGED:
         case OP_ALPHA_NOTIFY:
             msg.obj = args;
@@ -565,8 +556,6 @@ public class StkAppService extends Service implements Runnable {
                 } else {
                     mStkContext[slotId].mCmdInProgress = false;
                 }
-                //reset mIsDisplayTextPending after sending the  response.
-                mStkContext[slotId].mIsDisplayTextPending = false;
                 break;
             case OP_END_SESSION:
                 if (!mStkContext[slotId].mCmdInProgress) {
@@ -613,13 +602,6 @@ public class StkAppService extends Service implements Runnable {
                 mainAct = (Activity) msg.obj;
                 CatLog.d(LOG_TAG, "Set activity instance. " + mainAct);
                 mStkContext[slotId].mMainActivityInstance = mainAct;
-                break;
-            case OP_IDLE_SCREEN:
-                for (int slot = 0; slot < mSimCount; slot++) {
-                    if (mStkContext[slot] != null) {
-                        handleScreenStatus((Bundle) msg.obj, slot);
-                    }
-                }
                 break;
             case OP_LOCALE_CHANGED:
                 CatLog.d(this, "Locale Changed");
@@ -683,52 +665,6 @@ public class StkAppService extends Service implements Runnable {
             return true;
         } else {
             return false;
-        }
-    }
-
-    private void handleScreenStatus(Bundle args, int slotId) {
-        mStkContext[slotId].mScreenIdle = args.getBoolean(SCREEN_STATUS);
-
-        // If the idle screen event is present in the list need to send the
-        // response to SIM.
-        if (mStkContext[slotId].mScreenIdle) {
-            CatLog.d(this, "Need to send IDLE SCREEN Available event to SIM");
-            checkForSetupEvent(IDLE_SCREEN_AVAILABLE_EVENT, null, slotId);
-        }
-        if (mStkContext[slotId].mIdleModeTextCmd != null && mStkContext[slotId].mScreenIdle) {
-           launchIdleText(slotId);
-        }
-        // Show user the display text or send screen busy response
-        // if previous display text command is pending.
-        if (mStkContext[slotId].mIsDisplayTextPending) {
-            if (!mStkContext[slotId].mScreenIdle) {
-                sendScreenBusyResponse(slotId);
-            } else {
-                launchTextDialog(slotId);
-            }
-            mStkContext[slotId].mIsDisplayTextPending = false;
-            // If an idle text proactive command is set then the
-            // request for getting screen status still holds true.
-            if (mStkContext[slotId].mIdleModeTextCmd == null) {
-                Intent StkIntent = new Intent(AppInterface.CHECK_SCREEN_IDLE_ACTION);
-                StkIntent.putExtra(SCREEN_STATUS_REQUEST, false);
-                sendBroadcast(StkIntent);
-            }
-        }
-    }
-
-    private void sendScreenBusyResponse(int slotId) {
-        if (mStkContext[slotId].mCurrentCmd == null) {
-            return;
-        }
-        CatResponseMessage resMsg = new CatResponseMessage(mStkContext[slotId].mCurrentCmd);
-        CatLog.d(this, "SCREEN_BUSY");
-        resMsg.setResultCode(ResultCode.TERMINAL_CRNTLY_UNABLE_TO_PROCESS);
-        mStkService[slotId].onCmdResponse(resMsg);
-        if (mStkContext[slotId].mCmdsQ.size() != 0) {
-            callDelayedMsg(slotId);
-        } else {
-            mStkContext[slotId].mCmdInProgress = false;
         }
     }
 
@@ -839,20 +775,6 @@ public class StkAppService extends Service implements Runnable {
         }
     }
 
-    // returns true if any Stk related activity already has focus on the screen
-    private boolean isTopOfStack() {
-        ActivityManager mAcivityManager = (ActivityManager) mContext
-                .getSystemService(ACTIVITY_SERVICE);
-        String currentPackageName = mAcivityManager.getRunningTasks(1).get(0).topActivity
-                .getPackageName();
-        if (null != currentPackageName) {
-            return currentPackageName.equals(PACKAGE_NAME);
-        }
-
-        return false;
-    }
-
-
     private void handleCmd(CatCmdMessage cmdMsg, int slotId) {
 
         if (cmdMsg == null) {
@@ -879,22 +801,7 @@ public class StkAppService extends Service implements Runnable {
                 // TODO: get the carrier name from the SIM
                 msg.title = "";
             }
-
-            //If the device is not displaying an STK related dialogue and we
-            //receive a low priority Display Text command then send a screen
-            //busy terminal response with out displaying the message. Otherwise
-            //display the message. The existing displayed message shall be updated
-            //with the new display text proactive command (Refer to ETSI TS 102 384
-            //section 27.22.4.1.4.4.2).
-            if (!(msg.isHighPriority || mStkContext[slotId].mMenuIsVisible
-                    || mStkContext[slotId].mDisplayTextDlgIsVisibile || isTopOfStack())) {
-                Intent StkIntent = new Intent(AppInterface.CHECK_SCREEN_IDLE_ACTION);
-                StkIntent.putExtra(SCREEN_STATUS_REQUEST, true);
-                sendBroadcast(StkIntent);
-                mStkContext[slotId].mIsDisplayTextPending = true;
-            } else {
-                launchTextDialog(slotId);
-            }
+            launchTextDialog(slotId);
             break;
         case SELECT_ITEM:
             CatLog.d(LOG_TAG, "SELECT_ITEM +");
@@ -941,17 +848,7 @@ public class StkAppService extends Service implements Runnable {
             break;
         case SET_UP_IDLE_MODE_TEXT:
             waitForUsersResponse = false;
-            mStkContext[slotId].mIdleModeTextCmd = mStkContext[slotId].mCurrentCmd;
-            TextMessage idleModeText = mStkContext[slotId].mCurrentCmd.geTextMessage();
-            // Send intent to ActivityManagerService to get the screen status
-            Intent idleStkIntent  = new Intent(AppInterface.CHECK_SCREEN_IDLE_ACTION);
-            if (idleModeText == null) {
-                launchIdleText(slotId);
-                mStkContext[slotId].mIdleModeTextCmd = null;
-            }
-            CatLog.d(this, "set up idle mode");
-            mStkContext[slotId].mCurrentCmd = mStkContext[slotId].mMainCmd;
-            sendBroadcast(idleStkIntent);
+            launchIdleText(slotId);
             break;
         case SEND_DTMF:
         case SEND_SMS:
@@ -1002,19 +899,6 @@ public class StkAppService extends Service implements Runnable {
                     mStkContext[slotId].mCurrentCmd.getSetEventList();
             mStkContext[slotId].mCurrentSetupEventCmd = mStkContext[slotId].mCurrentCmd;
             mStkContext[slotId].mCurrentCmd = mStkContext[slotId].mMainCmd;
-            if ((mStkContext[slotId].mIdleModeTextCmd == null)
-                    && (!mStkContext[slotId].mIsDisplayTextPending)) {
-                for (int i : mStkContext[slotId].mSetupEventListSettings.eventList) {
-                    if (i == IDLE_SCREEN_AVAILABLE_EVENT) {
-                        CatLog.d(this," IDLE_SCREEN_AVAILABLE_EVENT present in List");
-                        // Request ActivityManagerService to get the screen status
-                        Intent StkIntent = new Intent(AppInterface.CHECK_SCREEN_IDLE_ACTION);
-                        StkIntent.putExtra(SCREEN_STATUS_REQUEST, true);
-                        sendBroadcast(StkIntent);
-                        break;
-                    }
-                }
-            }
             break;
         }
 
@@ -1409,10 +1293,6 @@ public class StkAppService extends Service implements Runnable {
                 CatLog.d(this, " Event " + event + "exists in the EventList");
 
                 switch (event) {
-                    case IDLE_SCREEN_AVAILABLE_EVENT:
-                        sendSetUpEventResponse(event, addedInfo, slotId);
-                        removeSetUpEvent(event, slotId);
-                        break;
                     case LANGUAGE_SELECTION_EVENT:
                         String language =  mContext
                                 .getResources().getConfiguration().locale.getLanguage();
@@ -1556,7 +1436,7 @@ public class StkAppService extends Service implements Runnable {
     }
 
     private void launchIdleText(int slotId) {
-        TextMessage msg = mStkContext[slotId].mIdleModeTextCmd.geTextMessage();
+        TextMessage msg = mStkContext[slotId].mCurrentCmd.geTextMessage();
 
         if (msg == null || msg.text ==null) {
             CatLog.d(LOG_TAG,  msg == null ? "mCurrent.getTextMessage is NULL"
