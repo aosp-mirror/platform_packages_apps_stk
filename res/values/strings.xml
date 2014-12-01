@@ -41,6 +41,8 @@
     <string name="digits">Digits (0-9, *, #, +)</string>
     <!-- Default transition message when launching a call -->
     <string name="default_call_setup_msg">Call in progress\u2026</string>
+    <!-- Default message for SET_UP_CALL when there is no ALPHA tag in it -->
+    <string name="default_setup_call_msg">Call being setup</string>
 
     <string name="stk_app_state">Application state</string>
     <string name="enable_app">Enabled</string>
