@@ -46,6 +46,8 @@ public class StkCmdReceiver extends BroadcastReceiver {
             handleLocaleChange(context);
         } else if (action.equals(AppInterface.CAT_ALPHA_NOTIFY_ACTION)) {
             handleAction(context, intent, StkAppService.OP_ALPHA_NOTIFY);
+        } else if (action.equals(Intent.ACTION_SCREEN_OFF)) {
+            handleIdleScreen(context);
         }
     }
 
@@ -87,6 +89,13 @@ public class StkCmdReceiver extends BroadcastReceiver {
     private void handleLocaleChange(Context context) {
         Bundle args = new Bundle();
         args.putInt(StkAppService.OPCODE, StkAppService.OP_LOCALE_CHANGED);
+        context.startService(new Intent(context, StkAppService.class)
+                .putExtras(args));
+    }
+
+    private void handleIdleScreen(Context context) {
+        Bundle args = new Bundle();
+        args.putInt(StkAppService.OPCODE, StkAppService.OP_IDLE_SCREEN);
         context.startService(new Intent(context, StkAppService.class)
                 .putExtras(args));
     }
