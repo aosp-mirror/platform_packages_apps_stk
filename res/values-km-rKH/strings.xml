@@ -22,13 +22,14 @@
     <string name="menu_back" msgid="301227740977453364">"ថយក្រោយ"</string>
     <string name="service_name" msgid="6860303747999592491">"ឈ្មោះ​សេវាកម្ម"</string>
     <string name="stk_no_service" msgid="5427773116839809131">"គ្មាន​សេវា"</string>
-    <string name="button_ok" msgid="5760722312558549555">"យល់​ព្រម"</string>
-    <string name="button_cancel" msgid="1997847915560800261">"បោះ​បង់"</string>
+    <string name="button_ok" msgid="5760722312558549555">"យល់​ព្រម​"</string>
+    <string name="button_cancel" msgid="1997847915560800261">"បោះ​បង់​"</string>
     <string name="button_yes" msgid="624420260648337203">"បាទ/ចាស"</string>
     <string name="button_no" msgid="1824959157582605627">"ទេ"</string>
     <string name="alphabet" msgid="1583185545938805861">"អក្សរ​ក្រម"</string>
     <string name="digits" msgid="1746796679021682388">"តួលេខ (0-9, *, #, +)"</string>
     <string name="default_call_setup_msg" msgid="7960194995759849940">"ការ​​ហៅ​កំពុង​ដំណើរការ…"</string>
+    <string name="default_setup_call_msg" msgid="6126904475461162162">"ការហៅកំពុងត្រូវបានកំណត់"</string>
     <string name="stk_app_state" msgid="18582277302584082">"សភាព​កម្មវិធី"</string>
     <string name="enable_app" msgid="3701224550936728203">"បាន​បើក"</string>
     <string name="disable_app" msgid="6725081975611415214">"បាន​បិទ"</string>

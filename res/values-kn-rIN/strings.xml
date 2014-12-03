@@ -29,6 +29,7 @@
     <string name="alphabet" msgid="1583185545938805861">"ವರ್ಣಮಾಲೆಗಳು"</string>
     <string name="digits" msgid="1746796679021682388">"ಅಂಕಿಗಳು (0-9, *, #, +)"</string>
     <string name="default_call_setup_msg" msgid="7960194995759849940">"ಕರೆಯು ಪ್ರಗತಿಯಲ್ಲಿದೆ…"</string>
+    <string name="default_setup_call_msg" msgid="6126904475461162162">"ಕರೆಯನ್ನು ಹೊಂದಿಸಲಾಗುತ್ತಿದೆ"</string>
     <string name="stk_app_state" msgid="18582277302584082">"ಅಪ್ಲಿಕೇಶನ್ ಸ್ಥಿತಿ"</string>
     <string name="enable_app" msgid="3701224550936728203">"ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ"</string>
     <string name="disable_app" msgid="6725081975611415214">"ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ"</string>
