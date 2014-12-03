@@ -29,6 +29,7 @@
     <string name="alphabet" msgid="1583185545938805861">"Alfabets"</string>
     <string name="digits" msgid="1746796679021682388">"Dígits (0-9, *, #, +)"</string>
     <string name="default_call_setup_msg" msgid="7960194995759849940">"Trucada en curs..."</string>
+    <string name="default_setup_call_msg" msgid="6126904475461162162">"S\'està configurant la trucada."</string>
     <string name="stk_app_state" msgid="18582277302584082">"Estat de l\'aplicació"</string>
     <string name="enable_app" msgid="3701224550936728203">"Activat"</string>
     <string name="disable_app" msgid="6725081975611415214">"Desactivat"</string>
