@@ -34,7 +34,7 @@
     <string name="enable_app" msgid="3701224550936728203">"ဖွင့်ထားသည်"</string>
     <string name="disable_app" msgid="6725081975611415214">"သုံးမရအောင် ပိတ်ထားခြင်း"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"SIM တူးလ်ကစ်"</string>
-    <string name="default_open_channel_msg" msgid="2216070254100295924">"လှိုင်း ဖွင့်မည်လား?"</string>
+    <string name="default_open_channel_msg" msgid="2216070254100295924">"လှိုင်း ဖွင့်မည်လား?"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"ဒေတာ ပို့နေပြီ"</string>
     <string name="default_receive_data_msg" msgid="618096941772010682">"ဒေတာ ရယူနေသည်"</string>
     <string name="default_close_channel_msg" msgid="765364262263839824">"လှိုင်းပိတ်ထားသည်"</string>
