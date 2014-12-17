@@ -75,6 +75,7 @@ import com.android.internal.telephony.TelephonyIntents;
 import com.android.internal.telephony.IccCardConstants;
 import com.android.internal.telephony.uicc.UiccController;
 import com.android.internal.telephony.GsmAlphabet;
+import com.android.internal.telephony.cat.CatService;
 
 import java.util.LinkedList;
 import java.lang.System;
@@ -115,7 +116,6 @@ public class StkAppService extends Service implements Runnable {
         private Activity mActivityInstance = null;
         private Activity mDialogInstance = null;
         private Activity mMainActivityInstance = null;
-        private boolean mBackGroundTRSent = false;
         private int mSlotId = 0;
         private SetupEventListSettings mSetupEventListSettings = null;
         private boolean mClearSelectItem = false;
@@ -264,13 +264,7 @@ public class StkAppService extends Service implements Runnable {
         registerReceiver(mStkCmdReceiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
         for (i = 0; i < mSimCount; i++) {
             CatLog.d(LOG_TAG, "slotId: " + i);
-            if (null != UiccController.getInstance() && null != UiccController.getInstance()
-                    .getUiccCard(i)) {
-                mStkService[i] = UiccController.getInstance().getUiccCard(i).getCatService();
-            } else {
-                CatLog.d(LOG_TAG, "Null instance: [" + UiccController.getInstance() + "],[" +
-                        UiccController.getInstance().getUiccCard(i) + "]");
-            }
+            mStkService[i] = CatService.getInstance(i);
             mStkContext[i] = new StkContext();
             mStkContext[i].mSlotId = i;
             mStkContext[i].mCmdsQ = new LinkedList<DelayedCmd>();
@@ -304,14 +298,7 @@ public class StkAppService extends Service implements Runnable {
         }
         CatLog.d(LOG_TAG, "onStart sim id: " + slotId + ", op: " + op + ", " + args);
         if ((slotId >= 0 && slotId < mSimCount) && mStkService[slotId] == null) {
-            if (null != UiccController.getInstance() && null != UiccController.getInstance()
-                    .getUiccCard(slotId)) {
-                mStkService[slotId] = UiccController.getInstance().getUiccCard(slotId)
-                        .getCatService();
-            } else {
-                CatLog.d(LOG_TAG, "Null instance: [" + UiccController.getInstance() + "],[" +
-                        UiccController.getInstance().getUiccCard(slotId)+"]");
-            }
+            mStkService[slotId] = CatService.getInstance(slotId);
             if (mStkService[slotId] == null) {
                 CatLog.d(LOG_TAG, "mStkService is: " + mStkContext[slotId].mStkServiceState);
                 mStkContext[slotId].mStkServiceState = STATE_NOT_EXIST;
@@ -335,11 +322,6 @@ public class StkAppService extends Service implements Runnable {
         }
 
         waitForLooper();
-        // onStart() method can be passed a null intent
-        // TODO: replace onStart() with onStartCommand()
-        if (intent == null) {
-            return;
-        }
 
         Message msg = mServiceHandler.obtainMessage();
         msg.arg1 = op;
@@ -506,35 +488,6 @@ public class StkAppService extends Service implements Runnable {
                 //just finish it and create a new one to handle the pending command.
                 cleanUpInstanceStackBySlot(slotId);
 
-                //Clean up all other activities in stack.
-                for (int i = 0; i < mSimCount; i++) {
-                    if (i != slotId && mStkContext[i].mCurrentCmd != null) {
-                        Activity otherAct = mStkContext[i].getPendingActivityInstance();
-                        Activity otherDal = mStkContext[i].getPendingDialogInstance();
-                        Activity otherMainMenu = mStkContext[i].getMainActivityInstance();
-                        if (otherAct != null) {
-                            CatLog.d(LOG_TAG, "finish pending otherAct and send SE. slot: " + i);
-                            // Send end session for the pending proactive command of slot i in
-                            // onDestroy of the activity.
-                            // Set mBackGroundTRSent to true for ignoring to show the main menu
-                            // for the following end session event.
-                            mStkContext[i].mBackGroundTRSent = true;
-                            otherAct.finish();
-                            mStkContext[i].mActivityInstance = null;
-                        }
-                        if (otherDal != null) {
-                            CatLog.d(LOG_TAG, "finish pending otherDal and send TR for the dialog");
-                            mStkContext[i].mBackGroundTRSent = true;
-                            otherDal.finish();
-                            mStkContext[i].mDialogInstance = null;
-                        }
-                        if (otherMainMenu != null) {
-                            CatLog.d(LOG_TAG, "finish pending otherMainMenu.");
-                            otherMainMenu.finish();
-                            mStkContext[i].mMainActivityInstance = null;
-                        }
-                    }
-                }
                 CatLog.d(LOG_TAG, "Current cmd type: " +
                         mStkContext[slotId].mCurrentCmd.getCmdType());
                 //Restore the last command from stack by slot id.
@@ -791,6 +744,9 @@ public class StkAppService extends Service implements Runnable {
     }
 
     private void handleSessionEnd(int slotId) {
+        // We should finish all pending activity if receiving END SESSION command.
+        cleanUpInstanceStackBySlot(slotId);
+
         mStkContext[slotId].mCurrentCmd = mStkContext[slotId].mMainCmd;
         CatLog.d(LOG_TAG, "[handleSessionEnd] - mCurrentCmd changed to mMainCmd!.");
         mStkContext[slotId].mCurrentMenuCmd = mStkContext[slotId].mMainCmd;
@@ -800,9 +756,6 @@ public class StkAppService extends Service implements Runnable {
         mStkContext[slotId].mIsInputPending = false;
         mStkContext[slotId].mIsMenuPending = false;
         mStkContext[slotId].mIsDialogPending = false;
-
-        // We should finish all pending activity if receiving END SESSION command.
-        cleanUpInstanceStackBySlot(slotId);
 
         if (mStkContext[slotId].mMainCmd == null) {
             CatLog.d(LOG_TAG, "[handleSessionEnd][mMainCmd is null!]");
@@ -1023,14 +976,7 @@ public class StkAppService extends Service implements Runnable {
         }
 
         if (mStkService[slotId] == null) {
-            if(null != UiccController.getInstance() &&
-                    null != UiccController.getInstance().getUiccCard(slotId)) {
-                mStkService[slotId] = UiccController.getInstance().getUiccCard(slotId)
-                        .getCatService();
-            } else {
-                CatLog.d(LOG_TAG, "Null instance: [" + UiccController.getInstance() +
-                        "],["+UiccController.getInstance().getUiccCard(slotId)+"]");
-            }
+            mStkService[slotId] = CatService.getInstance(slotId);
             if (mStkService[slotId] == null) {
                 // This should never happen (we should be responding only to a message
                 // that arrived from StkService). It has to exist by this time
@@ -1188,6 +1134,10 @@ public class StkAppService extends Service implements Runnable {
         Activity activity = mStkContext[slotId].getPendingActivityInstance();
         Activity dialog = mStkContext[slotId].getPendingDialogInstance();
         CatLog.d(LOG_TAG, "cleanUpInstanceStackBySlot slotId: " + slotId);
+        if (mStkContext[slotId].mCurrentCmd == null) {
+            CatLog.d(LOG_TAG, "current cmd is null.");
+            return;
+        }
         if (activity != null) {
             CatLog.d(LOG_TAG, "current cmd type: " +
                     mStkContext[slotId].mCurrentCmd.getCmdType());
@@ -1273,14 +1223,6 @@ public class StkAppService extends Service implements Runnable {
                 mStkContext[slotId].mMenuState = StkMenuActivity.STATE_MAIN;
                 if (mStkContext[slotId].mMainActivityInstance != null) {
                     CatLog.d(LOG_TAG, "launchMenuActivity, mMainActivityInstance is not null");
-                    return;
-                }
-                // If END SESSION is sent that results from the activity is finished by
-                // stkappservice (line 457), we should igonore to display the stk main menu
-                // of slot id.
-                if (mStkContext[slotId].mBackGroundTRSent) {
-                    CatLog.d(LOG_TAG, "launchMenuActivity, ES is triggered by BG.");
-                    mStkContext[slotId].mBackGroundTRSent = false;
                     return;
                 }
             }

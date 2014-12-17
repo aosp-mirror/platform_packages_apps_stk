@@ -62,21 +62,13 @@ public class StkLauncherActivity extends ListActivity {
         mContext = getBaseContext();
         mTm = (TelephonyManager) mContext.getSystemService(
                 Context.TELEPHONY_SERVICE);
-        //Check if needs to show the menu list.
-        if (isShowSTKListMenu()) {
-            requestWindowFeature(Window.FEATURE_NO_TITLE);
-            setContentView(R.layout.stk_menu_list);
-            mTitleTextView = (TextView) findViewById(R.id.title_text);
-            mTitleIconView = (ImageView) findViewById(R.id.title_icon);
-            mTitleTextView.setText(R.string.app_name);
-            mBitMap = BitmapFactory.decodeResource(getResources(),
-                    R.drawable.ic_launcher_sim_toolkit);
-        } else {
-            //launch stk menu activity for the SIM.
-            if (mSingleSimId < 0) {
-                finish();
-            }
-        }
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        setContentView(R.layout.stk_menu_list);
+        mTitleTextView = (TextView) findViewById(R.id.title_text);
+        mTitleIconView = (ImageView) findViewById(R.id.title_icon);
+        mTitleTextView.setText(R.string.app_name);
+        mBitMap = BitmapFactory.decodeResource(getResources(),
+                R.drawable.ic_launcher_sim_toolkit);
     }
 
     @Override
@@ -199,30 +191,6 @@ public class StkLauncherActivity extends ListActivity {
         } else {
             CatLog.d(LOG_TAG, "No stk menu item add.");
             return 0;
-        }
-    }
-    private boolean isShowSTKListMenu() {
-        int simCount = TelephonyManager.from(mContext).getSimCount();
-        int simInsertedCount = 0;
-        int insertedSlotId = -1;
-
-        CatLog.d(LOG_TAG, "simCount: " + simCount);
-        for (int i = 0; i < simCount; i++) {
-            //Check if the card is inserted.
-            if (mTm.hasIccCard(i)) {
-                CatLog.d(LOG_TAG, "SIM " + i + " is inserted.");
-                mSingleSimId = i;
-                simInsertedCount++;
-            } else {
-                CatLog.d(LOG_TAG, "SIM " + i + " is not inserted.");
-            }
-        }
-        if (simInsertedCount > 1) {
-            return true;
-        } else {
-            //No card or only one card.
-            CatLog.d(LOG_TAG, "do not show stk list menu.");
-            return false;
         }
     }
     private void launchSTKMainMenu(int slodId) {
