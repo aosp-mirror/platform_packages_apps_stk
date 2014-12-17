@@ -39,4 +39,5 @@
     <string name="default_close_channel_msg" msgid="765364262263839824">"頻道已關閉"</string>
     <string name="stk_dialog_accept" msgid="8498901537508923727">"是"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"否"</string>
+    <string name="no_sim_card_inserted">請插入SIM卡以啟動SIM卡應用</string>
 </resources>

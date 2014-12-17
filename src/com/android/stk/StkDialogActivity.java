@@ -195,7 +195,6 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
             appService.getStkContext(mSlotId).setPendingDialogInstance(null);
             cancelTimeOut();
             finish();
-            CatLog.d(LOG_TAG, "finish.");
         }
     }
 
