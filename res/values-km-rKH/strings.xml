@@ -40,6 +40,5 @@
     <string name="default_close_channel_msg" msgid="765364262263839824">"បាន​បិទ​ឆានែល"</string>
     <string name="stk_dialog_accept" msgid="8498901537508923727">"បាទ/ចាស"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"ទេ"</string>
-    <!-- no translation found for no_sim_card_inserted (5316620398365235988) -->
-    <skip />
+    <string name="no_sim_card_inserted" msgid="5316620398365235988">"សូមបញ្ចូលស៊ីមដើម្បីចាប់ផ្តើមដំណើរការប្រអប់ឧបករណ៍ស៊ីម។"</string>
 </resources>
