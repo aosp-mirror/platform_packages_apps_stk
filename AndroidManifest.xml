@@ -34,6 +34,7 @@
         <activity android:name="StkMain"
             android:theme="@android:style/Theme.NoDisplay"
             android:label="@string/app_name"
+            android:enabled="false"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

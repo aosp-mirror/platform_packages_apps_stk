@@ -31,7 +31,7 @@ import android.os.SystemProperties;
  *
  */
 abstract class StkAppInstaller {
-    private static final String STK_LAUNCHER_ACTIVITY = "com.android.stk.StkLauncherActivity";
+    private static final String STK_MAIN_ACTIVITY = "com.android.stk.StkMain";
     private static final String LOG_TAG = "StkAppInstaller";
 
     private StkAppInstaller() {
@@ -57,7 +57,7 @@ abstract class StkAppInstaller {
             CatLog.d(LOG_TAG, "[setAppState]- no package manager, just return.");
             return;
         }
-        ComponentName cName = new ComponentName("com.android.stk", STK_LAUNCHER_ACTIVITY);
+        ComponentName cName = new ComponentName("com.android.stk", STK_MAIN_ACTIVITY);
         int state = install ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
                 : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
 
