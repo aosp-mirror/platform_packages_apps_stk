@@ -432,7 +432,7 @@ public class StkAppService extends Service implements Runnable {
      */
     Menu getMainMenu(int slotId) {
         CatLog.d(LOG_TAG, "StkAppService, getMainMenu, sim id: " + slotId);
-        if (slotId >=0 && slotId < mSimCount) {
+        if (slotId >=0 && slotId < mSimCount && (mStkContext[slotId].mMainCmd != null)) {
             return mStkContext[slotId].mMainCmd.getMenu();
         } else {
             return null;
