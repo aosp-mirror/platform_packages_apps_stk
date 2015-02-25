@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="8396461461738434341">"‏مجموعة أدوات بطاقة SIM"</string>
+    <string name="app_name" msgid="8396461461738434341">"‏مجموعة أدوات شريحة SIM"</string>
     <string name="menu_end_session" msgid="7368541737750982217">"إنهاء الجلسة"</string>
     <string name="help" msgid="9209980881219397319">"مساعدة"</string>
     <string name="menu_back" msgid="301227740977453364">"رجوع"</string>
@@ -33,12 +33,12 @@
     <string name="stk_app_state" msgid="18582277302584082">"حالة التطبيق"</string>
     <string name="enable_app" msgid="3701224550936728203">"تم التمكين"</string>
     <string name="disable_app" msgid="6725081975611415214">"معطّل"</string>
-    <string name="stk_dialog_title" msgid="6954825385456886726">"‏مجموعة أدوات بطاقة SIM"</string>
+    <string name="stk_dialog_title" msgid="6954825385456886726">"‏مجموعة أدوات شريحة SIM"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"قناة مفتوحة؟"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"جارٍ إرسال البيانات"</string>
     <string name="default_receive_data_msg" msgid="618096941772010682">"جارٍ تلقي البيانات"</string>
     <string name="default_close_channel_msg" msgid="765364262263839824">"تم إغلاق القناة"</string>
     <string name="stk_dialog_accept" msgid="8498901537508923727">"نعم"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"لا"</string>
-    <string name="no_sim_card_inserted" msgid="5316620398365235988">"‏يُرجى إدخال بطاقة SIM لتشغيل مجموعة أدوات بطاقة SIM."</string>
+    <string name="no_sim_card_inserted" msgid="5316620398365235988">"‏يُرجى إدخال شريحة SIM لتشغيل مجموعة أدوات شريحة SIM."</string>
 </resources>
