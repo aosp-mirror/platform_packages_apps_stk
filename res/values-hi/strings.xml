@@ -23,7 +23,7 @@
     <string name="service_name" msgid="6860303747999592491">"सेवा का नाम"</string>
     <string name="stk_no_service" msgid="5427773116839809131">"कोई सेवा उपलब्ध नहीं"</string>
     <string name="button_ok" msgid="5760722312558549555">"ठीक है"</string>
-    <string name="button_cancel" msgid="1997847915560800261">"रहने दें"</string>
+    <string name="button_cancel" msgid="1997847915560800261">"अभी नहीं"</string>
     <string name="button_yes" msgid="624420260648337203">"हां"</string>
     <string name="button_no" msgid="1824959157582605627">"नहीं"</string>
     <string name="alphabet" msgid="1583185545938805861">"अक्षर"</string>
