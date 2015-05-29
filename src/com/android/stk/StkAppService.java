@@ -296,7 +296,7 @@ public class StkAppService extends Service implements Runnable {
         if (op != OP_BOOT_COMPLETED) {
             slotId = args.getInt(SLOT_ID);
         }
-        CatLog.d(LOG_TAG, "onStart sim id: " + slotId + ", op: " + op + ", " + args);
+        CatLog.d(LOG_TAG, "onStart sim id: " + slotId + ", op: " + op + ", *****");
         if ((slotId >= 0 && slotId < mSimCount) && mStkService[slotId] == null) {
             mStkService[slotId] = CatService.getInstance(slotId);
             if (mStkService[slotId] == null) {
