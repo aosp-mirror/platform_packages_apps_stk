@@ -241,8 +241,8 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             return;
         }
 
-        CatLog.d(LOG_TAG, "sendResponse resID[" + resId + "] input[" + input +
-                "] help[" + help + "]");
+        CatLog.d(LOG_TAG, "sendResponse resID[" + resId + "] input[*****] help[" 
+                + help + "]");
         mIsResponseSent = true;
         Bundle args = new Bundle();
         args.putInt(StkAppService.OPCODE, StkAppService.OP_RESPONSE);
