@@ -95,18 +95,6 @@
             android:theme="@android:style/Theme.Dialog">
         </activity>
 
-        <!-- SIM Toolkit settings activity -->
-        <activity android:name="StkSettings"
-            android:label="@string/app_name"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <action android:name="android.intent.action.MAIN" />
-                <category
-                    android:name="android.intent.category.DEVELOPMENT_PREFERENCE" />
-            </intent-filter>
-        </activity>
-
         <receiver android:name="com.android.stk.StkCmdReceiver">
             <intent-filter>
                 <action android:name= "android.intent.action.stk.command" />
