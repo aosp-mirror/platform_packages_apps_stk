@@ -172,6 +172,10 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
                 "], slot id: " + mSlotId);
         startTimeOut();
         appService.getStkContext(mSlotId).setPendingActivityInstance(null);
+        if (mIsResponseSent) {
+            cancelTimeOut();
+            finish();
+        }
     }
 
     @Override
