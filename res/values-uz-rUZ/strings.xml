@@ -40,5 +40,5 @@
     <string name="default_close_channel_msg" msgid="765364262263839824">"Kanal yopilgan"</string>
     <string name="stk_dialog_accept" msgid="8498901537508923727">"Ha"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"Yo‘q"</string>
-    <string name="no_sim_card_inserted" msgid="5316620398365235988">"SIM karta menyusini ochish uchun SIM kartani soling."</string>
+    <string name="no_sim_card_inserted" msgid="5316620398365235988">"SIM-karta menyusini ochish uchun SIM-kartani soling."</string>
 </resources>
