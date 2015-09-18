@@ -30,7 +30,7 @@
     <string name="digits" msgid="1746796679021682388">"ارقام (0-9، *، #، +)"</string>
     <string name="default_call_setup_msg" msgid="7960194995759849940">"تماس در حال انجام..."</string>
     <string name="default_setup_call_msg" msgid="6126904475461162162">"تماس در حال تنظیم"</string>
-    <string name="stk_app_state" msgid="18582277302584082">"حالت برنامهٔ کاربردی"</string>
+    <string name="stk_app_state" msgid="18582277302584082">"حالت برنامه"</string>
     <string name="enable_app" msgid="3701224550936728203">"فعال شد"</string>
     <string name="disable_app" msgid="6725081975611415214">"غیرفعال شد"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"کیت ابزار سیم کارت"</string>
