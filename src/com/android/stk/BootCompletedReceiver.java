@@ -44,7 +44,8 @@ public class BootCompletedReceiver extends BroadcastReceiver {
                     .putExtras(args));
             CatLog.d(LOG_TAG, "[ACTION_BOOT_COMPLETED]");
         } else if(action.equals(Intent.ACTION_USER_INITIALIZE)) {
-            if (!android.os.Process.myUserHandle().isOwner()) {
+            // TODO: http://b/25155491
+            if (!android.os.Process.myUserHandle().isSystem()) {
                 //Disable package for all secondary users. Package is only required for device
                 //owner.
                 context.getPackageManager().setApplicationEnabledSetting(context.getPackageName(),
