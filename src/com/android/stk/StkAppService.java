@@ -1075,8 +1075,6 @@ public class StkAppService extends Service implements Runnable {
                 resMsg.setResultCode(ResultCode.OK);
                 resMsg.setConfirmation(confirmed);
                 if (confirmed) {
-                    CatLog.d(this, "Going back to mainMenu before starting a call.");
-                    launchMenuActivity(null, slotId);
                     launchEventMessage(slotId,
                             mStkContext[slotId].mCurrentCmd.getCallSettings().callMsg);
                 }
