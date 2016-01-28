@@ -274,7 +274,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         CatLog.d(LOG_TAG, "onDestroy" + "," + mState);
         //isMenuPending: if input act is finish by stkappservice when OP_LAUNCH_APP again,
         //we can not send TR here, since the input cmd is waiting user to process.
-        if (!mIsResponseSent && !appService.isMenuPending(mSlotId)) {
+        if (mState == STATE_SECONDARY && !mIsResponseSent && !appService.isMenuPending(mSlotId)) {
             CatLog.d(LOG_TAG, "handleDestroy - Send End Session");
             sendResponse(StkAppService.RES_ID_END_SESSION);
         }
