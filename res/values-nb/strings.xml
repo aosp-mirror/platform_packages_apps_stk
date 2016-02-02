@@ -32,7 +32,7 @@
     <string name="default_setup_call_msg" msgid="6126904475461162162">"Samtalen settes opp"</string>
     <string name="stk_app_state" msgid="18582277302584082">"Applikasjonstilstand"</string>
     <string name="enable_app" msgid="3701224550936728203">"Aktivert"</string>
-    <string name="disable_app" msgid="6725081975611415214">"Deaktivert"</string>
+    <string name="disable_app" msgid="6725081975611415214">"Slått av"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"Verktøykasse for SIM-kort"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"Åpen kanal?"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"Sending av data"</string>
