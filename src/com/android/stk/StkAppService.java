@@ -689,9 +689,9 @@ public class StkAppService extends Service implements Runnable {
     private void sendResponse(int resId, int slotId, boolean confirm) {
         Message msg = mServiceHandler.obtainMessage();
         msg.arg1 = OP_RESPONSE;
+        msg.arg2 = slotId;
         Bundle args = new Bundle();
         args.putInt(StkAppService.RES_ID, resId);
-        args.putInt(SLOT_ID, slotId);
         args.putBoolean(StkAppService.CONFIRMATION, confirm);
         msg.obj = args;
         mServiceHandler.sendMessage(msg);
@@ -1589,7 +1589,7 @@ public class StkAppService extends Service implements Runnable {
         startActivity(newIntent);
     }
 
-    private void launchOpenChannelDialog(int slotId) {
+    private void launchOpenChannelDialog(final int slotId) {
         TextMessage msg = mStkContext[slotId].mCurrentCmd.geTextMessage();
         if (msg == null) {
             CatLog.d(LOG_TAG, "msg is null, return here");
@@ -1614,6 +1614,7 @@ public class StkAppService extends Service implements Runnable {
                             args.putInt(CHOICE, YES);
                             Message message = mServiceHandler.obtainMessage();
                             message.arg1 = OP_RESPONSE;
+                            message.arg2 = slotId;
                             message.obj = args;
                             mServiceHandler.sendMessage(message);
                         }
@@ -1626,6 +1627,7 @@ public class StkAppService extends Service implements Runnable {
                             args.putInt(CHOICE, NO);
                             Message message = mServiceHandler.obtainMessage();
                             message.arg1 = OP_RESPONSE;
+                            message.arg2 = slotId;
                             message.obj = args;
                             mServiceHandler.sendMessage(message);
                         }
