@@ -210,6 +210,9 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
         super.onStop();
         CatLog.d(LOG_TAG, "onStop - before Send CONFIRM false mIsResponseSent[" +
                 mIsResponseSent + "], sim id: " + mSlotId);
+        if (!mTextMsg.responseNeeded) {
+            return;
+        }
         if (!mIsResponseSent) {
             appService.getStkContext(mSlotId).setPendingDialogInstance(this);
         } else {
