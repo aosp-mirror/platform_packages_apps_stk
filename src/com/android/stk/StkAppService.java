@@ -916,6 +916,13 @@ public class StkAppService extends Service implements Runnable {
             launchEventMessage(slotId);
             break;
         case LAUNCH_BROWSER:
+            // The device setup process should not be interrupted by launching browser.
+            if (Settings.Global.getInt(mContext.getContentResolver(),
+                    Settings.Global.DEVICE_PROVISIONED, 0) == 0) {
+                CatLog.d(this, "The command is not performed if the setup has not been completed.");
+                sendScreenBusyResponse(slotId);
+                break;
+            }
             TextMessage alphaId = mStkContext[slotId].mCurrentCmd.geTextMessage();
             if ((mStkContext[slotId].mCurrentCmd.getBrowserSettings().mode
                     == LaunchBrowserMode.LAUNCH_IF_NOT_ALREADY_LAUNCHED) &&
