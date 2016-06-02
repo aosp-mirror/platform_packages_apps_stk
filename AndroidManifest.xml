@@ -85,14 +85,14 @@
         </activity>
         <activity android:name="StkDialogActivity"
             android:configChanges="orientation|locale|screenSize|keyboardHidden"
-            android:theme="@android:style/Theme.Dialog"
+            android:theme="@android:style/Theme.DeviceDefault.Dialog"
             android:exported="false"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
         </activity>
 
         <activity android:name="ToneDialog"
             android:exported="false"
-            android:theme="@android:style/Theme.Dialog">
+            android:theme="@android:style/Theme.DeviceDefault.Dialog">
         </activity>
 
         <receiver android:name="com.android.stk.StkCmdReceiver">
