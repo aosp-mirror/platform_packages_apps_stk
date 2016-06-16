@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name" msgid="8396461461738434341">"SIM Toolkit"</string>
-    <string name="menu_end_session" msgid="7368541737750982217">"Sfârşitul sesiunii"</string>
+    <string name="menu_end_session" msgid="7368541737750982217">"Sfârșitul sesiunii"</string>
     <string name="help" msgid="9209980881219397319">"Ajutor"</string>
     <string name="menu_back" msgid="301227740977453364">"Înapoi"</string>
     <string name="service_name" msgid="6860303747999592491">"Nume serviciu"</string>
@@ -34,7 +34,7 @@
     <string name="enable_app" msgid="3701224550936728203">"Activat"</string>
     <string name="disable_app" msgid="6725081975611415214">"Dezactivat"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"SIM Toolkit"</string>
-    <string name="default_open_channel_msg" msgid="2216070254100295924">"Deschideţi canalul?"</string>
+    <string name="default_open_channel_msg" msgid="2216070254100295924">"Deschideți canalul?"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"Se trimit date"</string>
     <string name="default_receive_data_msg" msgid="618096941772010682">"Se primesc date"</string>
     <string name="default_close_channel_msg" msgid="765364262263839824">"Canal închis"</string>
