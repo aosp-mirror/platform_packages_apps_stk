@@ -95,6 +95,10 @@ public class ToneDialog extends Activity {
             iv.setImageBitmap(toneMsg.icon);
         }
 
+        if (toneMsg.iconSelfExplanatory && toneMsg.icon != null) {
+            tv.setVisibility(View.GONE);
+        }
+
         // Start playing tone and vibration
         if (null == settings) {
             CatLog.d(LOG_TAG, "onCreate - null settings - finish");
