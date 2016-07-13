@@ -1527,7 +1527,7 @@ public class StkAppService extends Service implements Runnable {
         // this is good for scenarios where a related DISPLAY TEXT command is
         // followed immediately.
         try {
-            Thread.sleep(10000);
+            Thread.sleep(3000);
         } catch (InterruptedException e) {}
     }
 
