@@ -22,6 +22,8 @@
 
     <original-package android:name="com.android.stk" />
 
+    <protected-broadcast android:name="com.android.stk.DIALOG_ALARM_TIMEOUT" />
+
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.GET_TASKS"/>
     <uses-permission android:name="android.permission.RECEIVE_STK_COMMANDS" />
