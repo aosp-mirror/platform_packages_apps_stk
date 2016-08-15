@@ -39,6 +39,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Parcel;
 import android.os.PersistableBundle;
 import android.os.PowerManager;
 import android.os.SystemProperties;
@@ -455,7 +456,28 @@ public class StkAppService extends Service implements Runnable {
     Menu getMainMenu(int slotId) {
         CatLog.d(LOG_TAG, "StkAppService, getMainMenu, sim id: " + slotId);
         if (slotId >=0 && slotId < mSimCount && (mStkContext[slotId].mMainCmd != null)) {
-            return mStkContext[slotId].mMainCmd.getMenu();
+            Menu menu = mStkContext[slotId].mMainCmd.getMenu();
+            if (menu != null && mSimCount > PhoneConstants.MAX_PHONE_COUNT_SINGLE_SIM) {
+                // If alpha identifier or icon identifier with the self-explanatory qualifier is
+                // specified in SET-UP MENU command, it should be more prioritized than preset ones.
+                if (menu.title == null
+                        && (menu.titleIcon == null || !menu.titleIconSelfExplanatory)) {
+                    StkMenuConfig config = StkMenuConfig.getInstance(getApplicationContext());
+                    String label = config.getLabel(slotId);
+                    Bitmap icon = config.getIcon(slotId);
+                    if (label != null || icon != null) {
+                        Parcel parcel = Parcel.obtain();
+                        menu.writeToParcel(parcel, 0);
+                        parcel.setDataPosition(0);
+                        menu = Menu.CREATOR.createFromParcel(parcel);
+                        parcel.recycle();
+                        menu.title = label;
+                        menu.titleIcon = icon;
+                        menu.titleIconSelfExplanatory = false;
+                    }
+                }
+            }
+            return menu;
         } else {
             return null;
         }
