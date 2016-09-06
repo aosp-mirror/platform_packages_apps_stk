@@ -89,6 +89,7 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
         mContext.registerReceiver(mBroadcastReceiver, intentFilter);
         mAlarmManager =(AlarmManager)mContext.getSystemService(Context.ALARM_SERVICE);
 
+        setFinishOnTouchOutside(false);
     }
 
     public void onClick(View v) {
