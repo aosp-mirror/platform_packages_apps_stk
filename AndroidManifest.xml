@@ -30,7 +30,9 @@
         android:label="@string/app_name"
         android:clearTaskOnLaunch="true"
         android:process="com.android.phone"
-        android:taskAffinity="android.task.stk">
+        android:taskAffinity="android.task.stk"
+        android:defaultToDeviceProtectedStorage="true"
+        android:directBootAware="true">
 
         <activity android:name="StkMain"
             android:theme="@android:style/Theme.NoDisplay"
