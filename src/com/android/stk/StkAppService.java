@@ -313,6 +313,7 @@ public class StkAppService extends Service implements Runnable {
                 //If all StkServices are not available, stop itself and uninstall apk.
                 for (i = PhoneConstants.SIM_ID_1; i < mSimCount; i++) {
                     if (i != slotId
+                            && (mStkService[i] != null)
                             && (mStkContext[i].mStkServiceState == STATE_UNKNOWN
                             || mStkContext[i].mStkServiceState == STATE_EXIST)) {
                        break;
