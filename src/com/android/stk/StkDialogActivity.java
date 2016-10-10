@@ -70,6 +70,15 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
         super.onCreate(icicle);
 
         CatLog.d(LOG_TAG, "onCreate, sim id: " + mSlotId);
+
+        // appService can be null if this activity is automatically recreated by the system
+        // with the saved instance state right after the phone process is killed.
+        if (appService == null) {
+            CatLog.d(LOG_TAG, "onCreate - appService is null");
+            finish();
+            return;
+        }
+
         // New Dialog is created - set to no response sent
         mIsResponseSent = false;
 
@@ -229,6 +238,9 @@ public class StkDialogActivity extends Activity implements View.OnClickListener 
         super.onDestroy();
         CatLog.d(LOG_TAG, "onDestroy - mIsResponseSent[" + mIsResponseSent +
                 "], sim id: " + mSlotId);
+        if (appService == null) {
+            return;
+        }
         // if dialog activity is finished by stkappservice
         // when receiving OP_LAUNCH_APP from the other SIM, we can not send TR here
         // , since the dialog cmd is waiting user to process.

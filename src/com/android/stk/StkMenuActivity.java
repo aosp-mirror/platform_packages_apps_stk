@@ -110,6 +110,15 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         mContext = getBaseContext();
         mAcceptUsersInput = true;
         getListView().setOnCreateContextMenuListener(this);
+
+        // appService can be null if this activity is automatically recreated by the system
+        // with the saved instance state right after the phone process is killed.
+        if (appService == null) {
+            CatLog.d(LOG_TAG, "onCreate - appService is null");
+            finish();
+            return;
+        }
+
         initFromIntent(getIntent());
     }
 
@@ -272,6 +281,9 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         getListView().setOnCreateContextMenuListener(null);
         super.onDestroy();
         CatLog.d(LOG_TAG, "onDestroy" + "," + mState);
+        if (appService == null) {
+            return;
+        }
         //isMenuPending: if input act is finish by stkappservice when OP_LAUNCH_APP again,
         //we can not send TR here, since the input cmd is waiting user to process.
         if (mState == STATE_SECONDARY && !mIsResponseSent && !appService.isMenuPending(mSlotId)) {
