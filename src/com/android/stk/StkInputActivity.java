@@ -134,6 +134,14 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
 
         CatLog.d(LOG_TAG, "onCreate - mIsResponseSent[" + mIsResponseSent + "]");
 
+        // appService can be null if this activity is automatically recreated by the system
+        // with the saved instance state right after the phone process is killed.
+        if (appService == null) {
+            CatLog.d(LOG_TAG, "onCreate - appService is null");
+            finish();
+            return;
+        }
+
         // Set the layout for this activity.
         requestWindowFeature(Window.FEATURE_LEFT_ICON);
         setContentView(R.layout.stk_input);
@@ -201,6 +209,9 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         super.onDestroy();
         CatLog.d(LOG_TAG, "onDestroy - before Send End Session mIsResponseSent[" +
                 mIsResponseSent + " , " + mSlotId + "]");
+        if (appService == null) {
+            return;
+        }
         //If the input activity is finished by stkappservice
         //when receiving OP_LAUNCH_APP from the other SIM, we can not send TR here
         //, since the input cmd is waiting user to process.
