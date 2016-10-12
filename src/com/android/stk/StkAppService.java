@@ -40,9 +40,11 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.PersistableBundle;
 import android.os.PowerManager;
 import android.os.SystemProperties;
 import android.provider.Settings;
+import android.telephony.CarrierConfigManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -809,6 +811,28 @@ public class StkAppService extends Service implements Runnable {
         return false;
     }
 
+    /**
+     * Get the boolean config from carrier config manager.
+     *
+     * @param context the context to get carrier service
+     * @param key config key defined in CarrierConfigManager
+     * @return boolean value of corresponding key.
+     */
+    private static boolean getBooleanCarrierConfig(Context context, String key) {
+        CarrierConfigManager configManager = (CarrierConfigManager) context.getSystemService(
+                Context.CARRIER_CONFIG_SERVICE);
+        PersistableBundle b = null;
+        if (configManager != null) {
+            b = configManager.getConfig();
+        }
+        if (b != null) {
+            return b.getBoolean(key);
+        } else {
+            // Return static default defined in CarrierConfigManager.
+            return CarrierConfigManager.getDefaultConfig().getBoolean(key);
+        }
+    }
+
     private void handleCmd(CatCmdMessage cmdMsg, int slotId) {
 
         if (cmdMsg == null) {
@@ -926,6 +950,15 @@ public class StkAppService extends Service implements Runnable {
                 sendScreenBusyResponse(slotId);
                 break;
             }
+
+            /* Check if Carrier would not want to launch browser */
+            if (getBooleanCarrierConfig(mContext,
+                    CarrierConfigManager.KEY_STK_DISABLE_LAUNCH_BROWSER_BOOL)) {
+                CatLog.d(this, "Browser is not launched as per carrier.");
+                sendResponse(RES_ID_DONE, slotId, true);
+                break;
+            }
+
             TextMessage alphaId = mStkContext[slotId].mCurrentCmd.geTextMessage();
             if ((mStkContext[slotId].mCurrentCmd.getBrowserSettings().mode
                     == LaunchBrowserMode.LAUNCH_IF_NOT_ALREADY_LAUNCHED) &&
