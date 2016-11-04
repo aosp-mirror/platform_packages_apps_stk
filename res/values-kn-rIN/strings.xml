@@ -23,7 +23,7 @@
     <string name="service_name" msgid="6860303747999592491">"ಸೇವೆಯ ಹೆಸರು"</string>
     <string name="stk_no_service" msgid="5427773116839809131">"ಯಾವುದೇ ಸೇವೆ ಲಭ್ಯವಿಲ್ಲ"</string>
     <string name="button_ok" msgid="5760722312558549555">"ಸರಿ"</string>
-    <string name="button_cancel" msgid="1997847915560800261">"ರದ್ದುಮಾಡು"</string>
+    <string name="button_cancel" msgid="1997847915560800261">"ರದ್ದುಮಾಡಿ"</string>
     <string name="button_yes" msgid="624420260648337203">"ಹೌದು"</string>
     <string name="button_no" msgid="1824959157582605627">"ಇಲ್ಲ"</string>
     <string name="alphabet" msgid="1583185545938805861">"ವರ್ಣಮಾಲೆಗಳು"</string>
