@@ -17,6 +17,7 @@
 package com.android.stk;
 
 import android.app.ListActivity;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -99,8 +100,11 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         super.onCreate(icicle);
 
         CatLog.d(LOG_TAG, "onCreate");
-        // Remove the default title, customized one is used.
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        ActionBar actionBar = getActionBar();
+        actionBar.setCustomView(R.layout.stk_title);
+        actionBar.setDisplayShowCustomEnabled(true);
+
         // Set the layout for this activity.
         setContentView(R.layout.stk_menu_list);
         mInstance = this;
@@ -147,6 +151,8 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         mAcceptUsersInput = false;
         mProgressView.setVisibility(View.VISIBLE);
         mProgressView.setIndeterminate(true);
+
+        invalidateOptionsMenu();
     }
 
     @Override
@@ -305,25 +311,19 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
         super.onCreateOptionsMenu(menu);
         menu.add(0, StkApp.MENU_ID_END_SESSION, 1, R.string.menu_end_session);
-        menu.add(0, StkApp.MENU_ID_HELP, 2, R.string.help);
         return true;
     }
 
     @Override
     public boolean onPrepareOptionsMenu(android.view.Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        boolean helpVisible = false;
         boolean mainVisible = false;
 
-        if (mState == STATE_SECONDARY) {
+        if (mState == STATE_SECONDARY && mAcceptUsersInput) {
             mainVisible = true;
-        }
-        if (mStkMenu != null) {
-            helpVisible = mStkMenu.helpAvailable;
         }
 
         menu.findItem(StkApp.MENU_ID_END_SESSION).setVisible(mainVisible);
-        menu.findItem(StkApp.MENU_ID_HELP).setVisible(helpVisible);
 
         return true;
     }
@@ -342,17 +342,8 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
             cancelTimeOut();
             finish();
             return true;
-        case StkApp.MENU_ID_HELP:
-            cancelTimeOut();
-            mAcceptUsersInput = false;
-            int position = getSelectedItemPosition();
-            Item stkItem = getSelectedItem(position);
-            if (stkItem == null) {
-                break;
-            }
-            // send help needed response.
-            sendResponse(StkAppService.RES_ID_MENU_SELECTION, stkItem.id, true);
-            return true;
+        default:
+            break;
         }
         return super.onOptionsItemSelected(item);
     }
