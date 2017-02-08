@@ -800,14 +800,17 @@ public class StkAppService extends Service implements Runnable {
 
     // returns true if any Stk related activity already has focus on the screen
     private boolean isTopOfStack() {
-        ActivityManager mAcivityManager = (ActivityManager) mContext
+        ActivityManager mActivityManager = (ActivityManager) mContext
                 .getSystemService(ACTIVITY_SERVICE);
-        String currentPackageName = mAcivityManager.getRunningTasks(1).get(0).topActivity
-                .getPackageName();
+        String currentPackageName = null;
+        List<RunningTaskInfo> tasks = mActivityManager.getRunningTasks(1);
+        if (tasks == null || tasks.get(0).topActivity == null) {
+            return false;
+        }
+        currentPackageName = tasks.get(0).topActivity.getPackageName();
         if (null != currentPackageName) {
             return currentPackageName.equals(PACKAGE_NAME);
         }
-
         return false;
     }
 
