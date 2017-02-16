@@ -96,7 +96,8 @@
 
         <activity android:name="ToneDialog"
             android:exported="false"
-            android:theme="@android:style/Theme.DeviceDefault.Dialog">
+            android:theme="@android:style/Theme.DeviceDefault.Dialog"
+            android:taskAffinity="android.task.stk.StkLauncherActivity">
         </activity>
 
         <receiver android:name="com.android.stk.StkCmdReceiver">
