@@ -269,7 +269,9 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
             }
         } else {
             if (appService != null) {
-                appService.getStkContext(mSlotId).setPendingActivityInstance(this);
+                if (mState == STATE_SECONDARY) {
+                    appService.getStkContext(mSlotId).setPendingActivityInstance(this);
+                }
             } else {
                 CatLog.d(LOG_TAG, "onStop: null appService.");
             }
