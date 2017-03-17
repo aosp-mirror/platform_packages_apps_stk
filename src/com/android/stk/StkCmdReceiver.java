@@ -35,6 +35,9 @@ public class StkCmdReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
+        if (action == null) {
+            return;
+        }
 
         if (action.equals(AppInterface.CAT_CMD_ACTION)) {
             handleAction(context, intent, StkAppService.OP_CMD);
