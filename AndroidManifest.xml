@@ -102,10 +102,10 @@
 
         <receiver android:name="com.android.stk.StkCmdReceiver">
             <intent-filter>
-                <action android:name= "android.intent.action.stk.command" />
-                <action android:name= "android.intent.action.stk.session_end" />
-                <action android:name= "android.intent.action.stk.icc_status_change" />
-                <action android:name= "android.intent.action.stk.alpha_notify" />
+                <action android:name= "com.android.internal.stk.command" />
+                <action android:name= "com.android.internal.stk.session_end" />
+                <action android:name= "com.android.internal.stk.icc_status_change" />
+                <action android:name= "com.android.internal.stk.alpha_notify" />
                 <action android:name= "android.intent.action.LOCALE_CHANGED" />
             </intent-filter>
         </receiver>
