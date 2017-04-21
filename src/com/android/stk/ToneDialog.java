@@ -17,12 +17,14 @@
 package com.android.stk;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -73,14 +75,13 @@ public class ToneDialog extends Activity {
 
         initFromIntent(getIntent());
 
-        // remove window title
-        View title = findViewById(com.android.internal.R.id.title);
-        title.setVisibility(View.GONE);
-        // set customized content view
-        setContentView(R.layout.stk_tone_dialog);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.stk_tone_dialog, null);
+        alertDialogBuilder.setView(dialogView);
 
-        TextView tv = (TextView) findViewById(R.id.message);
-        ImageView iv = (ImageView) findViewById(R.id.icon);
+        TextView tv = (TextView) dialogView.findViewById(R.id.message);
+        ImageView iv = (ImageView) dialogView.findViewById(R.id.icon);
 
         // set text and icon
         if ((null == toneMsg) || (null == toneMsg.text) || (toneMsg.text.equals(""))) {
@@ -116,6 +117,8 @@ public class ToneDialog extends Activity {
         if (settings.vibrate && mVibrator != null) {
             mVibrator.vibrate(timeout);
         }
+
+        alertDialogBuilder.create().show();
     }
 
     @Override
