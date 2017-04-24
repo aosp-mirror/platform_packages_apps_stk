@@ -62,4 +62,5 @@
     <string name="stk_dialog_accept">YES</string>
     <string name="stk_dialog_reject">NO</string>
     <string name="no_sim_card_inserted">Please insert SIM to launch SIM Toolkit.</string>
+    <string name="stk_channel_name">Mobile service messages</string>
 </resources>
