@@ -41,4 +41,6 @@
     <string name="stk_dialog_accept" msgid="8498901537508923727">"હા"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"નહીં"</string>
     <string name="no_sim_card_inserted" msgid="5316620398365235988">"કૃપા કરીને SIM ટૂલકિટ લોન્ચ કરવા માટે SIM શામેલ કરો."</string>
+    <!-- no translation found for stk_channel_name (8828587788561382056) -->
+    <skip />
 </resources>
