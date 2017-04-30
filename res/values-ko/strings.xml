@@ -18,7 +18,7 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name" msgid="8396461461738434341">"SIM 툴킷"</string>
     <string name="menu_end_session" msgid="7368541737750982217">"세션 끝내기"</string>
-    <string name="help" msgid="9209980881219397319">"도움말"</string>
+    <string name="help" msgid="9209980881219397319">"고객센터"</string>
     <string name="menu_back" msgid="301227740977453364">"뒤로"</string>
     <string name="service_name" msgid="6860303747999592491">"서비스 이름"</string>
     <string name="stk_no_service" msgid="5427773116839809131">"서비스를 사용할 수 없음"</string>
@@ -41,6 +41,5 @@
     <string name="stk_dialog_accept" msgid="8498901537508923727">"예"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"아니요"</string>
     <string name="no_sim_card_inserted" msgid="5316620398365235988">"SIM 툴킷을 실행하려면 SIM을 삽입하세요."</string>
-    <!-- no translation found for stk_channel_name (8828587788561382056) -->
-    <skip />
+    <string name="stk_channel_name" msgid="8828587788561382056">"모바일 서비스 메시지"</string>
 </resources>
