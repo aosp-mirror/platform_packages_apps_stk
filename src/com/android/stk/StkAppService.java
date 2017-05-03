@@ -576,6 +576,8 @@ public class StkAppService extends Service implements Runnable {
                 for (int slot = PhoneConstants.SIM_ID_1; slot < mSimCount; slot++) {
                     checkForSetupEvent(LANGUAGE_SELECTION_EVENT, (Bundle) msg.obj, slot);
                 }
+                // rename all registered notification channels on locale change
+                createAllChannels();
                 break;
             case OP_ALPHA_NOTIFY:
                 handleAlphaNotify((Bundle) msg.obj);
@@ -1572,15 +1574,7 @@ public class StkAppService extends Service implements Runnable {
             CatLog.d(LOG_TAG, "Add IdleMode text");
             PendingIntent pendingIntent = PendingIntent.getService(mContext, 0,
                     new Intent(mContext, StkAppService.class), 0);
-            /* Creates the notification channel and registers it with NotificationManager.
-             * If a channel with the same ID is already registered, NotificationManager will
-             * ignore this call.
-             */
-            mNotificationManager.createNotificationChannel(new NotificationChannel(
-                    STK_NOTIFICATION_CHANNEL_ID,
-                    getResources().getString(R.string.stk_channel_name),
-                    NotificationManager.IMPORTANCE_MIN));
-
+            createAllChannels();
             final Notification.Builder notificationBuilder = new Notification.Builder(
                     StkAppService.this, STK_NOTIFICATION_CHANNEL_ID);
             if (mStkContext[slotId].mMainCmd != null &&
@@ -1611,6 +1605,17 @@ public class StkAppService extends Service implements Runnable {
                     com.android.internal.R.color.system_notification_accent_color));
             mNotificationManager.notify(getNotificationId(slotId), notificationBuilder.build());
         }
+    }
+
+    /** Creates the notification channel and registers it with NotificationManager.
+     * If a channel with the same ID is already registered, NotificationManager will
+     * ignore this call.
+     */
+    private void createAllChannels() {
+        mNotificationManager.createNotificationChannel(new NotificationChannel(
+                STK_NOTIFICATION_CHANNEL_ID,
+                getResources().getString(R.string.stk_channel_name),
+                NotificationManager.IMPORTANCE_MIN));
     }
 
     private void launchToneDialog(int slotId) {
