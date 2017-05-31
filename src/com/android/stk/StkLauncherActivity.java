@@ -16,6 +16,7 @@
 
 package com.android.stk;
 
+import android.app.ActionBar;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
@@ -62,7 +63,11 @@ public class StkLauncherActivity extends ListActivity {
         mContext = getBaseContext();
         mTm = (TelephonyManager) mContext.getSystemService(
                 Context.TELEPHONY_SERVICE);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        ActionBar actionBar = getActionBar();
+        actionBar.setCustomView(R.layout.stk_title);
+        actionBar.setDisplayShowCustomEnabled(true);
+
         setContentView(R.layout.stk_menu_list);
         mTitleTextView = (TextView) findViewById(R.id.title_text);
         mTitleIconView = (ImageView) findViewById(R.id.title_icon);
