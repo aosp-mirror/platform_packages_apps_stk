@@ -17,59 +17,47 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-	android:orientation="vertical"
-	android:fitsSystemWindows="true">
+    android:orientation="horizontal"
+    android:fitsSystemWindows="true">
 
-	<LinearLayout android:id="@+id/stk_title"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:orientation="horizontal"
-		android:layout_centerVertical="true"
-		style="?android:attr/windowTitleBackgroundStyle" >
+    <LinearLayout android:id="@+id/left_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_weight="1"
+        android:layout_centerVertical="true">
+        <ImageView android:id="@+id/title_icon"
+            android:visibility="gone"
+            android:layout_width="32dip"
+            android:layout_height="32dip"
+            android:layout_marginLeft="2dip"
+            android:layout_marginRight="9dip"
+            android:layout_gravity="center_vertical"
+            android:layout_alignParentLeft="true"
+            android:scaleType="fitCenter" />
 
-        <LinearLayout android:id="@+id/left_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_weight="1"
-            android:layout_centerVertical="true">
-			<ImageView android:id="@+id/title_icon"
-				android:layout_width="16dip"
-				android:layout_height="16dip"
-				android:layout_marginLeft="2dip"
-				android:layout_marginRight="9dip"
-	            android:layout_gravity="center_vertical"
-	            android:layout_alignParentLeft="true"
-				android:scaleType="fitCenter" />
+        <TextView android:id="@+id/title_text"
+            android:gravity="center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="32dip"
+            android:ellipsize="end"
+            android:maxLines="1"
+            style="@android:style/TextAppearance.DeviceDefault.Widget.ActionBar.Title" />
+    </LinearLayout>
 
-			<TextView android:id="@+id/title_text"
-				android:gravity="center_vertical"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				style="@android:style/TextAppearance.WindowTitle" />
-        </LinearLayout>
+    <LinearLayout android:id="@+id/right_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true">
 
-        <LinearLayout android:id="@+id/right_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true">
-
-	        <ProgressBar android:id="@+id/progress_bar"
-	                style="?android:attr/progressBarStyleSmallTitle"
-	                android:layout_width="wrap_content"
-	                android:layout_height="wrap_content"
-	                android:layout_marginLeft="5dip"
-	                android:layout_centerVertical="true"
-	                android:visibility="gone"
-	                android:max="10000" />
-        </LinearLayout>
-	</LinearLayout>
-
-	<FrameLayout android:id="@android:id/content"
-		android:layout_width="match_parent"
-		android:layout_height="0dip"
-		android:layout_weight="1"
-		android:foregroundGravity="fill_horizontal|top"
-		android:foreground="?android:attr/windowContentOverlay" />
+        <ProgressBar android:id="@+id/progress_bar"
+                style="?android:attr/progressBarStyleSmallTitle"
+                android:layout_width="32dip"
+                android:layout_height="32dip"
+                android:layout_marginLeft="5dip"
+                android:layout_centerVertical="true"
+                android:visibility="gone"
+                android:max="10000" />
+    </LinearLayout>
 </LinearLayout>
