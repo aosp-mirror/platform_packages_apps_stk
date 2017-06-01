@@ -20,11 +20,6 @@
     android:layout_height="wrap_content"
     android:orientation="vertical" >
 
-    <!-- Include stk title layout. -->
-    <include
-        android:id="@+id/stk_menu_title"
-        layout="@layout/stk_title" />
-
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
