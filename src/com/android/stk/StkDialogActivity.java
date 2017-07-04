@@ -28,7 +28,6 @@ import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.view.KeyEvent;
 
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -99,6 +98,17 @@ public class StkDialogActivity extends Activity {
                         finish();
                     }
                 });
+
+        alertDialogBuilder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        CatLog.d(LOG_TAG, "Moving backward!, mSlotId: " + mSlotId);
+                        cancelTimeOut();
+                        sendResponse(StkAppService.RES_ID_BACKWARD);
+                        finish();
+                    }
+                });
+
         alertDialogBuilder.create();
 
         initFromIntent(getIntent());
@@ -126,21 +136,6 @@ public class StkDialogActivity extends Activity {
         intentFilter.addAction(ALARM_TIMEOUT);
         mContext.registerReceiver(mBroadcastReceiver, intentFilter);
         mAlarmManager =(AlarmManager)mContext.getSystemService(Context.ALARM_SERVICE);
-
-        setFinishOnTouchOutside(false);
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_BACK:
-                CatLog.d(LOG_TAG, "onKeyDown - KEYCODE_BACK");
-                cancelTimeOut();
-                sendResponse(StkAppService.RES_ID_BACKWARD);
-                finish();
-                break;
-        }
-        return false;
     }
 
     @Override
