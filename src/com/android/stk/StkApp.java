@@ -40,7 +40,7 @@ abstract class StkApp extends Application {
     static final int UI_TIMEOUT = (30 * 1000);
 
     // Tone default timeout - 2 seconds
-    static final int TONE_DFEAULT_TIMEOUT = (2 * 1000);
+    static final int TONE_DEFAULT_TIMEOUT = (2 * 1000);
 
     public static final String TAG = "STK App";
 
