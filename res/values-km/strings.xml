@@ -34,6 +34,8 @@
     <string name="enable_app" msgid="3701224550936728203">"បាន​បើក"</string>
     <string name="disable_app" msgid="6725081975611415214">"បាន​បិទ"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"ប្រអប់​ឧបករណ៍​ស៊ី​ម"</string>
+    <!-- no translation found for default_tone_dialog_msg (4595366992944391641) -->
+    <skip />
     <string name="default_open_channel_msg" msgid="2216070254100295924">"បើក​ឆា​នែ​ល​?"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"ការ​ផ្ញើ​ទិន្នន័យ"</string>
     <string name="default_receive_data_msg" msgid="618096941772010682">"ទទួល​ទិន្នន័យ"</string>
