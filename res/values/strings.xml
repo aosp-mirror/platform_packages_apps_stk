@@ -50,6 +50,8 @@
 
     <!-- Title text used for system dialog from STK app -->
     <string name="stk_dialog_title">SIM ToolKit</string>
+    <!-- Default message when no alpha tag in Play Tone -->
+    <string name="default_tone_dialog_msg">Playing Tone</string>
     <!-- Default message when no alpha in OPEN_CHANNEL -->
     <string name="default_open_channel_msg">Open Channel?</string>
     <!-- Default message when no alpha in SEND_DATA -->
