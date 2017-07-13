@@ -34,8 +34,7 @@
     <string name="enable_app" msgid="3701224550936728203">"ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ"</string>
     <string name="disable_app" msgid="6725081975611415214">"ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"ಸಿಮ್‌ ಟೂಲ್‌ಕಿಟ್"</string>
-    <!-- no translation found for default_tone_dialog_msg (4595366992944391641) -->
-    <skip />
+    <string name="default_tone_dialog_msg" msgid="4595366992944391641">"ಟೋನ್ ಪ್ಲೇ ಮಾಡಲಾಗುತ್ತಿದೆ"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"ಚಾನಲ್ ತೆರೆಯುವುದೇ?"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"ಡೇಟಾ ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ"</string>
     <string name="default_receive_data_msg" msgid="618096941772010682">"ಡೇಟಾ ಸ್ವೀಕರಿಸಲಾಗುತ್ತಿದೆ"</string>
