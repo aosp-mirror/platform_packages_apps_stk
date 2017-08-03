@@ -27,6 +27,7 @@ import android.os.Message;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
 import android.view.KeyEvent;
@@ -373,10 +374,10 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         int inTypeId = R.string.alphabet;
 
         // set the prompt.
-        if (mStkInput.iconSelfExplanatory && mStkInput.icon != null) {
-            mPromptView.setVisibility(View.GONE);
-        } else {
+        if ((mStkInput.icon == null || !mStkInput.iconSelfExplanatory)
+                && !TextUtils.isEmpty(mStkInput.text)) {
             mPromptView.setText(mStkInput.text);
+            mPromptView.setVisibility(View.VISIBLE);
         }
 
         // Set input type (alphabet/digit) info close to the InText form.
@@ -390,7 +391,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         textView.setText(R.string.app_name);
 
         if (mStkInput.icon != null) {
-            ImageView imageView = (ImageView) findViewById(R.id.title_icon);
+            ImageView imageView = (ImageView) findViewById(R.id.icon);
             imageView.setImageBitmap(mStkInput.icon);
             imageView.setVisibility(View.VISIBLE);
         }
