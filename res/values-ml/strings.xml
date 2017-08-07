@@ -34,6 +34,7 @@
     <string name="enable_app" msgid="3701224550936728203">"പ്രവർത്തനക്ഷമമാക്കി"</string>
     <string name="disable_app" msgid="6725081975611415214">"പ്രവർത്തനരഹിതമാക്കി"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"സിം ToolKit"</string>
+    <string name="default_tone_dialog_msg" msgid="4595366992944391641">"ശബ്‌ദം പ്ലേചെയ്യുന്നു"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"ചാനൽ തുറക്കണോ?"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"ഡാറ്റ അയയ്ക്കുന്നു"</string>
     <string name="default_receive_data_msg" msgid="618096941772010682">"ഡാറ്റ നേടുന്നു"</string>
@@ -41,4 +42,5 @@
     <string name="stk_dialog_accept" msgid="8498901537508923727">"അതെ"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"അല്ല"</string>
     <string name="no_sim_card_inserted" msgid="5316620398365235988">"SIM ടൂൾക്കിറ്റ് സമാരംഭിക്കാൻ SIM ചേർക്കുക."</string>
+    <string name="stk_channel_name" msgid="8828587788561382056">"മൊബൈൽ സേവന സന്ദേശങ്ങൾ"</string>
 </resources>

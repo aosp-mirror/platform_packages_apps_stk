@@ -34,6 +34,7 @@
     <string name="enable_app" msgid="3701224550936728203">"Virkt"</string>
     <string name="disable_app" msgid="6725081975611415214">"Óvirkt"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"SIM-verkfæri"</string>
+    <string name="default_tone_dialog_msg" msgid="4595366992944391641">"Spilar tón"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"Opna rás?"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"Sendir gögn"</string>
     <string name="default_receive_data_msg" msgid="618096941772010682">"Tekur á móti gögnum"</string>
@@ -41,4 +42,5 @@
     <string name="stk_dialog_accept" msgid="8498901537508923727">"JÁ"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"NEI"</string>
     <string name="no_sim_card_inserted" msgid="5316620398365235988">"Settu SIM-kort í til að ræsa SIM-verkfæri."</string>
+    <string name="stk_channel_name" msgid="8828587788561382056">"Skilaboð farsímaþjónustu"</string>
 </resources>

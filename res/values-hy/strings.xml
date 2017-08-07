@@ -22,7 +22,7 @@
     <string name="menu_back" msgid="301227740977453364">"Հետ"</string>
     <string name="service_name" msgid="6860303747999592491">"Ծառայության անվանումը"</string>
     <string name="stk_no_service" msgid="5427773116839809131">"Ծառայությունն անհասանելի է"</string>
-    <string name="button_ok" msgid="5760722312558549555">"Լավ"</string>
+    <string name="button_ok" msgid="5760722312558549555">"Հաստատել"</string>
     <string name="button_cancel" msgid="1997847915560800261">"Չեղարկել"</string>
     <string name="button_yes" msgid="624420260648337203">"Այո"</string>
     <string name="button_no" msgid="1824959157582605627">"Ոչ"</string>
@@ -34,6 +34,7 @@
     <string name="enable_app" msgid="3701224550936728203">"Միացված է"</string>
     <string name="disable_app" msgid="6725081975611415214">"Անջատված է"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"SIM գործիքախումբ"</string>
+    <string name="default_tone_dialog_msg" msgid="4595366992944391641">"Նվագարկման տոն"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"Բացե՞լ կապուղին:"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"Տվյալների ուղարկում"</string>
     <string name="default_receive_data_msg" msgid="618096941772010682">"Տվյալների ստացում"</string>
@@ -41,4 +42,5 @@
     <string name="stk_dialog_accept" msgid="8498901537508923727">"Այո"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"Ոչ"</string>
     <string name="no_sim_card_inserted" msgid="5316620398365235988">"Զետեղեք SIM քարտը՝ SIM Toolkit-ը գործարկելու համար:"</string>
+    <string name="stk_channel_name" msgid="8828587788561382056">"Բջջային ծառայության հաղորդագրություններ"</string>
 </resources>
