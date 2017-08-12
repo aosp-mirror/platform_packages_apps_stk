@@ -32,7 +32,7 @@
     <string name="default_setup_call_msg" msgid="6126904475461162162">"Hovor sa nastavuje"</string>
     <string name="stk_app_state" msgid="18582277302584082">"Stav aplikácie"</string>
     <string name="enable_app" msgid="3701224550936728203">"Povolené"</string>
-    <string name="disable_app" msgid="6725081975611415214">"Zakázané"</string>
+    <string name="disable_app" msgid="6725081975611415214">"Vypnuté"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"Nástroje SIM"</string>
     <string name="default_tone_dialog_msg" msgid="4595366992944391641">"Prehráva sa tón"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"Otvoriť kanál?"</string>
