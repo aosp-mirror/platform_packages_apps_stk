@@ -919,10 +919,10 @@ public class StkAppService extends Service implements Runnable {
                 //Check other setup menu state. If all setup menu are removed, uninstall apk.
                 for (i = PhoneConstants.SIM_ID_1; i < mSimCount; i++) {
                     if (i != slotId
-                            && (mStkContext[slotId].mSetupMenuState == STATE_UNKNOWN
-                            || mStkContext[slotId].mSetupMenuState == STATE_EXIST)) {
+                            && (mStkContext[i].mSetupMenuState == STATE_UNKNOWN
+                            || mStkContext[i].mSetupMenuState == STATE_EXIST)) {
                         CatLog.d(LOG_TAG, "Not Uninstall App:" + i + ","
-                                + mStkContext[slotId].mSetupMenuState);
+                                + mStkContext[i].mSetupMenuState);
                         break;
                     }
                 }
