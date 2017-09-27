@@ -877,10 +877,9 @@ public class StkAppService extends Service implements Runnable {
             if (mStkContext[slotId].lastSelectedItem != null) {
                 msg.title = mStkContext[slotId].lastSelectedItem;
             } else if (mStkContext[slotId].mMainCmd != null){
-                msg.title = mStkContext[slotId].mMainCmd.getMenu().title;
-            } else {
-                // TODO: get the carrier name from the SIM
-                msg.title = "";
+                if (!getResources().getBoolean(R.bool.show_menu_title_only_on_menu)) {
+                    msg.title = mStkContext[slotId].mMainCmd.getMenu().title;
+                }
             }
             //If we receive a low priority Display Text and the device is
             // not displaying any STK related activity and the screen is not idle
