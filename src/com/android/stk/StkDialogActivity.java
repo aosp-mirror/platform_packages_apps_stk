@@ -55,7 +55,7 @@ public class StkDialogActivity extends Activity {
     //keys) for saving the state of the dialog in the icicle
     private static final String TEXT = "text";
 
-    private AlertDialog.Builder alertDialogBuilder;
+    private AlertDialog mAlertDialog;
 
     @Override
     protected void onCreate(Bundle icicle) {
@@ -74,7 +74,7 @@ public class StkDialogActivity extends Activity {
         // New Dialog is created - set to no response sent
         mIsResponseSent = false;
 
-        alertDialogBuilder = new AlertDialog.Builder(this);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
 
         alertDialogBuilder.setPositiveButton(R.string.button_ok, new
                 DialogInterface.OnClickListener() {
@@ -98,6 +98,26 @@ public class StkDialogActivity extends Activity {
                     }
                 });
         alertDialogBuilder.create();
+
+        initFromIntent(getIntent());
+        if (mTextMsg == null) {
+            finish();
+            return;
+        }
+
+        if (!mTextMsg.responseNeeded) {
+            alertDialogBuilder.setNegativeButton(null, null);
+        }
+
+        alertDialogBuilder.setTitle(mTextMsg.title);
+
+        if (!(mTextMsg.iconSelfExplanatory && mTextMsg.icon != null)) {
+            alertDialogBuilder.setMessage(mTextMsg.text);
+        }
+
+        mAlertDialog = alertDialogBuilder.create();
+        mAlertDialog.setCanceledOnTouchOutside(false);
+        mAlertDialog.show();
 
         mContext = getBaseContext();
         IntentFilter intentFilter = new IntentFilter();
@@ -126,19 +146,6 @@ public class StkDialogActivity extends Activity {
         super.onResume();
         CatLog.d(LOG_TAG, "onResume - mIsResponseSent[" + mIsResponseSent +
                 "], sim id: " + mSlotId);
-
-        initFromIntent(getIntent());
-        if (mTextMsg == null) {
-            finish();
-            return;
-        }
-
-        alertDialogBuilder.setTitle(mTextMsg.title);
-
-        if (!(mTextMsg.iconSelfExplanatory && mTextMsg.icon != null)) {
-            alertDialogBuilder.setMessage(mTextMsg.text);
-        }
-        alertDialogBuilder.show();
 
         /*
          * If the userClear flag is set and dialogduration is set to 0, the display Text
@@ -216,6 +223,12 @@ public class StkDialogActivity extends Activity {
         super.onDestroy();
         CatLog.d(LOG_TAG, "onDestroy - mIsResponseSent[" + mIsResponseSent +
                 "], sim id: " + mSlotId);
+
+        if (mAlertDialog != null && mAlertDialog.isShowing()) {
+            mAlertDialog.dismiss();
+            mAlertDialog = null;
+        }
+
         if (appService == null) {
             return;
         }
