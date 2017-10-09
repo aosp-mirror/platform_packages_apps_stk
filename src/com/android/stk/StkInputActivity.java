@@ -31,6 +31,7 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
+import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -481,6 +482,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
                 mTextIn.setTransformationMethod(PasswordTransformationMethod
                         .getInstance());
             }
+            mTextIn.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
             // Set default text if present.
             if (mStkInput.defaultText != null) {
                 mTextIn.setText(mStkInput.defaultText);
