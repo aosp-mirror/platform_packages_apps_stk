@@ -32,6 +32,11 @@ import android.view.KeyEvent;
 
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 /**
  * AlertDialog used for DISPLAY TEXT commands.
@@ -113,8 +118,24 @@ public class StkDialogActivity extends Activity {
 
         alertDialogBuilder.setTitle(mTextMsg.title);
 
-        if (!(mTextMsg.iconSelfExplanatory && mTextMsg.icon != null)) {
-            alertDialogBuilder.setMessage(mTextMsg.text);
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.stk_msg_dialog, null);
+        alertDialogBuilder.setView(dialogView);
+        TextView tv = (TextView) dialogView.findViewById(R.id.message);
+        ImageView iv = (ImageView) dialogView.findViewById(R.id.icon);
+
+        if (mTextMsg.icon != null) {
+            iv.setImageBitmap(mTextMsg.icon);
+        } else {
+            iv.setVisibility(View.GONE);
+        }
+
+        // Per spec, only set text if the icon is not provided or not self-explanatory
+        if ((mTextMsg.icon == null || !mTextMsg.iconSelfExplanatory)
+                && !TextUtils.isEmpty(mTextMsg.text)) {
+            tv.setText(mTextMsg.text);
+        } else {
+            tv.setVisibility(View.GONE);
         }
 
         mAlertDialog = alertDialogBuilder.create();
