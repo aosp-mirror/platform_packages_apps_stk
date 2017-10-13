@@ -228,6 +228,7 @@ public class StkAppService extends Service implements Runnable {
     static final int RES_ID_BACKWARD = 21;
     static final int RES_ID_END_SESSION = 22;
     static final int RES_ID_EXIT = 23;
+    static final int RES_ID_ERROR = 24;
 
     static final int YES = 1;
     static final int NO = 0;
@@ -981,21 +982,23 @@ public class StkAppService extends Service implements Runnable {
                 break;
             }
 
-            TextMessage alphaId = mStkContext[slotId].mCurrentCmd.geTextMessage();
-            if ((mStkContext[slotId].mCurrentCmd.getBrowserSettings().mode
-                    == LaunchBrowserMode.LAUNCH_IF_NOT_ALREADY_LAUNCHED) &&
-                    ((alphaId == null) || TextUtils.isEmpty(alphaId.text))) {
-                // don't need user confirmation in this case
-                // just launch the browser or spawn a new tab
-                CatLog.d(this, "Browser mode is: launch if not already launched " +
-                        "and user confirmation is not currently needed.\n" +
-                        "supressing confirmation dialogue and confirming silently...");
-                mStkContext[slotId].launchBrowser = true;
-                mStkContext[slotId].mBrowserSettings =
-                        mStkContext[slotId].mCurrentCmd.getBrowserSettings();
-                sendResponse(RES_ID_CONFIRM, slotId, true);
+            mStkContext[slotId].mBrowserSettings =
+                    mStkContext[slotId].mCurrentCmd.getBrowserSettings();
+            if (!isUrlAvailableToLaunchBrowser(mStkContext[slotId].mBrowserSettings)) {
+                CatLog.d(this, "Browser url property is not set - send error");
+                sendResponse(RES_ID_ERROR, slotId, true);
             } else {
-                launchConfirmationDialog(alphaId, slotId);
+                TextMessage alphaId = mStkContext[slotId].mCurrentCmd.geTextMessage();
+                if ((alphaId == null) || TextUtils.isEmpty(alphaId.text)) {
+                    // don't need user confirmation in this case
+                    // just launch the browser or spawn a new tab
+                    CatLog.d(this, "user confirmation is not currently needed.\n" +
+                            "supressing confirmation dialogue and confirming silently...");
+                    mStkContext[slotId].launchBrowser = true;
+                    sendResponse(RES_ID_CONFIRM, slotId, true);
+                } else {
+                    launchConfirmationDialog(alphaId, slotId);
+                }
             }
             break;
         case SET_UP_CALL:
@@ -1189,7 +1192,14 @@ public class StkAppService extends Service implements Runnable {
                 resMsg.setConfirmation(confirmed);
             }
             break;
-
+        case RES_ID_ERROR:
+            CatLog.d(LOG_TAG, "RES_ID_ERROR");
+            switch (mStkContext[slotId].mCurrentCmd.getCmdType()) {
+            case LAUNCH_BROWSER:
+                resMsg.setResultCode(ResultCode.LAUNCH_BROWSER_ERROR);
+                break;
+            }
+            break;
         default:
             CatLog.d(LOG_TAG, "Unknown result id");
             return;
@@ -1921,5 +1931,13 @@ public class StkAppService extends Service implements Runnable {
         Toast toast = Toast.makeText(sInstance, alphaString, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.TOP, 0, 0);
         toast.show();
+    }
+
+    private boolean isUrlAvailableToLaunchBrowser(BrowserSettings settings) {
+        String url = SystemProperties.get(STK_BROWSER_DEFAULT_URL_SYSPROP, "");
+        if (url == "" && settings.url == null) {
+            return false;
+        }
+        return true;
     }
 }
