@@ -34,6 +34,7 @@
     <string name="enable_app" msgid="3701224550936728203">"সক্ষম"</string>
     <string name="disable_app" msgid="6725081975611415214">"অক্ষম করা হয়েছে"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"সিম টুলকিট"</string>
+    <string name="default_tone_dialog_msg" msgid="4595366992944391641">"প্লে হওয়ার টোন"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"চ্যানেল খুলুন?"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"ডেটা পাঠানো হচ্ছে"</string>
     <string name="default_receive_data_msg" msgid="618096941772010682">"ডেটা গৃহীত হচ্ছে"</string>
@@ -41,5 +42,5 @@
     <string name="stk_dialog_accept" msgid="8498901537508923727">"হ্যাঁ"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"না"</string>
     <string name="no_sim_card_inserted" msgid="5316620398365235988">"সিম টুলকিট লঞ্চ করতে দয়া করে সিম ঢোকান৷"</string>
-    <string name="stk_channel_name" msgid="8828587788561382056">"মোবাইল পরিষেবা বার্তা"</string>
+    <string name="stk_channel_name" msgid="8828587788561382056">"মোবাইল পরিষেবা মেসেজ"</string>
 </resources>
