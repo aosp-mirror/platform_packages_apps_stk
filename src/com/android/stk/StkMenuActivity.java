@@ -293,7 +293,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     public void onDestroy() {
         getListView().setOnCreateContextMenuListener(null);
         super.onDestroy();
-        CatLog.d(LOG_TAG, "onDestroy" + "," + mState);
+        CatLog.d(LOG_TAG, "onDestroy" + ", " + mState);
         if (appService == null || !SubscriptionManager.isValidSlotIndex(mSlotId)) {
             return;
         }
@@ -330,7 +330,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
 
         menu.findItem(StkApp.MENU_ID_END_SESSION).setVisible(mainVisible);
 
-        return true;
+        return mainVisible;
     }
 
     @Override
