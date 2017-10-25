@@ -223,7 +223,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         CatLog.d(LOG_TAG, "onResume - mIsResponseSent[" + mIsResponseSent +
                 "], slot id: " + mSlotId);
         startTimeOut();
-        appService.getStkContext(mSlotId).setPendingActivityInstance(null);
         if (mIsResponseSent) {
             cancelTimeOut();
             finish();
