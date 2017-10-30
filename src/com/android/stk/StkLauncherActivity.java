@@ -185,7 +185,16 @@ public class StkLauncherActivity extends ListActivity {
                     mSingleSimId = i;
                     stkItemName = new StringBuilder(menu.title == null ? appName : menu.title)
                             .append(" ").append(Integer.toString(i + 1)).toString();
-                    Item item = new Item(i, stkItemName, mBitMap);
+                    // Display the default application icon if there is no icon specified by SET-UP
+                    // MENU command nor preset.
+                    Bitmap icon = mBitMap;
+                    if (menu.titleIcon != null) {
+                        icon = menu.titleIcon;
+                        if (menu.titleIconSelfExplanatory) {
+                            stkItemName = null;
+                        }
+                    }
+                    Item item = new Item(i, stkItemName, icon);
                     mStkMenuList.add(item);
                 } else {
                     CatLog.d(LOG_TAG, "SIM #" + (i + 1) + " does not have main menu.");
