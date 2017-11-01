@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2007 The Android Open Source Project
+<!-- Copyright (C) 2017 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -14,61 +14,33 @@
      limitations under the License.
 -->
 
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical" >
+    android:layout_gravity="center"
+    android:orientation="vertical">
 
-    <LinearLayout android:id="@+id/messagePanel"
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="@android:dimen/notification_large_icon_width"
+        android:layout_height="@android:dimen/notification_large_icon_height"
+        android:adjustViewBounds="true"
+        android:layout_gravity="center"
+        android:paddingTop="10dip"
+        android:scaleType="fitCenter"/>
+
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
-        <ScrollView android:id="@+id/scrollView"
+        android:paddingTop="2dip"
+        android:paddingBottom="12dip"
+        android:paddingStart="14dip"
+        android:paddingEnd="10dip">
+        <TextView android:id="@+id/message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fillViewport="true"
-            android:paddingTop="2dip"
-            android:paddingBottom="12dip"
-            android:paddingLeft="14dip"
-            android:paddingRight="10dip">
-            <TextView android:id="@+id/dialog_message"
-                style="?android:attr/textAppearanceMedium"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="5dip" />
-        </ScrollView>
-    </LinearLayout>
+            android:padding="5dip"
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
+    </ScrollView>
 
-    <LinearLayout android:id="@+id/buttonPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="54dip"
-        android:orientation="vertical" >
-        <LinearLayout style="?android:attr/buttonBarStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingTop="4dip"
-            android:paddingLeft="2dip"
-            android:paddingRight="2dip" >
-            <Button style="?android:attr/buttonBarButtonStyle"
-                android:id="@+id/button_cancel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left"
-                android:layout_weight="1"
-                android:maxLines="2"
-                android:text="@string/button_cancel" />
-            <Button style="?android:attr/buttonBarButtonStyle"
-                android:id="@+id/button_ok"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right"
-                android:layout_weight="1"
-                android:maxLines="2"
-                android:text="@string/button_ok" />
-           </LinearLayout>
-    </LinearLayout>
 </LinearLayout>

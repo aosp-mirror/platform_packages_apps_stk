@@ -34,6 +34,7 @@
     <string name="enable_app" msgid="3701224550936728203">"Ενεργοποιημένο"</string>
     <string name="disable_app" msgid="6725081975611415214">"Απενεργοποιημένο"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"SIM Toolkit"</string>
+    <string name="default_tone_dialog_msg" msgid="4595366992944391641">"Αναπαραγωγή ήχου"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"Άνοιγμα Καναλιού;"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"Αποστολή δεδομένων"</string>
     <string name="default_receive_data_msg" msgid="618096941772010682">"Λήψη δεδομένων"</string>
@@ -41,4 +42,5 @@
     <string name="stk_dialog_accept" msgid="8498901537508923727">"ΝΑΙ"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"ΟΧΙ"</string>
     <string name="no_sim_card_inserted" msgid="5316620398365235988">"Τοποθετήστε κάρτα SIM για να ξεκινήσετε το SIM Toolkit."</string>
+    <string name="stk_channel_name" msgid="8828587788561382056">"Μηνύματα υπηρεσίας κινητής τηλεφωνίας"</string>
 </resources>
