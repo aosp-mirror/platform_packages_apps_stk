@@ -16,9 +16,11 @@
 
 package com.android.stk;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,13 +28,18 @@ import android.os.Message;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
+import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.TextView.BufferType;
@@ -51,6 +58,8 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     private Context mContext;
     private EditText mTextIn = null;
     private TextView mPromptView = null;
+    private View mMoreOptions = null;
+    private PopupMenu mPopupMenu = null;
     private View mYesNoLayout = null;
     private View mNormalLayout = null;
 
@@ -121,6 +130,28 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             mAcceptUsersInput = false;
             input = NO_STR_RESPONSE;
             break;
+        case R.id.more:
+            if (mPopupMenu == null) {
+                mPopupMenu = new PopupMenu(this, v);
+                Menu menu = mPopupMenu.getMenu();
+                createOptionsMenuInternal(menu);
+                prepareOptionsMenuInternal(menu);
+                mPopupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+                        optionsItemSelectedInternal(item);
+                        return true;
+                    }
+                });
+                mPopupMenu.setOnDismissListener(new PopupMenu.OnDismissListener() {
+                    public void onDismiss(PopupMenu menu) {
+                        mPopupMenu = null;
+                    }
+                });
+                mPopupMenu.show();
+            }
+            return;
+        default:
+            break;
         }
         CatLog.d(LOG_TAG, "handleClick, ready to response");
         cancelTimeOut();
@@ -142,9 +173,22 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             return;
         }
 
+        ActionBar actionBar = null;
+        if (getResources().getBoolean(R.bool.show_menu_title_only_on_menu)) {
+            actionBar = getActionBar();
+            if (actionBar != null) {
+                actionBar.hide();
+            }
+        }
+
         // Set the layout for this activity.
-        requestWindowFeature(Window.FEATURE_LEFT_ICON);
         setContentView(R.layout.stk_input);
+
+        if (actionBar != null) {
+            mMoreOptions = findViewById(R.id.more);
+            mMoreOptions.setVisibility(View.VISIBLE);
+            mMoreOptions.setOnClickListener(this);
+        }
 
         // Initialize members
         mTextIn = (EditText) this.findViewById(R.id.in_text);
@@ -179,24 +223,24 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         CatLog.d(LOG_TAG, "onResume - mIsResponseSent[" + mIsResponseSent +
                 "], slot id: " + mSlotId);
         startTimeOut();
-        appService.getStkContext(mSlotId).setPendingActivityInstance(null);
-        if (mIsResponseSent) {
-            cancelTimeOut();
-            finish();
-        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
         CatLog.d(LOG_TAG, "onPause - mIsResponseSent[" + mIsResponseSent + "]");
+        if (mPopupMenu != null) {
+            mPopupMenu.dismiss();
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
         CatLog.d(LOG_TAG, "onStop - mIsResponseSent[" + mIsResponseSent + "]");
-        if (mIsResponseSent) {
+        // It is unnecessary to keep this activity if the response was already sent and
+        // this got invisible because of the other full-screen activity in this application.
+        if (mIsResponseSent && appService.isTopOfStack()) {
             cancelTimeOut();
             finish();
         } else {
@@ -220,6 +264,14 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             sendResponse(StkAppService.RES_ID_END_SESSION);
         }
         cancelTimeOut();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (mPopupMenu != null) {
+            mPopupMenu.dismiss();
+        }
     }
 
     @Override
@@ -256,6 +308,10 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             return;
         }
 
+        if (mMoreOptions != null) {
+            mMoreOptions.setVisibility(View.INVISIBLE);
+        }
+
         CatLog.d(LOG_TAG, "sendResponse resID[" + resId + "] input[*****] help[" 
                 + help + "]");
         mIsResponseSent = true;
@@ -274,24 +330,36 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
         super.onCreateOptionsMenu(menu);
-        menu.add(android.view.Menu.NONE, StkApp.MENU_ID_END_SESSION, 1,
-                R.string.menu_end_session);
-        menu.add(0, StkApp.MENU_ID_HELP, 2, R.string.help);
-
+        createOptionsMenuInternal(menu);
         return true;
+    }
+
+    private void createOptionsMenuInternal(Menu menu) {
+        menu.add(Menu.NONE, StkApp.MENU_ID_END_SESSION, 1, R.string.menu_end_session);
+        menu.add(0, StkApp.MENU_ID_HELP, 2, R.string.help);
     }
 
     @Override
     public boolean onPrepareOptionsMenu(android.view.Menu menu) {
         super.onPrepareOptionsMenu(menu);
+        prepareOptionsMenuInternal(menu);
+        return true;
+    }
+
+    private void prepareOptionsMenuInternal(Menu menu) {
         menu.findItem(StkApp.MENU_ID_END_SESSION).setVisible(true);
         menu.findItem(StkApp.MENU_ID_HELP).setVisible(mStkInput.helpAvailable);
-
-        return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (optionsItemSelectedInternal(item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private boolean optionsItemSelectedInternal(MenuItem item) {
         if (!mAcceptUsersInput) {
             CatLog.d(LOG_TAG, "mAcceptUsersInput:false");
             return true;
@@ -310,7 +378,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             finish();
             return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     @Override
@@ -323,6 +391,9 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         CatLog.d(LOG_TAG, "onRestoreInstanceState: " + mSlotId);
         mAcceptUsersInput = savedInstanceState.getBoolean("ACCEPT_USERS_INPUT");
+        if ((mAcceptUsersInput == false) && (mMoreOptions != null)) {
+            mMoreOptions.setVisibility(View.INVISIBLE);
+        }
     }
 
     public void beforeTextChanged(CharSequence s, int start, int count,
@@ -368,10 +439,10 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         int inTypeId = R.string.alphabet;
 
         // set the prompt.
-        if (mStkInput.iconSelfExplanatory && mStkInput.icon != null) {
-            mPromptView.setVisibility(View.GONE);
-        } else {
+        if ((mStkInput.icon == null || !mStkInput.iconSelfExplanatory)
+                && !TextUtils.isEmpty(mStkInput.text)) {
             mPromptView.setText(mStkInput.text);
+            mPromptView.setVisibility(View.VISIBLE);
         }
 
         // Set input type (alphabet/digit) info close to the InText form.
@@ -381,9 +452,12 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         }
         inTypeView.setText(inTypeId);
 
+        setTitle(R.string.app_name);
+
         if (mStkInput.icon != null) {
-            setFeatureDrawable(Window.FEATURE_LEFT_ICON, new BitmapDrawable(
-                    mStkInput.icon));
+            ImageView imageView = (ImageView) findViewById(R.id.icon);
+            imageView.setImageBitmap(mStkInput.icon);
+            imageView.setVisibility(View.VISIBLE);
         }
 
         // Handle specific global and text attributes.
@@ -402,9 +476,10 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             numOfCharsView.setText(lengthLimit);
 
             if (!mStkInput.echo) {
-                mTextIn.setInputType(InputType.TYPE_CLASS_NUMBER
-                                     | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+                mTextIn.setTransformationMethod(PasswordTransformationMethod
+                        .getInstance());
             }
+            mTextIn.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
             // Set default text if present.
             if (mStkInput.defaultText != null) {
                 mTextIn.setText(mStkInput.defaultText);

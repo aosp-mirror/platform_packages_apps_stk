@@ -16,13 +16,13 @@
 
 package com.android.stk;
 
+import android.app.ActionBar;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.KeyEvent;
-import android.view.Window;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -62,7 +62,11 @@ public class StkLauncherActivity extends ListActivity {
         mContext = getBaseContext();
         mTm = (TelephonyManager) mContext.getSystemService(
                 Context.TELEPHONY_SERVICE);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        ActionBar actionBar = getActionBar();
+        actionBar.setCustomView(R.layout.stk_title);
+        actionBar.setDisplayShowCustomEnabled(true);
+
         setContentView(R.layout.stk_menu_list);
         mTitleTextView = (TextView) findViewById(R.id.title_text);
         mTitleIconView = (ImageView) findViewById(R.id.title_icon);
@@ -160,27 +164,43 @@ public class StkLauncherActivity extends ListActivity {
     }
 
     private int addStkMenuListItems() {
-        String appName = mContext.getResources().getString(R.string.app_name);
         StkAppService appService = StkAppService.getInstance();
-        String stkMenuTitle = null;
+        if (appService == null) {
+            return 0;
+        }
+
+        String appName = mContext.getResources().getString(R.string.app_name);
         String stkItemName = null;
         int simCount = TelephonyManager.from(mContext).getSimCount();
         mStkMenuList = new ArrayList<Item>();
 
         CatLog.d(LOG_TAG, "simCount: " + simCount);
         for (int i = 0; i < simCount; i++) {
-            //Check if the card is inserted.
+            // Check if the card is inserted.
             if (mTm.hasIccCard(i)) {
-                CatLog.d(LOG_TAG, "SIM " + i + " add to menu.");
-                mSingleSimId = i;
-                stkMenuTitle = appService.getMainMenu(i).title;
-                stkItemName = new StringBuilder(stkMenuTitle == null ? appName : stkMenuTitle)
-                    .append(" ").append(Integer.toString(i + 1)).toString();
-                Item item = new Item(i + 1, stkItemName, mBitMap);
-                item.id = i;
-                mStkMenuList.add(item);
+                Menu menu = appService.getMainMenu(i);
+                // Check if the card has a main menu.
+                if (menu != null) {
+                    CatLog.d(LOG_TAG, "SIM #" + (i + 1) + " is add to menu.");
+                    mSingleSimId = i;
+                    stkItemName = new StringBuilder(menu.title == null ? appName : menu.title)
+                            .append(" ").append(Integer.toString(i + 1)).toString();
+                    // Display the default application icon if there is no icon specified by SET-UP
+                    // MENU command nor preset.
+                    Bitmap icon = mBitMap;
+                    if (menu.titleIcon != null) {
+                        icon = menu.titleIcon;
+                        if (menu.titleIconSelfExplanatory) {
+                            stkItemName = null;
+                        }
+                    }
+                    Item item = new Item(i, stkItemName, icon);
+                    mStkMenuList.add(item);
+                } else {
+                    CatLog.d(LOG_TAG, "SIM #" + (i + 1) + " does not have main menu.");
+                }
             } else {
-                CatLog.d(LOG_TAG, "SIM " + i + " is not inserted.");
+                CatLog.d(LOG_TAG, "SIM #" + (i + 1) + " is not inserted.");
             }
         }
         if (mStkMenuList != null && mStkMenuList.size() > 0) {

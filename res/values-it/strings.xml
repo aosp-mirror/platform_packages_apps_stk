@@ -34,6 +34,7 @@
     <string name="enable_app" msgid="3701224550936728203">"Attivato"</string>
     <string name="disable_app" msgid="6725081975611415214">"Disattivato"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"Kit strumenti SIM"</string>
+    <string name="default_tone_dialog_msg" msgid="4595366992944391641">"Tono in riproduzione"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"Aprire il canale?"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"Invio dati"</string>
     <string name="default_receive_data_msg" msgid="618096941772010682">"Ricezione dati"</string>
@@ -41,4 +42,5 @@
     <string name="stk_dialog_accept" msgid="8498901537508923727">"SÌ"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"NO"</string>
     <string name="no_sim_card_inserted" msgid="5316620398365235988">"Inserisci la SIM per avviare Kit strumenti SIM."</string>
+    <string name="stk_channel_name" msgid="8828587788561382056">"Messaggi del servizio dati mobile"</string>
 </resources>
