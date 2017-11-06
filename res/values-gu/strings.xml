@@ -33,7 +33,7 @@
     <string name="stk_app_state" msgid="18582277302584082">"એપ્લિકેશનની સ્થિતિ"</string>
     <string name="enable_app" msgid="3701224550936728203">"સક્ષમ કરેલું"</string>
     <string name="disable_app" msgid="6725081975611415214">"અક્ષમ કરેલું"</string>
-    <string name="stk_dialog_title" msgid="6954825385456886726">"SIM ટૂલકિટ"</string>
+    <string name="stk_dialog_title" msgid="6954825385456886726">"સિમ ટૂલકિટ"</string>
     <string name="default_tone_dialog_msg" msgid="4595366992944391641">"ચલાવવા માટેનો ટોન"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"ચૅનલ ખોલીએ?"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"ડેટા મોકલી રહ્યું છે"</string>
