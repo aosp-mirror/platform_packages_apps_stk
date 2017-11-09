@@ -378,6 +378,7 @@ public class StkAppService extends Service implements Runnable {
             mStkCmdReceiver = null;
         }
         mPowerManager = null;
+        sInstance = null;
         waitForLooper();
         mServiceLooper.quit();
     }
