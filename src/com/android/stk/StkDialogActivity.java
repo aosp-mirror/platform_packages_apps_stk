@@ -30,6 +30,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.view.KeyEvent;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.text.TextUtils;
@@ -342,7 +343,8 @@ public class StkDialogActivity extends Activity {
             finish();
         }
 
-        CatLog.d(LOG_TAG, "initFromIntent - [" + mTextMsg + "], sim id: " + mSlotId);
+        CatLog.d(LOG_TAG, "initFromIntent - [" + (Build.IS_DEBUGGABLE ? mTextMsg : "********")
+                + "], slot id: " + mSlotId);
     }
 
     private void cancelTimeOut() {
