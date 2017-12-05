@@ -20,14 +20,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -42,6 +41,7 @@ import com.android.internal.telephony.cat.CatLog;
 public class ToneDialog extends Activity {
     TextMessage toneMsg = null;
     int mSlotId = -1;
+    private AlertDialog mAlertDialog;
 
     private static final String LOG_TAG = new Object(){}.getClass().getEnclosingClass().getName();
 
@@ -80,36 +80,30 @@ public class ToneDialog extends Activity {
         if (toneMsg.iconSelfExplanatory && toneMsg.icon != null) {
             tv.setVisibility(View.GONE);
         }
+
+        alertDialogBuilder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        sendStopTone();
+                        finish();
+                    }
+                });
+
+        mAlertDialog = alertDialogBuilder.create();
+        mAlertDialog.show();
     }
 
     @Override
     protected void onDestroy() {
         CatLog.d(LOG_TAG, "onDestroy");
-        // Unregister receiver
-        unregisterReceiver(mFinishActivityReceiver);
         super.onDestroy();
-    }
 
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        switch (keyCode) {
-        case KeyEvent.KEYCODE_BACK:
-            sendStopTone();
-            finish();
-            break;
-        }
-        return false;
-    }
+        unregisterReceiver(mFinishActivityReceiver);
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        switch (event.getAction()) {
-        case MotionEvent.ACTION_DOWN:
-            sendStopTone();
-            finish();
-            return true;
+        if (mAlertDialog != null && mAlertDialog.isShowing()) {
+            mAlertDialog.dismiss();
+            mAlertDialog = null;
         }
-        return super.onTouchEvent(event);
     }
 
     private BroadcastReceiver mFinishActivityReceiver = new BroadcastReceiver() {
