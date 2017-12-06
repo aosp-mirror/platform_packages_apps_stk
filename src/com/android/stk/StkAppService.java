@@ -50,6 +50,7 @@ import android.os.RemoteException;
 import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.provider.Settings;
+import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.CarrierConfigManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -254,6 +255,8 @@ public class StkAppService extends Service implements Runnable {
 
     private static final String LOG_TAG = new Object(){}.getClass().getEnclosingClass().getName();
 
+    static final String SESSION_ENDED = "session_ended";
+
     // Inner class used for queuing telephony messages (proactive commands,
     // session end) while the service is busy processing a previous message.
     private class DelayedCmd {
@@ -434,6 +437,14 @@ public class StkAppService extends Service implements Runnable {
         if (slotId >= 0 && slotId < mSimCount) {
             CatLog.d(LOG_TAG, "isDialogPending: " + mStkContext[slotId].mIsDialogPending);
             return mStkContext[slotId].mIsDialogPending;
+        }
+        return false;
+    }
+
+    boolean isMainMenuAvailable(int slotId) {
+        if (slotId >= 0 && slotId < mSimCount) {
+            // The main menu can handle the next user operation if the previous session finished.
+            return (mStkContext[slotId].lastSelectedItem == null) ? true : false;
         }
         return false;
     }
@@ -856,6 +867,12 @@ public class StkAppService extends Service implements Runnable {
         if (StkMenuActivity.STATE_SECONDARY == mStkContext[slotId].mMenuState) {
             launchMenuActivity(null, slotId);
         }
+
+        // Send a local broadcast as a notice that this service handled the session end event.
+        Intent intent = new Intent(SESSION_ENDED);
+        intent.putExtra(SLOT_ID, slotId);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
         if (mStkContext[slotId].mCmdsQ.size() != 0) {
             callDelayedMsg(slotId);
         } else {
