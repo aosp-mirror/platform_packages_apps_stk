@@ -121,6 +121,12 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             mAcceptUsersInput = false;
             input = mTextIn.getText().toString();
             break;
+        case R.id.button_cancel:
+            mAcceptUsersInput = false;
+            cancelTimeOut();
+            appService.getStkContext(mSlotId).setPendingActivityInstance(this);
+            sendResponse(StkAppService.RES_ID_END_SESSION);
+            return;
         // Yes/No layout buttons.
         case R.id.button_yes:
             mAcceptUsersInput = false;
@@ -196,10 +202,12 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         mInstance = this;
         // Set buttons listeners.
         Button okButton = (Button) findViewById(R.id.button_ok);
+        Button cancelButton = (Button) findViewById(R.id.button_cancel);
         Button yesButton = (Button) findViewById(R.id.button_yes);
         Button noButton = (Button) findViewById(R.id.button_no);
 
         okButton.setOnClickListener(this);
+        cancelButton.setOnClickListener(this);
         yesButton.setOnClickListener(this);
         noButton.setOnClickListener(this);
 
