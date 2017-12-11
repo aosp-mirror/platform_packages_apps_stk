@@ -119,7 +119,6 @@ public class StkAppService extends Service implements Runnable {
         protected int mOpCode = -1;
         private Activity mActivityInstance = null;
         private Activity mDialogInstance = null;
-        private Activity mMainActivityInstance = null;
         private int mSlotId = 0;
         private SetupEventListSettings mSetupEventListSettings = null;
         private boolean mClearSelectItem = false;
@@ -144,15 +143,6 @@ public class StkAppService extends Service implements Runnable {
             CatLog.d(this, "getPendingDialogInstance act : " + mSlotId + ", " +
                     mDialogInstance);
             return mDialogInstance;
-        }
-        final synchronized void setMainActivityInstance(Activity act) {
-            CatLog.d(this, "setMainActivityInstance act : " + mSlotId + ", " + act);
-            callSetActivityInstMsg(OP_SET_MAINACT_INST, mSlotId, act);
-        }
-        final synchronized Activity getMainActivityInstance() {
-            CatLog.d(this, "getMainActivityInstance act : " + mSlotId + ", " +
-                    mMainActivityInstance);
-            return mMainActivityInstance;
         }
     }
 
@@ -207,10 +197,9 @@ public class StkAppService extends Service implements Runnable {
     static final int OP_CARD_STATUS_CHANGED = 7;
     static final int OP_SET_ACT_INST = 8;
     static final int OP_SET_DAL_INST = 9;
-    static final int OP_SET_MAINACT_INST = 10;
-    static final int OP_LOCALE_CHANGED = 11;
-    static final int OP_ALPHA_NOTIFY = 12;
-    static final int OP_IDLE_SCREEN = 13;
+    static final int OP_LOCALE_CHANGED = 10;
+    static final int OP_ALPHA_NOTIFY = 11;
+    static final int OP_IDLE_SCREEN = 12;
 
     //Invalid SetupEvent
     static final int INVALID_SETUP_EVENT = 0xFF;
@@ -628,12 +617,6 @@ public class StkAppService extends Service implements Runnable {
                 dal = (Activity) msg.obj;
                 mStkContext[slotId].mDialogInstance = dal;
                 break;
-            case OP_SET_MAINACT_INST:
-                Activity mainAct = new Activity();
-                mainAct = (Activity) msg.obj;
-                CatLog.d(LOG_TAG, "Set activity instance. " + mainAct);
-                mStkContext[slotId].mMainActivityInstance = mainAct;
-                break;
             case OP_LOCALE_CHANGED:
                 CatLog.d(this, "Locale Changed");
                 for (int slot = PhoneConstants.SIM_ID_1; slot < mSimCount; slot++) {
@@ -860,12 +843,9 @@ public class StkAppService extends Service implements Runnable {
             mStkContext[slotId].mCurrentMenu = mStkContext[slotId].mMainCmd.getMenu();
         }
         CatLog.d(LOG_TAG, "[handleSessionEnd][mMenuState]" + mStkContext[slotId].mMenuIsVisible);
-        // In mutiple instance architecture, the main menu for slotId will be finished when user
-        // goes to the Stk menu of the other SIM. So, we should launch a new instance for the
-        // main menu if the main menu instance has been finished.
-        // If the current menu is secondary menu, we should launch main menu.
+
         if (StkMenuActivity.STATE_SECONDARY == mStkContext[slotId].mMenuState) {
-            launchMenuActivity(null, slotId);
+            mStkContext[slotId].mMenuState = StkMenuActivity.STATE_MAIN;
         }
 
         // Send a local broadcast as a notice that this service handled the session end event.
@@ -1385,15 +1365,6 @@ public class StkAppService extends Service implements Runnable {
         if (menu == null) {
             // We assume this was initiated by the user pressing the tool kit icon
             intentFlags |= getFlagActivityNoUserAction(InitiatedByUserAction.yes, slotId);
-            if (mStkContext[slotId].mOpCode == OP_END_SESSION) {
-                CatLog.d(LOG_TAG, "launchMenuActivity, return OP_END_SESSION");
-                mStkContext[slotId].mMenuState = StkMenuActivity.STATE_MAIN;
-                if (mStkContext[slotId].mMainActivityInstance != null) {
-                    CatLog.d(LOG_TAG, "launchMenuActivity, mMainActivityInstance is not null");
-                    return;
-                }
-            }
-
             //If the last pending menu is secondary menu, "STATE" should be "STATE_SECONDARY".
             //Otherwise, it should be "STATE_MAIN".
             if (mStkContext[slotId].mOpCode == OP_LAUNCH_APP &&
