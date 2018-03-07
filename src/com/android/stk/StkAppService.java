@@ -55,6 +55,7 @@ import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.CarrierConfigManager;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -124,6 +125,7 @@ public class StkAppService extends Service implements Runnable {
         protected int mOpCode = -1;
         private Activity mActivityInstance = null;
         private Activity mDialogInstance = null;
+        private Activity mImmediateDialogInstance = null;
         private int mSlotId = 0;
         private SetupEventListSettings mSetupEventListSettings = null;
         private boolean mClearSelectItem = false;
@@ -148,6 +150,15 @@ public class StkAppService extends Service implements Runnable {
             CatLog.d(this, "getPendingDialogInstance act : " + mSlotId + ", " +
                     mDialogInstance);
             return mDialogInstance;
+        }
+        final synchronized void setImmediateDialogInstance(Activity act) {
+            CatLog.d(this, "setImmediateDialogInstance act : " + mSlotId + ", " + act);
+            callSetActivityInstMsg(OP_SET_IMMED_DAL_INST, mSlotId, act);
+        }
+        final synchronized Activity getImmediateDialogInstance() {
+            CatLog.d(this, "getImmediateDialogInstance act : " + mSlotId + ", " +
+                    mImmediateDialogInstance);
+            return mImmediateDialogInstance;
         }
     }
 
@@ -206,6 +217,7 @@ public class StkAppService extends Service implements Runnable {
     static final int OP_LOCALE_CHANGED = 10;
     static final int OP_ALPHA_NOTIFY = 11;
     static final int OP_IDLE_SCREEN = 12;
+    static final int OP_SET_IMMED_DAL_INST = 13;
 
     //Invalid SetupEvent
     static final int INVALID_SETUP_EVENT = 0xFF;
@@ -623,10 +635,14 @@ public class StkAppService extends Service implements Runnable {
                 }
                 break;
             case OP_SET_DAL_INST:
-                Activity dal = new Activity();
+                Activity dal = (Activity) msg.obj;
                 CatLog.d(LOG_TAG, "Set dialog instance. " + dal);
-                dal = (Activity) msg.obj;
                 mStkContext[slotId].mDialogInstance = dal;
+                break;
+            case OP_SET_IMMED_DAL_INST:
+                Activity immedDal = (Activity) msg.obj;
+                CatLog.d(LOG_TAG, "Set dialog instance for immediate response. " + immedDal);
+                mStkContext[slotId].mImmediateDialogInstance = immedDal;
                 break;
             case OP_LOCALE_CHANGED:
                 CatLog.d(this, "Locale Changed");
@@ -1379,6 +1395,21 @@ public class StkAppService extends Service implements Runnable {
         }
     }
 
+    @Override
+    public void startActivity(Intent intent) {
+        int slotId = intent.getIntExtra(SLOT_ID, SubscriptionManager.INVALID_SIM_SLOT_INDEX);
+        // Close the dialog displayed for DISPLAY TEXT command with an immediate response object
+        // before new dialog is displayed.
+        if (SubscriptionManager.isValidSlotIndex(slotId)) {
+            Activity dialog = mStkContext[slotId].getImmediateDialogInstance();
+            if (dialog != null) {
+                CatLog.d(LOG_TAG, "finish dialog for immediate response.");
+                dialog.finish();
+            }
+        }
+        super.startActivity(intent);
+    }
+
     private void launchMenuActivity(Menu menu, int slotId) {
         Intent newIntent = new Intent(Intent.ACTION_VIEW);
         String targetActivity = STK_MENU_ACTIVITY_NAME;
@@ -1413,7 +1444,7 @@ public class StkAppService extends Service implements Runnable {
         newIntent.putExtra(SLOT_ID, slotId);
         newIntent.setData(uriData);
         newIntent.setFlags(intentFlags);
-        mContext.startActivity(newIntent);
+        startActivity(newIntent);
     }
 
     private void launchInputActivity(int slotId) {
@@ -1435,7 +1466,7 @@ public class StkAppService extends Service implements Runnable {
         if (input != null) {
             notifyUserIfNecessary(slotId, input.text);
         }
-        mContext.startActivity(newIntent);
+        startActivity(newIntent);
     }
 
     private void launchTextDialog(int slotId) {
