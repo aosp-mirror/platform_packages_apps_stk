@@ -32,6 +32,7 @@ import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.telephony.SubscriptionManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -125,6 +126,10 @@ public class StkDialogActivity extends Activity {
 
         if (!mTextMsg.responseNeeded) {
             alertDialogBuilder.setNegativeButton(null, null);
+            // Register the instance of this activity because the dialog displayed for DISPLAY TEXT
+            // command with an immediate response object should disappear when the terminal receives
+            // a subsequent proactive command containing display data.
+            appService.getStkContext(mSlotId).setImmediateDialogInstance(this);
         }
 
         alertDialogBuilder.setTitle(mTextMsg.title);
@@ -299,6 +304,18 @@ public class StkDialogActivity extends Activity {
     protected void onNewIntent(Intent intent) {
         CatLog.d(LOG_TAG, "onNewIntent - updating the same Dialog box");
         setIntent(intent);
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        // Unregister the instance for DISPLAY TEXT command with an immediate response object
+        // as it is unnecessary to ask the service to finish this anymore.
+        if ((appService != null) && (mTextMsg != null) && !mTextMsg.responseNeeded) {
+            if (SubscriptionManager.isValidSlotIndex(mSlotId)) {
+                appService.getStkContext(mSlotId).setImmediateDialogInstance(null);
+            }
+        }
     }
 
     private void sendResponse(int resId, boolean confirmed) {
