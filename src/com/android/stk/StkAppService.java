@@ -2029,6 +2029,8 @@ public class StkAppService extends Service implements Runnable {
                     !msg.iconSelfExplanatory) {
                 notificationBuilder.setContentText(msg.text);
                 notificationBuilder.setTicker(msg.text);
+                notificationBuilder.setStyle(new Notification.BigTextStyle(notificationBuilder)
+                        .bigText(msg.text));
             }
             if (msg.icon != null) {
                 notificationBuilder.setLargeIcon(msg.icon);
