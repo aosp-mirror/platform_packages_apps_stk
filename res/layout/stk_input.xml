@@ -52,7 +52,6 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="?android:attr/textColorPrimary"
-                android:gravity="center_horizontal"
                 android:paddingBottom="30dip" />
             <LinearLayout
                 android:layout_width="match_parent"
@@ -62,18 +61,16 @@
                     android:visibility="visible"
                     android:orientation="vertical"
                     android:layout_width="match_parent"
-                    android:layout_marginLeft="10dip"
-                    android:layout_marginRight="10dip"
                     android:layout_height="wrap_content">
                     <LinearLayout
                         android:id="@+id/input_restriction_info"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="4dip"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
                         <TextView
                             android:id="@+id/input_type"
-                            android:gravity="left"
+                            android:gravity="start"
                             android:textAppearance="?android:attr/textAppearanceMedium"
                             android:textColor="?android:attr/textColorSecondary"
                             android:layout_width="wrap_content"
@@ -83,29 +80,35 @@
                             android:textAppearance="?android:attr/textAppearanceMedium"
                             android:textColor="?android:attr/textColorSecondary"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="4dip" />
+                            android:layout_height="wrap_content" />
                     </LinearLayout>
                     <EditText
                         android:id="@+id/in_text"
                         android:layout_gravity="center_horizontal"
-                        android:layout_marginBottom="20dip"
+                        android:layout_marginBottom="16dip"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
+                        android:layout_marginStart="4dip"
+                        android:layout_marginBottom="16dip"
                         android:orientation="horizontal">
                         <Button
                             android:id="@+id/button_cancel"
-                            android:layout_height="wrap_content"
+                            android:layout_height="48dip"
                             android:layout_width="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center_vertical"
+                            android:paddingStart="0dip"
+                            style="@android:style/Widget.Material.Button.Borderless.Colored"
                             android:text="@string/button_cancel" />
                         <Button
                             android:id="@+id/button_ok"
-                            android:layout_height="wrap_content"
+                            android:layout_height="48dip"
                             android:layout_width="wrap_content"
+                            style="@android:style/Widget.Material.Button.Colored"
                             android:text="@string/button_ok" />
                     </LinearLayout>
                 </LinearLayout>
@@ -120,11 +123,13 @@
                         android:id="@+id/button_no"
                         android:layout_height="wrap_content"
                         android:layout_width="wrap_content"
+                        style="@android:style/Widget.Material.Button.Borderless.Colored"
                         android:text="@string/button_no" />
                     <Button
                         android:id="@+id/button_yes"
                         android:layout_height="wrap_content"
                         android:layout_width="wrap_content"
+                        style="@android:style/Widget.Material.Button.Colored"
                         android:text="@string/button_yes" />
                 </LinearLayout>
             </LinearLayout>

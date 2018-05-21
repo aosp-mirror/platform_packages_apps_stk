@@ -19,6 +19,7 @@ package com.android.stk;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningTaskInfo;
 import android.app.AlertDialog;
+import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -27,6 +28,7 @@ import android.app.Service;
 import android.app.Activity;
 import android.app.ActivityManagerNative;
 import android.app.IProcessObserver;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -37,6 +39,7 @@ import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -47,23 +50,28 @@ import android.os.Parcel;
 import android.os.PersistableBundle;
 import android.os.PowerManager;
 import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.CarrierConfigManager;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.view.Gravity;
+import android.view.IWindowManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.WindowManagerPolicy;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.IntentFilter;
 
 import com.android.internal.telephony.cat.AppInterface;
+import com.android.internal.telephony.cat.Input;
 import com.android.internal.telephony.cat.LaunchBrowserMode;
 import com.android.internal.telephony.cat.Menu;
 import com.android.internal.telephony.cat.Item;
@@ -89,6 +97,8 @@ import static com.android.internal.telephony.cat.CatCmdMessage.
                    SetupEventListConstants.IDLE_SCREEN_AVAILABLE_EVENT;
 import static com.android.internal.telephony.cat.CatCmdMessage.
                    SetupEventListConstants.LANGUAGE_SELECTION_EVENT;
+import static com.android.internal.telephony.cat.CatCmdMessage.
+                   SetupEventListConstants.USER_ACTIVITY_EVENT;
 
 /**
  * SIM toolkit application level service. Interacts with Telephopny messages,
@@ -108,7 +118,8 @@ public class StkAppService extends Service implements Runnable {
         protected boolean mIsInputPending = false;
         protected boolean mIsMenuPending = false;
         protected boolean mIsDialogPending = false;
-        protected boolean responseNeeded = true;
+        protected boolean mNotificationOnKeyguard = false;
+        protected boolean mNoResponseFromUser = false;
         protected boolean launchBrowser = false;
         protected BrowserSettings mBrowserSettings = null;
         protected LinkedList<DelayedCmd> mCmdsQ = null;
@@ -119,6 +130,7 @@ public class StkAppService extends Service implements Runnable {
         protected int mOpCode = -1;
         private Activity mActivityInstance = null;
         private Activity mDialogInstance = null;
+        private Activity mImmediateDialogInstance = null;
         private int mSlotId = 0;
         private SetupEventListSettings mSetupEventListSettings = null;
         private boolean mClearSelectItem = false;
@@ -144,6 +156,15 @@ public class StkAppService extends Service implements Runnable {
                     mDialogInstance);
             return mDialogInstance;
         }
+        final synchronized void setImmediateDialogInstance(Activity act) {
+            CatLog.d(this, "setImmediateDialogInstance act : " + mSlotId + ", " + act);
+            callSetActivityInstMsg(OP_SET_IMMED_DAL_INST, mSlotId, act);
+        }
+        final synchronized Activity getImmediateDialogInstance() {
+            CatLog.d(this, "getImmediateDialogInstance act : " + mSlotId + ", " +
+                    mImmediateDialogInstance);
+            return mImmediateDialogInstance;
+        }
     }
 
     private volatile Looper mServiceLooper;
@@ -155,8 +176,10 @@ public class StkAppService extends Service implements Runnable {
     private StkContext[] mStkContext = null;
     private int mSimCount = 0;
     private IProcessObserver.Stub mProcessObserver = null;
+    private BroadcastReceiver mLocaleChangeReceiver = null;
     private TonePlayer mTonePlayer = null;
     private Vibrator mVibrator = null;
+    private BroadcastReceiver mUserActivityReceiver = null;
 
     // Used for setting FLAG_ACTIVITY_NO_USER_ACTION when
     // creating an intent.
@@ -200,6 +223,7 @@ public class StkAppService extends Service implements Runnable {
     static final int OP_LOCALE_CHANGED = 10;
     static final int OP_ALPHA_NOTIFY = 11;
     static final int OP_IDLE_SCREEN = 12;
+    static final int OP_SET_IMMED_DAL_INST = 13;
 
     //Invalid SetupEvent
     static final int INVALID_SETUP_EVENT = 0xFF;
@@ -212,6 +236,9 @@ public class StkAppService extends Service implements Runnable {
 
     // Message id to remove stop tone message from queue.
     private static final int STOP_TONE_WHAT = 100;
+
+    // Message id to send user activity event to card.
+    private static final int OP_USER_ACTIVITY = 20;
 
     // Response ids
     static final int RES_ID_MENU_SELECTION = 11;
@@ -263,6 +290,10 @@ public class StkAppService extends Service implements Runnable {
 
     // system property to set the STK specific default url for launch browser proactive cmds
     private static final String STK_BROWSER_DEFAULT_URL_SYSPROP = "persist.radio.stk.default_url";
+
+    private static final int NOTIFICATION_ON_KEYGUARD = 1;
+    private static final long[] VIBRATION_PATTERN = new long[] { 0, 350, 250, 350 };
+    private BroadcastReceiver mUserPresentReceiver = null;
 
     @Override
     public void onCreate() {
@@ -368,7 +399,9 @@ public class StkAppService extends Service implements Runnable {
     @Override
     public void onDestroy() {
         CatLog.d(LOG_TAG, "onDestroy()");
+        unregisterUserActivityReceiver();
         unregisterProcessObserver();
+        unregisterLocaleChangeReceiver();
         sInstance = null;
         waitForLooper();
         mServiceLooper.quit();
@@ -612,10 +645,14 @@ public class StkAppService extends Service implements Runnable {
                 }
                 break;
             case OP_SET_DAL_INST:
-                Activity dal = new Activity();
+                Activity dal = (Activity) msg.obj;
                 CatLog.d(LOG_TAG, "Set dialog instance. " + dal);
-                dal = (Activity) msg.obj;
                 mStkContext[slotId].mDialogInstance = dal;
+                break;
+            case OP_SET_IMMED_DAL_INST:
+                Activity immedDal = (Activity) msg.obj;
+                CatLog.d(LOG_TAG, "Set dialog instance for immediate response. " + immedDal);
+                mStkContext[slotId].mImmediateDialogInstance = immedDal;
                 break;
             case OP_LOCALE_CHANGED:
                 CatLog.d(this, "Locale Changed");
@@ -639,6 +676,11 @@ public class StkAppService extends Service implements Runnable {
             case OP_STOP_TONE:
                 CatLog.d(this, "Stop tone");
                 handleStopTone(msg, slotId);
+                break;
+            case OP_USER_ACTIVITY:
+                for (int slot = PhoneConstants.SIM_ID_1; slot < mSimCount; slot++) {
+                    checkForSetupEvent(USER_ACTIVITY_EVENT, null, slot);
+                }
                 break;
             }
         }
@@ -832,6 +874,7 @@ public class StkAppService extends Service implements Runnable {
         mStkContext[slotId].mIsInputPending = false;
         mStkContext[slotId].mIsMenuPending = false;
         mStkContext[slotId].mIsDialogPending = false;
+        mStkContext[slotId].mNoResponseFromUser = false;
 
         if (mStkContext[slotId].mMainCmd == null) {
             CatLog.d(LOG_TAG, "[handleSessionEnd][mMainCmd is null!]");
@@ -1251,6 +1294,24 @@ public class StkAppService extends Service implements Runnable {
             return;
         }
 
+        switch (args.getInt(RES_ID)) {
+            case RES_ID_MENU_SELECTION:
+            case RES_ID_INPUT:
+            case RES_ID_CONFIRM:
+            case RES_ID_CHOICE:
+            case RES_ID_BACKWARD:
+            case RES_ID_END_SESSION:
+                mStkContext[slotId].mNoResponseFromUser = false;
+                break;
+            case RES_ID_TIMEOUT:
+                cancelNotificationOnKeyguard(slotId);
+                mStkContext[slotId].mNoResponseFromUser = true;
+                break;
+            default:
+                // The other IDs cannot be used to judge if there is no response from user.
+                break;
+        }
+
         if (null != mStkContext[slotId].mCurrentCmd &&
                 null != mStkContext[slotId].mCurrentCmd.getCmdType()) {
             CatLog.d(LOG_TAG, "handleCmdResponse- cmdName[" +
@@ -1349,6 +1410,21 @@ public class StkAppService extends Service implements Runnable {
         }
     }
 
+    @Override
+    public void startActivity(Intent intent) {
+        int slotId = intent.getIntExtra(SLOT_ID, SubscriptionManager.INVALID_SIM_SLOT_INDEX);
+        // Close the dialog displayed for DISPLAY TEXT command with an immediate response object
+        // before new dialog is displayed.
+        if (SubscriptionManager.isValidSlotIndex(slotId)) {
+            Activity dialog = mStkContext[slotId].getImmediateDialogInstance();
+            if (dialog != null) {
+                CatLog.d(LOG_TAG, "finish dialog for immediate response.");
+                dialog.finish();
+            }
+        }
+        super.startActivity(intent);
+    }
+
     private void launchMenuActivity(Menu menu, int slotId) {
         Intent newIntent = new Intent(Intent.ACTION_VIEW);
         String targetActivity = STK_MENU_ACTIVITY_NAME;
@@ -1383,7 +1459,7 @@ public class StkAppService extends Service implements Runnable {
         newIntent.putExtra(SLOT_ID, slotId);
         newIntent.setData(uriData);
         newIntent.setFlags(intentFlags);
-        mContext.startActivity(newIntent);
+        startActivity(newIntent);
     }
 
     private void launchInputActivity(int slotId) {
@@ -1392,15 +1468,20 @@ public class StkAppService extends Service implements Runnable {
         String uriString = STK_INPUT_URI + System.currentTimeMillis();
         //Set unique URI to create a new instance of activity for different slotId.
         Uri uriData = Uri.parse(uriString);
+        Input input = mStkContext[slotId].mCurrentCmd.geInput();
 
         CatLog.d(LOG_TAG, "launchInputActivity, slotId: " + slotId);
         newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                             | getFlagActivityNoUserAction(InitiatedByUserAction.unknown, slotId));
         newIntent.setClassName(PACKAGE_NAME, targetActivity);
-        newIntent.putExtra("INPUT", mStkContext[slotId].mCurrentCmd.geInput());
+        newIntent.putExtra("INPUT", input);
         newIntent.putExtra(SLOT_ID, slotId);
         newIntent.setData(uriData);
-        mContext.startActivity(newIntent);
+
+        if (input != null) {
+            notifyUserIfNecessary(slotId, input.text);
+        }
+        startActivity(newIntent);
     }
 
     private void launchTextDialog(int slotId) {
@@ -1411,22 +1492,133 @@ public class StkAppService extends Service implements Runnable {
         String uriString = STK_DIALOG_URI + System.currentTimeMillis();
         //Set unique URI to create a new instance of activity for different slotId.
         Uri uriData = Uri.parse(uriString);
-        if (newIntent != null) {
-            newIntent.setClassName(PACKAGE_NAME, targetActivity);
-            newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                    | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-                    | getFlagActivityNoUserAction(InitiatedByUserAction.unknown, slotId));
-            newIntent.setData(uriData);
-            newIntent.putExtra("TEXT", mStkContext[slotId].mCurrentCmd.geTextMessage());
-            newIntent.putExtra(SLOT_ID, slotId);
-            startActivity(newIntent);
-            // For display texts with immediate response, send the terminal response
-            // immediately. responseNeeded will be false, if display text command has
-            // the immediate response tlv.
-            if (!mStkContext[slotId].mCurrentCmd.geTextMessage().responseNeeded) {
-                sendResponse(RES_ID_CONFIRM, slotId, true);
+        TextMessage textMessage = mStkContext[slotId].mCurrentCmd.geTextMessage();
+
+        newIntent.setClassName(PACKAGE_NAME, targetActivity);
+        newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+                | getFlagActivityNoUserAction(InitiatedByUserAction.unknown, slotId));
+        newIntent.setData(uriData);
+        newIntent.putExtra("TEXT", textMessage);
+        newIntent.putExtra(SLOT_ID, slotId);
+
+        if (textMessage != null) {
+            notifyUserIfNecessary(slotId, textMessage.text);
+        }
+        startActivity(newIntent);
+        // For display texts with immediate response, send the terminal response
+        // immediately. responseNeeded will be false, if display text command has
+        // the immediate response tlv.
+        if (!mStkContext[slotId].mCurrentCmd.geTextMessage().responseNeeded) {
+            sendResponse(RES_ID_CONFIRM, slotId, true);
+        }
+    }
+
+    private void notifyUserIfNecessary(int slotId, String message) {
+        createAllChannels();
+
+        if (mStkContext[slotId].mNoResponseFromUser) {
+            // No response from user was observed in the current session.
+            // Do nothing in that case in order to avoid turning on the screen again and again
+            // when the card repeatedly sends the same command in its retry procedure.
+            return;
+        }
+
+        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+
+        if (((KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE)).isKeyguardLocked()) {
+            // Display the notification on the keyguard screen
+            // if user cannot see the message from the card right now because of it.
+            // The notification can be dismissed if user removed the keyguard screen.
+            launchNotificationOnKeyguard(slotId, message);
+        } else if (!(pm.isInteractive() && isTopOfStack())) {
+            // User might be doing something but it is not related to the SIM Toolkit.
+            // Play the tone and do vibration in order to attract user's attention.
+            // User will see the input screen or the dialog soon in this case.
+            NotificationChannel channel = mNotificationManager
+                    .getNotificationChannel(STK_NOTIFICATION_CHANNEL_ID);
+            Uri uri = channel.getSound();
+            if (uri != null && !Uri.EMPTY.equals(uri)
+                    && (NotificationManager.IMPORTANCE_LOW) < channel.getImportance()) {
+                RingtoneManager.getRingtone(getApplicationContext(), uri).play();
+            }
+            long[] pattern = channel.getVibrationPattern();
+            if (pattern != null && channel.shouldVibrate()) {
+                ((Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE))
+                        .vibrate(pattern, -1);
             }
         }
+
+        // Turn on the screen.
+        PowerManager.WakeLock wakelock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK
+                | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE, LOG_TAG);
+        wakelock.acquire();
+        wakelock.release();
+    }
+
+    private void launchNotificationOnKeyguard(int slotId, String message) {
+        Notification.Builder builder = new Notification.Builder(this, STK_NOTIFICATION_CHANNEL_ID);
+
+        builder.setStyle(new Notification.BigTextStyle(builder).bigText(message));
+        builder.setContentText(message);
+
+        Menu menu = getMainMenu(slotId);
+        if (menu == null || TextUtils.isEmpty(menu.title)) {
+            builder.setContentTitle(getResources().getString(R.string.app_name));
+        } else {
+            builder.setContentTitle(menu.title);
+        }
+
+        builder.setSmallIcon(com.android.internal.R.drawable.stat_notify_sim_toolkit);
+        builder.setOngoing(true);
+        builder.setOnlyAlertOnce(true);
+        builder.setColor(getResources().getColor(
+                com.android.internal.R.color.system_notification_accent_color));
+
+        registerUserPresentReceiver();
+        mNotificationManager.notify(getNotificationId(NOTIFICATION_ON_KEYGUARD, slotId),
+                builder.build());
+        mStkContext[slotId].mNotificationOnKeyguard = true;
+    }
+
+    private void cancelNotificationOnKeyguard(int slotId) {
+        mNotificationManager.cancel(getNotificationId(NOTIFICATION_ON_KEYGUARD, slotId));
+        mStkContext[slotId].mNotificationOnKeyguard = false;
+        unregisterUserPresentReceiver(slotId);
+    }
+
+    private synchronized void registerUserPresentReceiver() {
+        if (mUserPresentReceiver == null) {
+            mUserPresentReceiver = new BroadcastReceiver() {
+                @Override public void onReceive(Context context, Intent intent) {
+                    if (Intent.ACTION_USER_PRESENT.equals(intent.getAction())) {
+                        for (int slot = 0; slot < mSimCount; slot++) {
+                            cancelNotificationOnKeyguard(slot);
+                        }
+                    }
+                }
+            };
+            registerReceiver(mUserPresentReceiver, new IntentFilter(Intent.ACTION_USER_PRESENT));
+        }
+    }
+
+    private synchronized void unregisterUserPresentReceiver(int slotId) {
+        if (mUserPresentReceiver != null) {
+            for (int slot = PhoneConstants.SIM_ID_1; slot < mSimCount; slot++) {
+                if (slot != slotId) {
+                    if (mStkContext[slot].mNotificationOnKeyguard) {
+                        // The broadcast receiver is still necessary for other SIM card.
+                        return;
+                    }
+                }
+            }
+            unregisterReceiver(mUserPresentReceiver);
+            mUserPresentReceiver = null;
+        }
+    }
+
+    private int getNotificationId(int notificationType, int slotId) {
+        return getNotificationId(slotId) + (notificationType * mSimCount);
     }
 
     public boolean isStkDialogActivated(Context context) {
@@ -1472,11 +1664,28 @@ public class StkAppService extends Service implements Runnable {
     }
 
     private void unregisterEvent(int event, int slotId) {
+        for (int slot = PhoneConstants.SIM_ID_1; slot < mSimCount; slot++) {
+            if (slot != slotId) {
+                if (mStkContext[slot].mSetupEventListSettings != null) {
+                    if (findEvent(event, mStkContext[slot].mSetupEventListSettings.eventList)) {
+                        // The specified event shall never be canceled
+                        // if there is any other SIM card which requests the event.
+                        return;
+                    }
+                }
+            }
+        }
+
         switch (event) {
+            case USER_ACTIVITY_EVENT:
+                unregisterUserActivityReceiver();
+                break;
             case IDLE_SCREEN_AVAILABLE_EVENT:
                 unregisterProcessObserver(AppInterface.CommandType.SET_UP_EVENT_LIST, slotId);
                 break;
             case LANGUAGE_SELECTION_EVENT:
+                unregisterLocaleChangeReceiver();
+                break;
             default:
                 break;
         }
@@ -1488,13 +1697,50 @@ public class StkAppService extends Service implements Runnable {
         }
         for (int event : mStkContext[slotId].mSetupEventListSettings.eventList) {
             switch (event) {
+                case USER_ACTIVITY_EVENT:
+                    registerUserActivityReceiver();
+                    break;
                 case IDLE_SCREEN_AVAILABLE_EVENT:
                     registerProcessObserver();
                     break;
                 case LANGUAGE_SELECTION_EVENT:
+                    registerLocaleChangeReceiver();
+                    break;
                 default:
                     break;
             }
+        }
+    }
+
+    private synchronized void registerUserActivityReceiver() {
+        if (mUserActivityReceiver == null) {
+            mUserActivityReceiver = new BroadcastReceiver() {
+                @Override public void onReceive(Context context, Intent intent) {
+                    if (WindowManagerPolicy.ACTION_USER_ACTIVITY_NOTIFICATION.equals(
+                            intent.getAction())) {
+                        Message message = mServiceHandler.obtainMessage();
+                        message.arg1 = OP_USER_ACTIVITY;
+                        mServiceHandler.sendMessage(message);
+                        unregisterUserActivityReceiver();
+                    }
+                }
+            };
+            registerReceiver(mUserActivityReceiver, new IntentFilter(
+                    WindowManagerPolicy.ACTION_USER_ACTIVITY_NOTIFICATION));
+            try {
+                IWindowManager wm = IWindowManager.Stub.asInterface(
+                        ServiceManager.getService(Context.WINDOW_SERVICE));
+                wm.requestUserActivityNotification();
+            } catch (RemoteException e) {
+                CatLog.e(this, "failed to init WindowManager:" + e);
+            }
+        }
+    }
+
+    private synchronized void unregisterUserActivityReceiver() {
+        if (mUserActivityReceiver != null) {
+            unregisterReceiver(mUserActivityReceiver);
+            mUserActivityReceiver = null;
         }
     }
 
@@ -1561,6 +1807,28 @@ public class StkAppService extends Service implements Runnable {
         }
     }
 
+    private synchronized void registerLocaleChangeReceiver() {
+        if (mLocaleChangeReceiver == null) {
+            mLocaleChangeReceiver = new BroadcastReceiver() {
+                @Override public void onReceive(Context context, Intent intent) {
+                    if (Intent.ACTION_LOCALE_CHANGED.equals(intent.getAction())) {
+                        Message message = mServiceHandler.obtainMessage();
+                        message.arg1 = OP_LOCALE_CHANGED;
+                        mServiceHandler.sendMessage(message);
+                    }
+                }
+            };
+            registerReceiver(mLocaleChangeReceiver, new IntentFilter(Intent.ACTION_LOCALE_CHANGED));
+        }
+    }
+
+    private synchronized void unregisterLocaleChangeReceiver() {
+        if (mLocaleChangeReceiver != null) {
+            unregisterReceiver(mLocaleChangeReceiver);
+            mLocaleChangeReceiver = null;
+        }
+    }
+
     private void sendSetUpEventResponse(int event, byte[] addedInfo, int slotId) {
         CatLog.d(this, "sendSetUpEventResponse: event : " + event + "slotId = " + slotId);
 
@@ -1597,6 +1865,7 @@ public class StkAppService extends Service implements Runnable {
                 CatLog.d(this, " Event " + event + "exists in the EventList");
 
                 switch (event) {
+                    case USER_ACTIVITY_EVENT:
                     case IDLE_SCREEN_AVAILABLE_EVENT:
                         sendSetUpEventResponse(event, addedInfo, slotId);
                         removeSetUpEvent(event, slotId);
@@ -1634,6 +1903,11 @@ public class StkAppService extends Service implements Runnable {
                     mStkContext[slotId].mSetupEventListSettings.eventList[i] = INVALID_SETUP_EVENT;
 
                     switch (event) {
+                        case USER_ACTIVITY_EVENT:
+                            // The broadcast receiver can be unregistered
+                            // as the event has already been sent to the card.
+                            unregisterUserActivityReceiver();
+                            break;
                         case IDLE_SCREEN_AVAILABLE_EVENT:
                             // The process observer can be unregistered
                             // as the idle screen has already been available.
@@ -1696,17 +1970,15 @@ public class StkAppService extends Service implements Runnable {
         //Set unique URI to create a new instance of activity for different slotId.
         Uri uriData = Uri.parse(uriString);
 
-        if (newIntent != null) {
-            newIntent.setClassName(this, targetActivity);
-            newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                    | Intent.FLAG_ACTIVITY_NO_HISTORY
-                    | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-                    | getFlagActivityNoUserAction(InitiatedByUserAction.unknown, slotId));
-            newIntent.putExtra("TEXT", msg);
-            newIntent.putExtra(SLOT_ID, slotId);
-            newIntent.setData(uriData);
-            startActivity(newIntent);
-        }
+        newIntent.setClassName(this, targetActivity);
+        newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_NO_HISTORY
+                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+                | getFlagActivityNoUserAction(InitiatedByUserAction.unknown, slotId));
+        newIntent.putExtra("TEXT", msg);
+        newIntent.putExtra(SLOT_ID, slotId);
+        newIntent.setData(uriData);
+        startActivity(newIntent);
     }
 
     private void launchBrowser(BrowserSettings settings) {
@@ -1791,6 +2063,7 @@ public class StkAppService extends Service implements Runnable {
                     .setSmallIcon(com.android.internal.R.drawable.stat_notify_sim_toolkit);
             notificationBuilder.setContentIntent(pendingIntent);
             notificationBuilder.setOngoing(true);
+            notificationBuilder.setOnlyAlertOnce(true);
             // Set text and icon for the status bar and notification body.
             if (mStkContext[slotId].mIdleModeTextCmd.hasIconLoadFailed() ||
                     !msg.iconSelfExplanatory) {
@@ -1817,10 +2090,15 @@ public class StkAppService extends Service implements Runnable {
      * ignore this call.
      */
     private void createAllChannels() {
-        mNotificationManager.createNotificationChannel(new NotificationChannel(
+        NotificationChannel notificationChannel = new NotificationChannel(
                 STK_NOTIFICATION_CHANNEL_ID,
                 getResources().getString(R.string.stk_channel_name),
-                NotificationManager.IMPORTANCE_MIN));
+                NotificationManager.IMPORTANCE_DEFAULT);
+
+        notificationChannel.enableVibration(true);
+        notificationChannel.setVibrationPattern(VIBRATION_PATTERN);
+
+        mNotificationManager.createNotificationChannel(notificationChannel);
     }
 
     private void launchToneDialog(int slotId) {
