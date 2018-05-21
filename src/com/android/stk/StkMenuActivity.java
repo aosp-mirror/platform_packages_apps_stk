@@ -68,6 +68,12 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
 
     private StkAppService appService = StkAppService.getInstance();
 
+    // Keys for saving the state of the dialog in the bundle
+    private static final String STATE_KEY = "state";
+    private static final String MENU_KEY = "menu";
+    private static final String ACCEPT_USERS_INPUT_KEY = "accept_users_input";
+    private static final String RESPONSE_SENT_KEY = "response_sent";
+
     // Internal state values
     static final int STATE_INIT = 0;
     static final int STATE_MAIN = 1;
@@ -99,8 +105,8 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     };
 
     @Override
-    public void onCreate(Bundle icicle) {
-        super.onCreate(icicle);
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         CatLog.d(LOG_TAG, "onCreate");
 
@@ -242,6 +248,12 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     public void onStop() {
         super.onStop();
         CatLog.d(LOG_TAG, "onStop, slot id: " + mSlotId + "," + mIsResponseSent + "," + mState);
+
+        // Nothing should be done here if this activity is being restarted now.
+        if (isChangingConfigurations()) {
+            return;
+        }
+
         //The menu should stay in background, if
         //1. the dialog is pop up in the screen, but the user does not response to the dialog.
         //2. the menu activity enters Stop state (e.g pressing HOME key) but mIsResponseSent is false.
@@ -280,8 +292,12 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         //isMenuPending: if input act is finish by stkappservice when OP_LAUNCH_APP again,
         //we can not send TR here, since the input cmd is waiting user to process.
         if (mState == STATE_SECONDARY && !mIsResponseSent && !appService.isMenuPending(mSlotId)) {
-            CatLog.d(LOG_TAG, "handleDestroy - Send End Session");
-            sendResponse(StkAppService.RES_ID_END_SESSION);
+            // Avoid sending the terminal response while the activty is being restarted
+            // due to some kind of configuration change.
+            if (!isChangingConfigurations()) {
+                CatLog.d(LOG_TAG, "handleDestroy - Send End Session");
+                sendResponse(StkAppService.RES_ID_END_SESSION);
+            }
         }
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mLocalBroadcastReceiver);
     }
@@ -368,17 +384,18 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         CatLog.d(LOG_TAG, "onSaveInstanceState: " + mSlotId);
-        outState.putInt("STATE", mState);
-        outState.putParcelable("MENU", mStkMenu);
-        outState.putBoolean("ACCEPT_USERS_INPUT", mAcceptUsersInput);
+        outState.putInt(STATE_KEY, mState);
+        outState.putParcelable(MENU_KEY, mStkMenu);
+        outState.putBoolean(ACCEPT_USERS_INPUT_KEY, mAcceptUsersInput);
+        outState.putBoolean(RESPONSE_SENT_KEY, mIsResponseSent);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         CatLog.d(LOG_TAG, "onRestoreInstanceState: " + mSlotId);
-        mState = savedInstanceState.getInt("STATE");
-        mStkMenu = savedInstanceState.getParcelable("MENU");
-        mAcceptUsersInput = savedInstanceState.getBoolean("ACCEPT_USERS_INPUT");
+        mState = savedInstanceState.getInt(STATE_KEY);
+        mStkMenu = savedInstanceState.getParcelable(MENU_KEY);
+        mAcceptUsersInput = savedInstanceState.getBoolean(ACCEPT_USERS_INPUT_KEY);
         if (!mAcceptUsersInput) {
             // Check the latest information as the saved instance state can be outdated.
             if ((mState == STATE_MAIN) && appService.isMainMenuAvailable(mSlotId)) {
@@ -387,6 +404,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
                 showProgressBar(true);
             }
         }
+        mIsResponseSent = savedInstanceState.getBoolean(RESPONSE_SENT_KEY);
     }
 
     private void cancelTimeOut() {

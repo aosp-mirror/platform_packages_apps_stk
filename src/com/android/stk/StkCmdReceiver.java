@@ -45,8 +45,6 @@ public class StkCmdReceiver extends BroadcastReceiver {
             handleAction(context, intent, StkAppService.OP_END_SESSION);
         } else if (action.equals(AppInterface.CAT_ICC_STATUS_CHANGE)) {
             handleAction(context, intent, StkAppService.OP_CARD_STATUS_CHANGED);
-        } else if (action.equals(Intent.ACTION_LOCALE_CHANGED)) {
-            handleLocaleChange(context);
         } else if (action.equals(AppInterface.CAT_ALPHA_NOTIFY_ACTION)) {
             handleAction(context, intent, StkAppService.OP_ALPHA_NOTIFY);
         }
@@ -85,12 +83,5 @@ public class StkCmdReceiver extends BroadcastReceiver {
         Intent toService = new Intent(context, StkAppService.class);
         toService.putExtras(args);
         context.startService(toService);
-    }
-
-    private void handleLocaleChange(Context context) {
-        Bundle args = new Bundle();
-        args.putInt(StkAppService.OPCODE, StkAppService.OP_LOCALE_CHANGED);
-        context.startService(new Intent(context, StkAppService.class)
-                .putExtras(args));
     }
 }
