@@ -54,7 +54,7 @@ import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.provider.Settings;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.CarrierConfigManager;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
