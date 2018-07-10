@@ -812,6 +812,7 @@ public class StkAppService extends Service implements Runnable {
         switch (cmd.getCmdType()) {
         case SEND_DTMF:
         case SEND_SMS:
+        case REFRESH:
         case RUN_AT:
         case SEND_SS:
         case SEND_USSD:
@@ -1052,6 +1053,7 @@ public class StkAppService extends Service implements Runnable {
             break;
         case SEND_DTMF:
         case SEND_SMS:
+        case REFRESH:
         case RUN_AT:
         case SEND_SS:
         case SEND_USSD:
