@@ -1,11 +1,11 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,33 +18,30 @@ package com.android.stk;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
+import android.os.SystemClock;
 import android.text.Editable;
 import android.text.InputFilter;
-import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
-import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-import android.widget.EditText;
 import android.widget.TextView.BufferType;
+
 import com.android.internal.telephony.cat.CatLog;
-import com.android.internal.telephony.cat.FontSize;
 import com.android.internal.telephony.cat.Input;
 
 /**
@@ -55,7 +52,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
 
     // Members
     private int mState;
-    private Context mContext;
     private EditText mTextIn = null;
     private TextView mPromptView = null;
     private View mMoreOptions = null;
@@ -68,7 +64,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     private static final String LOG_TAG = className.substring(className.lastIndexOf('.') + 1);
 
     private Input mStkInput = null;
-    private boolean mAcceptUsersInput = true;
     // Constants
     private static final int STATE_TEXT = 1;
     private static final int STATE_YES_NO = 2;
@@ -82,37 +77,24 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     static final float SMALL_FONT_FACTOR = (1 / 2);
 
     // Keys for saving the state of the activity in the bundle
-    private static final String ACCEPT_USERS_INPUT_KEY = "accept_users_input";
     private static final String RESPONSE_SENT_KEY = "response_sent";
     private static final String INPUT_STRING_KEY = "input_string";
+    private static final String ALARM_TIME_KEY = "alarm_time";
 
-    // message id for time out
-    private static final int MSG_ID_TIMEOUT = 1;
+    private static final String INPUT_ALARM_TAG = LOG_TAG;
+    private static final long NO_INPUT_ALARM = -1;
+    private long mAlarmTime = NO_INPUT_ALARM;
+
     private StkAppService appService = StkAppService.getInstance();
 
     private boolean mIsResponseSent = false;
     private int mSlotId = -1;
-    Activity mInstance = null;
-
-    Handler mTimeoutHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch(msg.what) {
-            case MSG_ID_TIMEOUT:
-                CatLog.d(LOG_TAG, "Msg timeout.");
-                mAcceptUsersInput = false;
-                appService.getStkContext(mSlotId).setPendingActivityInstance(mInstance);
-                sendResponse(StkAppService.RES_ID_TIMEOUT);
-                break;
-            }
-        }
-    };
 
     // Click listener to handle buttons press..
     public void onClick(View v) {
         String input = null;
-        if (!mAcceptUsersInput) {
-            CatLog.d(LOG_TAG, "mAcceptUsersInput:false");
+        if (mIsResponseSent) {
+            CatLog.d(LOG_TAG, "Already responded");
             return;
         }
 
@@ -123,22 +105,17 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
                 CatLog.d(LOG_TAG, "handleClick, invalid text");
                 return;
             }
-            mAcceptUsersInput = false;
             input = mTextIn.getText().toString();
             break;
         case R.id.button_cancel:
-            mAcceptUsersInput = false;
-            cancelTimeOut();
             appService.getStkContext(mSlotId).setPendingActivityInstance(this);
             sendResponse(StkAppService.RES_ID_END_SESSION);
             return;
         // Yes/No layout buttons.
         case R.id.button_yes:
-            mAcceptUsersInput = false;
             input = YES_STR_RESPONSE;
             break;
         case R.id.button_no:
-            mAcceptUsersInput = false;
             input = NO_STR_RESPONSE;
             break;
         case R.id.more:
@@ -165,7 +142,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             break;
         }
         CatLog.d(LOG_TAG, "handleClick, ready to response");
-        cancelTimeOut();
         appService.getStkContext(mSlotId).setPendingActivityInstance(this);
         sendResponse(StkAppService.RES_ID_INPUT, input, false);
     }
@@ -204,7 +180,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         // Initialize members
         mTextIn = (EditText) this.findViewById(R.id.in_text);
         mPromptView = (TextView) this.findViewById(R.id.prompt);
-        mInstance = this;
         // Set buttons listeners.
         Button okButton = (Button) findViewById(R.id.button_ok);
         Button cancelButton = (Button) findViewById(R.id.button_cancel);
@@ -219,8 +194,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         mYesNoLayout = findViewById(R.id.yes_no_layout);
         mNormalLayout = findViewById(R.id.normal_layout);
         initFromIntent(getIntent());
-        mContext = getBaseContext();
-        mAcceptUsersInput = true;
     }
 
     @Override
@@ -235,7 +208,10 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         super.onResume();
         CatLog.d(LOG_TAG, "onResume - mIsResponseSent[" + mIsResponseSent +
                 "], slot id: " + mSlotId);
-        startTimeOut();
+
+        if (mAlarmTime == NO_INPUT_ALARM) {
+            startTimeOut();
+        }
     }
 
     @Override
@@ -260,7 +236,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         // It is unnecessary to keep this activity if the response was already sent and
         // this got invisible because of the other full-screen activity in this application.
         if (mIsResponseSent && appService.isTopOfStack()) {
-            cancelTimeOut();
             finish();
         } else {
             appService.getStkContext(mSlotId).setPendingActivityInstance(this);
@@ -285,8 +260,8 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
                 CatLog.d(LOG_TAG, "handleDestroy - Send End Session");
                 sendResponse(StkAppService.RES_ID_END_SESSION);
             }
-            cancelTimeOut();
         }
+        cancelTimeOut();
     }
 
     @Override
@@ -299,16 +274,14 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (!mAcceptUsersInput) {
-            CatLog.d(LOG_TAG, "mAcceptUsersInput:false");
+        if (mIsResponseSent) {
+            CatLog.d(LOG_TAG, "Already responded");
             return true;
         }
 
         switch (keyCode) {
         case KeyEvent.KEYCODE_BACK:
             CatLog.d(LOG_TAG, "onKeyDown - KEYCODE_BACK");
-            mAcceptUsersInput = false;
-            cancelTimeOut();
             appService.getStkContext(mSlotId).setPendingActivityInstance(this);
             sendResponse(StkAppService.RES_ID_BACKWARD, null, false);
             return true;
@@ -321,6 +294,8 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     }
 
     void sendResponse(int resId, String input, boolean help) {
+        cancelTimeOut();
+
         if (mSlotId == -1) {
             CatLog.d(LOG_TAG, "slot id is invalid");
             return;
@@ -346,8 +321,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             args.putString(StkAppService.INPUT, input);
         }
         args.putBoolean(StkAppService.HELP, help);
-        mContext.startService(new Intent(mContext, StkAppService.class)
-                .putExtras(args));
+        startService(new Intent(this, StkAppService.class).putExtras(args));
     }
 
     @Override
@@ -383,20 +357,16 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     }
 
     private boolean optionsItemSelectedInternal(MenuItem item) {
-        if (!mAcceptUsersInput) {
-            CatLog.d(LOG_TAG, "mAcceptUsersInput:false");
+        if (mIsResponseSent) {
+            CatLog.d(LOG_TAG, "Already responded");
             return true;
         }
         switch (item.getItemId()) {
         case StkApp.MENU_ID_END_SESSION:
-            mAcceptUsersInput = false;
-            cancelTimeOut();
             sendResponse(StkAppService.RES_ID_END_SESSION);
             finish();
             return true;
         case StkApp.MENU_ID_HELP:
-            mAcceptUsersInput = false;
-            cancelTimeOut();
             sendResponse(StkAppService.RES_ID_INPUT, "", true);
             finish();
             return true;
@@ -407,25 +377,28 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         CatLog.d(LOG_TAG, "onSaveInstanceState: " + mSlotId);
-        outState.putBoolean(ACCEPT_USERS_INPUT_KEY, mAcceptUsersInput);
         outState.putBoolean(RESPONSE_SENT_KEY, mIsResponseSent);
         outState.putString(INPUT_STRING_KEY, mTextIn.getText().toString());
+        outState.putLong(ALARM_TIME_KEY, mAlarmTime);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         CatLog.d(LOG_TAG, "onRestoreInstanceState: " + mSlotId);
 
-        mAcceptUsersInput = savedInstanceState.getBoolean(ACCEPT_USERS_INPUT_KEY);
-        if ((mAcceptUsersInput == false) && (mMoreOptions != null)) {
+        mIsResponseSent = savedInstanceState.getBoolean(RESPONSE_SENT_KEY);
+        if (mIsResponseSent && (mMoreOptions != null)) {
             mMoreOptions.setVisibility(View.INVISIBLE);
         }
-
-        mIsResponseSent = savedInstanceState.getBoolean(RESPONSE_SENT_KEY);
 
         String savedString = savedInstanceState.getString(INPUT_STRING_KEY);
         if (!TextUtils.isEmpty(savedString)) {
             mTextIn.setText(savedString);
+        }
+
+        mAlarmTime = savedInstanceState.getLong(ALARM_TIME_KEY, NO_INPUT_ALARM);
+        if (mAlarmTime != NO_INPUT_ALARM) {
+            startTimeOut();
         }
     }
 
@@ -435,6 +408,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
 
     public void onTextChanged(CharSequence s, int start, int before, int count) {
         // Reset timeout.
+        cancelTimeOut();
         startTimeOut();
     }
 
@@ -451,18 +425,32 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     }
 
     private void cancelTimeOut() {
-        mTimeoutHandler.removeMessages(MSG_ID_TIMEOUT);
+        if (mAlarmTime != NO_INPUT_ALARM) {
+            CatLog.d(LOG_TAG, "cancelTimeOut - slot id: " + mSlotId);
+            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            am.cancel(mAlarmListener);
+            mAlarmTime = NO_INPUT_ALARM;
+        }
     }
 
     private void startTimeOut() {
-        int duration = StkApp.calculateDurationInMilis(mStkInput.duration);
-
-        if (duration <= 0) {
-            duration = StkApp.UI_TIMEOUT;
+        // No need to set alarm if device sent TERMINAL RESPONSE already.
+        if (mIsResponseSent) {
+            return;
         }
-        cancelTimeOut();
-        mTimeoutHandler.sendMessageDelayed(mTimeoutHandler
-                .obtainMessage(MSG_ID_TIMEOUT), duration);
+
+        if (mAlarmTime == NO_INPUT_ALARM) {
+            int duration = StkApp.calculateDurationInMilis(mStkInput.duration);
+            if (duration <= 0) {
+                duration = StkApp.UI_TIMEOUT;
+            }
+            mAlarmTime = SystemClock.elapsedRealtime() + duration;
+        }
+
+        CatLog.d(LOG_TAG, "startTimeOut: " + mAlarmTime + "ms, slot id: " + mSlotId);
+        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        am.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, mAlarmTime, INPUT_ALARM_TAG,
+                mAlarmListener, null);
     }
 
     private void configInputDisplay() {
@@ -530,13 +518,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         }
     }
 
-    private float getFontSizeFactor(FontSize size) {
-        final float[] fontSizes =
-            {NORMAL_FONT_FACTOR, LARGE_FONT_FACTOR, SMALL_FONT_FACTOR};
-
-        return fontSizes[size.ordinal()];
-    }
-
     private void initFromIntent(Intent intent) {
         // Get the calling intent type: text/key, and setup the
         // display parameters.
@@ -556,4 +537,16 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             finish();
         }
     }
+
+    private final AlarmManager.OnAlarmListener mAlarmListener =
+            new AlarmManager.OnAlarmListener() {
+                @Override
+                public void onAlarm() {
+                    CatLog.d(LOG_TAG, "The alarm time is reached");
+                    mAlarmTime = NO_INPUT_ALARM;
+                    appService.getStkContext(mSlotId).setPendingActivityInstance(
+                            StkInputActivity.this);
+                    sendResponse(StkAppService.RES_ID_TIMEOUT);
+                }
+            };
 }

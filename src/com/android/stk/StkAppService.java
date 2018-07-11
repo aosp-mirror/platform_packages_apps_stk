@@ -812,6 +812,7 @@ public class StkAppService extends Service implements Runnable {
         switch (cmd.getCmdType()) {
         case SEND_DTMF:
         case SEND_SMS:
+        case REFRESH:
         case RUN_AT:
         case SEND_SS:
         case SEND_USSD:
@@ -1052,6 +1053,7 @@ public class StkAppService extends Service implements Runnable {
             break;
         case SEND_DTMF:
         case SEND_SMS:
+        case REFRESH:
         case RUN_AT:
         case SEND_SS:
         case SEND_USSD:
@@ -1339,29 +1341,27 @@ public class StkAppService extends Service implements Runnable {
     }
     /**
      * This method is used for cleaning up pending instances in stack.
+     * No terminal response will be sent for pending instances.
      */
     private void cleanUpInstanceStackBySlot(int slotId) {
         Activity activity = mStkContext[slotId].getPendingActivityInstance();
         Activity dialog = mStkContext[slotId].getPendingDialogInstance();
         CatLog.d(LOG_TAG, "cleanUpInstanceStackBySlot slotId: " + slotId);
-        if (mStkContext[slotId].mCurrentCmd == null) {
-            CatLog.d(LOG_TAG, "current cmd is null.");
-            return;
-        }
         if (activity != null) {
-            CatLog.d(LOG_TAG, "current cmd type: " +
-                    mStkContext[slotId].mCurrentCmd.getCmdType());
-            if (mStkContext[slotId].mCurrentCmd.getCmdType().value() ==
-                    AppInterface.CommandType.GET_INPUT.value() ||
-                    mStkContext[slotId].mCurrentCmd.getCmdType().value() ==
-                    AppInterface.CommandType.GET_INKEY.value()) {
-                mStkContext[slotId].mIsInputPending = true;
-            } else if (mStkContext[slotId].mCurrentCmd.getCmdType().value() ==
-                    AppInterface.CommandType.SET_UP_MENU.value() ||
-                    mStkContext[slotId].mCurrentCmd.getCmdType().value() ==
-                    AppInterface.CommandType.SELECT_ITEM.value()) {
-                mStkContext[slotId].mIsMenuPending = true;
-            } else {
+            if (mStkContext[slotId].mCurrentCmd != null) {
+                CatLog.d(LOG_TAG, "current cmd type: " +
+                        mStkContext[slotId].mCurrentCmd.getCmdType());
+                if (mStkContext[slotId].mCurrentCmd.getCmdType().value()
+                        == AppInterface.CommandType.GET_INPUT.value()
+                        || mStkContext[slotId].mCurrentCmd.getCmdType().value()
+                        == AppInterface.CommandType.GET_INKEY.value()) {
+                    mStkContext[slotId].mIsInputPending = true;
+                } else if (mStkContext[slotId].mCurrentCmd.getCmdType().value()
+                        == AppInterface.CommandType.SET_UP_MENU.value()
+                        || mStkContext[slotId].mCurrentCmd.getCmdType().value()
+                        == AppInterface.CommandType.SELECT_ITEM.value()) {
+                    mStkContext[slotId].mIsMenuPending = true;
+                }
             }
             CatLog.d(LOG_TAG, "finish pending activity.");
             activity.finish();
