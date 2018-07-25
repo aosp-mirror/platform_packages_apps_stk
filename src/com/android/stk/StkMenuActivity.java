@@ -16,16 +16,15 @@
 
 package com.android.stk;
 
-import android.app.ListActivity;
 import android.app.ActionBar;
-import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.ListActivity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
+import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.SubscriptionManager;
 import android.view.ContextMenu;
@@ -33,17 +32,15 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.android.internal.telephony.cat.CatLog;
 import com.android.internal.telephony.cat.Item;
 import com.android.internal.telephony.cat.Menu;
-import com.android.internal.telephony.cat.CatLog;
-import android.telephony.TelephonyManager;
 
 /**
  * ListActivity used for displaying STK menus. These can be SET UP MENU and
@@ -52,13 +49,11 @@ import android.telephony.TelephonyManager;
  *
  */
 public class StkMenuActivity extends ListActivity implements View.OnCreateContextMenuListener {
-    private Context mContext;
     private Menu mStkMenu = null;
     private int mState = STATE_MAIN;
     private boolean mAcceptUsersInput = true;
     private int mSlotId = -1;
     private boolean mIsResponseSent = false;
-    Activity mInstance = null;
 
     private TextView mTitleTextView = null;
     private ImageView mTitleIconView = null;
@@ -73,36 +68,18 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     private static final String MENU_KEY = "menu";
     private static final String ACCEPT_USERS_INPUT_KEY = "accept_users_input";
     private static final String RESPONSE_SENT_KEY = "response_sent";
+    private static final String ALARM_TIME_KEY = "alarm_time";
+
+    private static final String SELECT_ALARM_TAG = LOG_TAG;
+    private static final long NO_SELECT_ALARM = -1;
+    private long mAlarmTime = NO_SELECT_ALARM;
 
     // Internal state values
     static final int STATE_INIT = 0;
     static final int STATE_MAIN = 1;
     static final int STATE_SECONDARY = 2;
 
-    // Finish result
-    static final int FINISH_CAUSE_NORMAL = 1;
-    static final int FINISH_CAUSE_NULL_SERVICE = 2;
-    static final int FINISH_CAUSE_NULL_MENU = 3;
-
-    // message id for time out
-    private static final int MSG_ID_TIMEOUT = 1;
     private static final int CONTEXT_MENU_HELP = 0;
-
-    Handler mTimeoutHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch(msg.what) {
-            case MSG_ID_TIMEOUT:
-                CatLog.d(LOG_TAG, "MSG_ID_TIMEOUT mState: " + mState);
-                if (mState == STATE_SECONDARY) {
-                    appService.getStkContext(mSlotId).setPendingActivityInstance(mInstance);
-                }
-                sendResponse(StkAppService.RES_ID_TIMEOUT);
-                //finish();//We wait the following commands to trigger onStop of this activity.
-                break;
-            }
-        }
-    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -116,11 +93,9 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
 
         // Set the layout for this activity.
         setContentView(R.layout.stk_menu_list);
-        mInstance = this;
         mTitleTextView = (TextView) findViewById(R.id.title_text);
         mTitleIconView = (ImageView) findViewById(R.id.title_icon);
         mProgressView = (ProgressBar) findViewById(R.id.progress_bar);
-        mContext = getBaseContext();
         getListView().setOnCreateContextMenuListener(this);
 
         // appService can be null if this activity is automatically recreated by the system
@@ -160,7 +135,6 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         if (mState == STATE_SECONDARY) {
             appService.getStkContext(mSlotId).setPendingActivityInstance(this);
         }
-        cancelTimeOut();
         sendResponse(StkAppService.RES_ID_MENU_SELECTION, item.id, false);
         invalidateOptionsMenu();
     }
@@ -178,13 +152,11 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
             switch (mState) {
             case STATE_SECONDARY:
                 CatLog.d(LOG_TAG, "STATE_SECONDARY");
-                cancelTimeOut();
                 appService.getStkContext(mSlotId).setPendingActivityInstance(this);
                 sendResponse(StkAppService.RES_ID_BACKWARD);
                 return true;
             case STATE_MAIN:
                 CatLog.d(LOG_TAG, "STATE_MAIN");
-                cancelTimeOut();
                 finish();
                 return true;
             }
@@ -217,7 +189,11 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
             return;
         }
         displayMenu();
-        startTimeOut();
+
+        if (mAlarmTime == NO_SELECT_ALARM) {
+            startTimeOut();
+        }
+
         invalidateOptionsMenu();
     }
 
@@ -260,7 +236,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         if (mIsResponseSent) {
             // ONLY finish SECONDARY menu. MAIN menu should always stay in the root of stack.
             if (mState == STATE_SECONDARY) {
-                if (!appService.isStkDialogActivated(mContext)) {
+                if (!appService.isStkDialogActivated(this)) {
                     CatLog.d(LOG_TAG, "STATE_SECONDARY finish.");
                     cancelTimeOut();//To avoid the timer time out and send TR again.
                     finish();
@@ -299,6 +275,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
                 sendResponse(StkAppService.RES_ID_END_SESSION);
             }
         }
+        cancelTimeOut();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mLocalBroadcastReceiver);
     }
 
@@ -330,10 +307,8 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         }
         switch (item.getItemId()) {
         case StkApp.MENU_ID_END_SESSION:
-            cancelTimeOut();
             // send session end response.
             sendResponse(StkAppService.RES_ID_END_SESSION);
-            cancelTimeOut();
             finish();
             return true;
         default:
@@ -366,7 +341,6 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         }
         switch (item.getItemId()) {
             case CONTEXT_MENU_HELP:
-                cancelTimeOut();
                 int position = info.position;
                 CatLog.d(this, "Position:" + position);
                 Item stkItem = getSelectedItem(position);
@@ -388,6 +362,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         outState.putParcelable(MENU_KEY, mStkMenu);
         outState.putBoolean(ACCEPT_USERS_INPUT_KEY, mAcceptUsersInput);
         outState.putBoolean(RESPONSE_SENT_KEY, mIsResponseSent);
+        outState.putLong(ALARM_TIME_KEY, mAlarmTime);
     }
 
     @Override
@@ -405,21 +380,36 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
             }
         }
         mIsResponseSent = savedInstanceState.getBoolean(RESPONSE_SENT_KEY);
+
+        mAlarmTime = savedInstanceState.getLong(ALARM_TIME_KEY, NO_SELECT_ALARM);
+        if (mAlarmTime != NO_SELECT_ALARM) {
+            startTimeOut();
+        }
     }
 
     private void cancelTimeOut() {
-        CatLog.d(LOG_TAG, "cancelTimeOut: " + mSlotId);
-        mTimeoutHandler.removeMessages(MSG_ID_TIMEOUT);
+        if (mAlarmTime != NO_SELECT_ALARM) {
+            CatLog.d(LOG_TAG, "cancelTimeOut - slot id: " + mSlotId);
+            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            am.cancel(mAlarmListener);
+            mAlarmTime = NO_SELECT_ALARM;
+        }
     }
 
     private void startTimeOut() {
-        if (mState == STATE_SECONDARY) {
-            // Reset timeout.
-            cancelTimeOut();
-            CatLog.d(LOG_TAG, "startTimeOut: " + mSlotId);
-            mTimeoutHandler.sendMessageDelayed(mTimeoutHandler
-                    .obtainMessage(MSG_ID_TIMEOUT), StkApp.UI_TIMEOUT);
+        // No need to set alarm if this is the main menu or device sent TERMINAL RESPONSE already.
+        if (mState != STATE_SECONDARY || mIsResponseSent) {
+            return;
         }
+
+        if (mAlarmTime == NO_SELECT_ALARM) {
+            mAlarmTime = SystemClock.elapsedRealtime() + StkApp.UI_TIMEOUT;
+        }
+
+        CatLog.d(LOG_TAG, "startTimeOut: " + mAlarmTime + "ms, slot id: " + mSlotId);
+        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        am.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, mAlarmTime, SELECT_ALARM_TAG,
+                mAlarmListener, null);
     }
 
     // Bind list adapter to the items list.
@@ -504,6 +494,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         if (resId == StkAppService.RES_ID_MENU_SELECTION) {
             showProgressBar(true);
         }
+        cancelTimeOut();
 
         mIsResponseSent = true;
         Bundle args = new Bundle();
@@ -512,8 +503,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         args.putInt(StkAppService.RES_ID, resId);
         args.putInt(StkAppService.MENU_SELECTION, itemId);
         args.putBoolean(StkAppService.HELP, help);
-        mContext.startService(new Intent(mContext, StkAppService.class)
-                .putExtras(args));
+        startService(new Intent(this, StkAppService.class).putExtras(args));
     }
 
     private final BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
@@ -528,4 +518,16 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
             }
         }
     };
+
+    private final AlarmManager.OnAlarmListener mAlarmListener =
+            new AlarmManager.OnAlarmListener() {
+                @Override
+                public void onAlarm() {
+                    CatLog.d(LOG_TAG, "The alarm time is reached");
+                    mAlarmTime = NO_SELECT_ALARM;
+                    appService.getStkContext(mSlotId).setPendingActivityInstance(
+                            StkMenuActivity.this);
+                    sendResponse(StkAppService.RES_ID_TIMEOUT);
+                }
+            };
 }
