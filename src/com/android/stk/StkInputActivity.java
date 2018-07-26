@@ -325,14 +325,12 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
                 + help + "]");
         mIsResponseSent = true;
         Bundle args = new Bundle();
-        args.putInt(StkAppService.OPCODE, StkAppService.OP_RESPONSE);
-        args.putInt(StkAppService.SLOT_ID, mSlotId);
         args.putInt(StkAppService.RES_ID, resId);
         if (input != null) {
             args.putString(StkAppService.INPUT, input);
         }
         args.putBoolean(StkAppService.HELP, help);
-        startService(new Intent(this, StkAppService.class).putExtras(args));
+        appService.sendResponse(args, mSlotId);
 
         // This instance should be set as a pending activity and finished by the service
         if (resId != StkAppService.RES_ID_END_SESSION) {
