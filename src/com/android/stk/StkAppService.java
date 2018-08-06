@@ -64,7 +64,7 @@ import android.view.IWindowManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.WindowManagerPolicy;
+import android.view.WindowManagerPolicyConstants;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -1718,7 +1718,7 @@ public class StkAppService extends Service implements Runnable {
         if (mUserActivityReceiver == null) {
             mUserActivityReceiver = new BroadcastReceiver() {
                 @Override public void onReceive(Context context, Intent intent) {
-                    if (WindowManagerPolicy.ACTION_USER_ACTIVITY_NOTIFICATION.equals(
+                    if (WindowManagerPolicyConstants.ACTION_USER_ACTIVITY_NOTIFICATION.equals(
                             intent.getAction())) {
                         Message message = mServiceHandler.obtainMessage();
                         message.arg1 = OP_USER_ACTIVITY;
@@ -1728,7 +1728,7 @@ public class StkAppService extends Service implements Runnable {
                 }
             };
             registerReceiver(mUserActivityReceiver, new IntentFilter(
-                    WindowManagerPolicy.ACTION_USER_ACTIVITY_NOTIFICATION));
+                    WindowManagerPolicyConstants.ACTION_USER_ACTIVITY_NOTIFICATION));
             try {
                 IWindowManager wm = IWindowManager.Stub.asInterface(
                         ServiceManager.getService(Context.WINDOW_SERVICE));
@@ -2071,6 +2071,8 @@ public class StkAppService extends Service implements Runnable {
                     !msg.iconSelfExplanatory) {
                 notificationBuilder.setContentText(msg.text);
                 notificationBuilder.setTicker(msg.text);
+                notificationBuilder.setStyle(new Notification.BigTextStyle(notificationBuilder)
+                        .bigText(msg.text));
             }
             if (msg.icon != null) {
                 notificationBuilder.setLargeIcon(msg.icon);
