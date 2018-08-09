@@ -635,11 +635,13 @@ public class StkAppService extends Service implements Runnable {
             case OP_SET_ACT_INST:
                 Activity act = (Activity) msg.obj;
                 if (mStkContext[slotId].mActivityInstance != act) {
-                    CatLog.d(LOG_TAG, "Set activity instance - " + act);
+                    CatLog.d(LOG_TAG, "Set pending activity instance - " + act);
                     Activity previous = mStkContext[slotId].mActivityInstance;
                     mStkContext[slotId].mActivityInstance = act;
-                    // Finish the previous one if it has not been finished yet somehow.
-                    if (previous != null && !previous.isDestroyed() && !previous.isFinishing()) {
+                    // Finish the previous one if it was replaced with new one
+                    // but it has not been finished yet somehow.
+                    if (act != null && previous != null && !previous.isDestroyed()
+                            && !previous.isFinishing()) {
                         CatLog.d(LOG_TAG, "Finish the previous pending activity - " + previous);
                         previous.finish();
                     }
