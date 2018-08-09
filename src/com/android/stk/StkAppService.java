@@ -649,8 +649,10 @@ public class StkAppService extends Service implements Runnable {
                 break;
             case OP_SET_DAL_INST:
                 Activity dal = (Activity) msg.obj;
-                CatLog.d(LOG_TAG, "Set dialog instance. " + dal);
-                mStkContext[slotId].mDialogInstance = dal;
+                if (mStkContext[slotId].mDialogInstance != dal) {
+                    CatLog.d(LOG_TAG, "Set pending dialog instance - " + dal);
+                    mStkContext[slotId].mDialogInstance = dal;
+                }
                 break;
             case OP_SET_IMMED_DAL_INST:
                 Activity immedDal = (Activity) msg.obj;
