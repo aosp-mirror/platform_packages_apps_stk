@@ -42,5 +42,5 @@
     <string name="stk_dialog_accept" msgid="8498901537508923727">"አዎ"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"አይ"</string>
     <string name="no_sim_card_inserted" msgid="5316620398365235988">"የሲም መሥሪያ ስብስብን ለማስጀመር እባክዎ ሲም ያስገቡ።"</string>
-    <string name="stk_channel_name" msgid="8828587788561382056">"የተንቀሳቃሽ ስልክ አገልግሎት መልዕክቶች"</string>
+    <string name="stk_channel_name" msgid="8828587788561382056">"የተንቀሳቃሽ ስልክ አገልግሎት መልእክቶች"</string>
 </resources>
