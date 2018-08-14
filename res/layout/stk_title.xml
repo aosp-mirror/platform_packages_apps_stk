@@ -36,13 +36,19 @@
             android:layout_alignParentLeft="true"
             android:scaleType="fitCenter" />
 
-        <TextView android:id="@+id/title_text"
-            android:gravity="center_vertical"
+        <HorizontalScrollView
             android:layout_width="match_parent"
-            android:layout_height="32dip"
-            android:ellipsize="end"
-            android:maxLines="1"
-            style="@android:style/TextAppearance.DeviceDefault.Widget.ActionBar.Title" />
+            android:layout_height="match_parent"
+            android:scrollbars="none">
+            <TextView android:id="@+id/title_text"
+                android:gravity="center_vertical"
+                android:layout_width="match_parent"
+                android:layout_height="32dip"
+                android:ellipsize="end"
+                android:maxLines="1"
+                style="@android:style/TextAppearance.DeviceDefault.Widget.ActionBar.Title" />
+        </HorizontalScrollView>
+
     </LinearLayout>
 
     <LinearLayout android:id="@+id/right_container"
