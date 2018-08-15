@@ -233,11 +233,15 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             return;
         }
 
-        // It is unnecessary to keep this activity if the response was already sent and
-        // this got invisible because of the other full-screen activity in this application.
-        if (mIsResponseSent && appService.isTopOfStack()) {
-            finish();
+        if (mIsResponseSent) {
+            // It is unnecessary to keep this activity if the response was already sent and
+            // the dialog activity is NOT on the top of this activity.
+            if (!appService.isStkDialogActivated()) {
+                finish();
+            }
         } else {
+            // This should be set as the pending activity here
+            // only when no response has been sent back to the card.
             appService.getStkContext(mSlotId).setPendingActivityInstance(this);
         }
     }
