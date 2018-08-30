@@ -991,23 +991,22 @@ public class StkAppService extends Service implements Runnable {
     /**
      * Get the boolean config from carrier config manager.
      *
-     * @param context the context to get carrier service
      * @param key config key defined in CarrierConfigManager
+     * @param slotId slot ID.
      * @return boolean value of corresponding key.
      */
-    private static boolean getBooleanCarrierConfig(Context context, String key) {
-        CarrierConfigManager configManager = (CarrierConfigManager) context.getSystemService(
-                Context.CARRIER_CONFIG_SERVICE);
+    private boolean getBooleanCarrierConfig(String key, int slotId) {
+        CarrierConfigManager ccm = (CarrierConfigManager) getSystemService(CARRIER_CONFIG_SERVICE);
+        int[] subId = SubscriptionManager.getSubId(slotId);
         PersistableBundle b = null;
-        if (configManager != null) {
-            b = configManager.getConfig();
+        if (ccm != null && subId != null) {
+            b = ccm.getConfigForSubId(subId[0]);
         }
         if (b != null) {
             return b.getBoolean(key);
-        } else {
-            // Return static default defined in CarrierConfigManager.
-            return CarrierConfigManager.getDefaultConfig().getBoolean(key);
         }
+        // Return static default defined in CarrierConfigManager.
+        return CarrierConfigManager.getDefaultConfig().getBoolean(key);
     }
 
     private void handleCmd(CatCmdMessage cmdMsg, int slotId) {
@@ -1131,8 +1130,8 @@ public class StkAppService extends Service implements Runnable {
             }
 
             /* Check if Carrier would not want to launch browser */
-            if (getBooleanCarrierConfig(mContext,
-                    CarrierConfigManager.KEY_STK_DISABLE_LAUNCH_BROWSER_BOOL)) {
+            if (getBooleanCarrierConfig(CarrierConfigManager.KEY_STK_DISABLE_LAUNCH_BROWSER_BOOL,
+                    slotId)) {
                 CatLog.d(this, "Browser is not launched as per carrier.");
                 sendResponse(RES_ID_DONE, slotId, true);
                 break;
