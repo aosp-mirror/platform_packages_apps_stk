@@ -695,6 +695,7 @@ public class StkAppService extends Service implements Runnable {
                 cancelIdleText(slotId);
                 mStkContext[slotId].mCurrentMenu = null;
                 mStkContext[slotId].mMainCmd = null;
+                mStkService[slotId] = null;
                 if (isAllOtherCardsAbsent(slotId)) {
                     CatLog.d(LOG_TAG, "All CARDs are ABSENT");
                     StkAppInstaller.unInstall(mContext);
