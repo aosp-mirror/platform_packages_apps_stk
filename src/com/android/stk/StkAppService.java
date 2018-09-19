@@ -29,6 +29,7 @@ import android.app.Activity;
 import android.app.ActivityManagerNative;
 import android.app.IProcessObserver;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -90,8 +91,8 @@ import com.android.internal.telephony.cat.CatService;
 
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.lang.System;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.android.internal.telephony.cat.CatCmdMessage.
                    SetupEventListConstants.IDLE_SCREEN_AVAILABLE_EVENT;
@@ -1623,19 +1624,23 @@ public class StkAppService extends Service implements Runnable {
         return getNotificationId(slotId) + (notificationType * mSimCount);
     }
 
-    public boolean isStkDialogActivated(Context context) {
-        String stkDialogActivity = "com.android.stk.StkDialogActivity";
-        boolean activated = false;
-        final ActivityManager am = (ActivityManager) context.getSystemService(
-                Context.ACTIVITY_SERVICE);
-        String topActivity = am.getRunningTasks(1).get(0).topActivity.getClassName();
-
-        CatLog.d(LOG_TAG, "isStkDialogActivated: " + topActivity);
-        if (topActivity.equals(stkDialogActivity)) {
-            activated = true;
+    /**
+     * Checks whether the dialog exists as the top activity of this task.
+     *
+     * @return true if the top activity of this task is the dialog.
+     */
+    public boolean isStkDialogActivated() {
+        ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        ComponentName componentName = am.getAppTasks().get(0).getTaskInfo().topActivity;
+        if (componentName != null) {
+            String[] split = componentName.getClassName().split(Pattern.quote("."));
+            String topActivity = split[split.length - 1];
+            CatLog.d(LOG_TAG, "Top activity: " + topActivity);
+            if (TextUtils.equals(topActivity, StkDialogActivity.class.getSimpleName())) {
+                return true;
+            }
         }
-        CatLog.d(LOG_TAG, "activated : " + activated);
-        return activated;
+        return false;
     }
 
     private void replaceEventList(int slotId) {
