@@ -33,6 +33,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
@@ -501,6 +502,10 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
                         .getInstance());
             }
             mTextIn.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
+            // Request the initial focus on the edit box and show the software keyboard.
+            mTextIn.requestFocus();
+            getWindow().setSoftInputMode(
+                    WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
             // Set default text if present.
             if (mStkInput.defaultText != null) {
                 mTextIn.setText(mStkInput.defaultText);
