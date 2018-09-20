@@ -225,8 +225,8 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         super.onStop();
         CatLog.d(LOG_TAG, "onStop, slot id: " + mSlotId + "," + mIsResponseSent + "," + mState);
 
-        // Nothing should be done here if this activity is being restarted now.
-        if (isChangingConfigurations()) {
+        // Nothing should be done here if this activity is being finished or restarted now.
+        if (isFinishing() || isChangingConfigurations()) {
             return;
         }
 
@@ -236,7 +236,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         if (mIsResponseSent) {
             // ONLY finish SECONDARY menu. MAIN menu should always stay in the root of stack.
             if (mState == STATE_SECONDARY) {
-                if (!appService.isStkDialogActivated(this)) {
+                if (!appService.isStkDialogActivated()) {
                     CatLog.d(LOG_TAG, "STATE_SECONDARY finish.");
                     cancelTimeOut();//To avoid the timer time out and send TR again.
                     finish();
