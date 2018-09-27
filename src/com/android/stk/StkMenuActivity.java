@@ -54,6 +54,8 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     private boolean mAcceptUsersInput = true;
     private int mSlotId = -1;
     private boolean mIsResponseSent = false;
+    // Determines whether this is in the pending state.
+    private boolean mIsPending = false;
 
     private TextView mTitleTextView = null;
     private ImageView mTitleIconView = null;
@@ -69,6 +71,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     private static final String ACCEPT_USERS_INPUT_KEY = "accept_users_input";
     private static final String RESPONSE_SENT_KEY = "response_sent";
     private static final String ALARM_TIME_KEY = "alarm_time";
+    private static final String PENDING = "pending";
 
     private static final String SELECT_ALARM_TAG = LOG_TAG;
     private static final long NO_SELECT_ALARM = -1;
@@ -131,10 +134,6 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         }
 
         CatLog.d(LOG_TAG, "onListItemClick Id: " + item.id + ", mState: " + mState);
-        // ONLY set SECONDARY menu. It will be finished when the following command is comming.
-        if (mState == STATE_SECONDARY) {
-            appService.getStkContext(mSlotId).setPendingActivityInstance(this);
-        }
         sendResponse(StkAppService.RES_ID_MENU_SELECTION, item.id, false);
         invalidateOptionsMenu();
     }
@@ -152,7 +151,6 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
             switch (mState) {
             case STATE_SECONDARY:
                 CatLog.d(LOG_TAG, "STATE_SECONDARY");
-                appService.getStkContext(mSlotId).setPendingActivityInstance(this);
                 sendResponse(StkAppService.RES_ID_BACKWARD);
                 return true;
             case STATE_MAIN:
@@ -163,12 +161,6 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
             break;
         }
         return super.onKeyDown(keyCode, event);
-    }
-
-    @Override
-    public void onRestart() {
-        super.onRestart();
-        CatLog.d(LOG_TAG, "onRestart, slot id: " + mSlotId);
     }
 
     @Override
@@ -190,6 +182,11 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         }
         displayMenu();
 
+        // If the terminal has already sent response to the card when this activity is resumed,
+        // keep this as a pending activity as this should be finished when the session ends.
+        if (!mIsResponseSent) {
+            setPendingState(false);
+        }
         if (mAlarmTime == NO_SELECT_ALARM) {
             startTimeOut();
         }
@@ -230,30 +227,16 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
             return;
         }
 
-        //The menu should stay in background, if
-        //1. the dialog is pop up in the screen, but the user does not response to the dialog.
-        //2. the menu activity enters Stop state (e.g pressing HOME key) but mIsResponseSent is false.
         if (mIsResponseSent) {
-            // ONLY finish SECONDARY menu. MAIN menu should always stay in the root of stack.
-            if (mState == STATE_SECONDARY) {
-                if (!appService.isStkDialogActivated()) {
-                    CatLog.d(LOG_TAG, "STATE_SECONDARY finish.");
-                    cancelTimeOut();//To avoid the timer time out and send TR again.
-                    finish();
-                } else {
-                     if (appService != null) {
-                         appService.getStkContext(mSlotId).setPendingActivityInstance(this);
-                     }
-                }
+            // It is unnecessary to keep this activity if the response was already sent and
+            // the dialog activity is NOT on the top of this activity.
+            if (mState == STATE_SECONDARY && !appService.isStkDialogActivated()) {
+                finish();
             }
         } else {
-            if (appService != null) {
-                if (mState == STATE_SECONDARY) {
-                    appService.getStkContext(mSlotId).setPendingActivityInstance(this);
-                }
-            } else {
-                CatLog.d(LOG_TAG, "onStop: null appService.");
-            }
+            // This instance should be registered as the pending activity here
+            // only when no response has been sent back to the card.
+            setPendingState(true);
         }
     }
 
@@ -363,6 +346,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         outState.putBoolean(ACCEPT_USERS_INPUT_KEY, mAcceptUsersInput);
         outState.putBoolean(RESPONSE_SENT_KEY, mIsResponseSent);
         outState.putLong(ALARM_TIME_KEY, mAlarmTime);
+        outState.putBoolean(PENDING, mIsPending);
     }
 
     @Override
@@ -384,6 +368,24 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         mAlarmTime = savedInstanceState.getLong(ALARM_TIME_KEY, NO_SELECT_ALARM);
         if (mAlarmTime != NO_SELECT_ALARM) {
             startTimeOut();
+        }
+
+        if (!mIsResponseSent && !savedInstanceState.getBoolean(PENDING)) {
+            // If this is in the foreground and no response has been sent to the card,
+            // this must not be registered as pending activity by the previous instance.
+            // No need to renew nor clear pending activity in this case.
+        } else {
+            // Renew the instance of the pending activity.
+            setPendingState(true);
+        }
+    }
+
+    private void setPendingState(boolean on) {
+        if (mState == STATE_SECONDARY) {
+            if (mIsPending != on) {
+                appService.getStkContext(mSlotId).setPendingActivityInstance(on ? this : null);
+                mIsPending = on;
+            }
         }
     }
 
@@ -498,12 +500,15 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
 
         mIsResponseSent = true;
         Bundle args = new Bundle();
-        args.putInt(StkAppService.OPCODE, StkAppService.OP_RESPONSE);
-        args.putInt(StkAppService.SLOT_ID, mSlotId);
         args.putInt(StkAppService.RES_ID, resId);
         args.putInt(StkAppService.MENU_SELECTION, itemId);
         args.putBoolean(StkAppService.HELP, help);
-        startService(new Intent(this, StkAppService.class).putExtras(args));
+        appService.sendResponse(args, mSlotId);
+
+        // This instance should be set as a pending activity and finished by the service.
+        if (resId != StkAppService.RES_ID_END_SESSION) {
+            setPendingState(true);
+        }
     }
 
     private final BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
@@ -525,8 +530,6 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
                 public void onAlarm() {
                     CatLog.d(LOG_TAG, "The alarm time is reached");
                     mAlarmTime = NO_SELECT_ALARM;
-                    appService.getStkContext(mSlotId).setPendingActivityInstance(
-                            StkMenuActivity.this);
                     sendResponse(StkAppService.RES_ID_TIMEOUT);
                 }
             };
