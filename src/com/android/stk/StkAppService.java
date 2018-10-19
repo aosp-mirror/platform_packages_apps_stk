@@ -126,7 +126,7 @@ public class StkAppService extends Service implements Runnable {
         protected LinkedList<DelayedCmd> mCmdsQ = null;
         protected boolean mCmdInProgress = false;
         protected int mStkServiceState = STATE_UNKNOWN;
-        protected int mSetupMenuState = STATE_UNKNOWN;
+        protected int mSetupMenuState = STATE_NOT_EXIST;
         protected int mMenuState = StkMenuActivity.STATE_INIT;
         protected int mOpCode = -1;
         private Activity mActivityInstance = null;
@@ -1073,9 +1073,7 @@ public class StkAppService extends Service implements Runnable {
                 mStkContext[slotId].mMainCmd = null;
                 //Check other setup menu state. If all setup menu are removed, uninstall apk.
                 for (i = PhoneConstants.SIM_ID_1; i < mSimCount; i++) {
-                    if (i != slotId
-                            && (mStkContext[i].mSetupMenuState == STATE_UNKNOWN
-                            || mStkContext[i].mSetupMenuState == STATE_EXIST)) {
+                    if (i != slotId && mStkContext[i].mSetupMenuState != STATE_NOT_EXIST) {
                         CatLog.d(LOG_TAG, "Not Uninstall App:" + i + ","
                                 + mStkContext[i].mSetupMenuState);
                         break;
