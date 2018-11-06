@@ -104,11 +104,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
 
         switch (v.getId()) {
         case R.id.button_ok:
-            // Check that text entered is valid .
-            if (!verfiyTypedText()) {
-                CatLog.d(LOG_TAG, "handleClick, invalid text");
-                return;
-            }
             input = mTextIn.getText().toString();
             break;
         case R.id.button_cancel:
@@ -408,6 +403,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         String savedString = savedInstanceState.getString(INPUT_STRING_KEY);
         if (!TextUtils.isEmpty(savedString)) {
             mTextIn.setText(savedString);
+            updateButton();
         }
 
         mAlarmTime = savedInstanceState.getLong(ALARM_TIME_KEY, NO_INPUT_ALARM);
@@ -440,18 +436,16 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         // Reset timeout.
         cancelTimeOut();
         startTimeOut();
+        updateButton();
     }
 
     public void afterTextChanged(Editable s) {
     }
 
-    private boolean verfiyTypedText() {
-        // If not enough input was typed in stay on the edit screen.
-        if (mTextIn.getText().length() < mStkInput.minLen) {
-            return false;
-        }
-
-        return true;
+    private void updateButton() {
+        // Disable the button if the length of the input text does not meet the expectation.
+        Button okButton = (Button) findViewById(R.id.button_ok);
+        okButton.setEnabled((mTextIn.getText().length() < mStkInput.minLen) ? false : true);
     }
 
     private void cancelTimeOut() {
@@ -542,6 +536,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
                 // make sure the text is cleared
                 mTextIn.setText("", BufferType.EDITABLE);
             }
+            updateButton();
 
             break;
         case STATE_YES_NO:
