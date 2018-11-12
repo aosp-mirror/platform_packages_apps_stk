@@ -57,6 +57,7 @@ import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.CarrierConfigManager;
+import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -997,10 +998,14 @@ public class StkAppService extends Service implements Runnable {
      */
     private boolean getBooleanCarrierConfig(String key, int slotId) {
         CarrierConfigManager ccm = (CarrierConfigManager) getSystemService(CARRIER_CONFIG_SERVICE);
-        int[] subId = SubscriptionManager.getSubId(slotId);
+        SubscriptionManager sm = (SubscriptionManager) getSystemService(
+                Context.TELEPHONY_SUBSCRIPTION_SERVICE);
         PersistableBundle b = null;
-        if (ccm != null && subId != null) {
-            b = ccm.getConfigForSubId(subId[0]);
+        if (ccm != null && sm != null) {
+            SubscriptionInfo info = sm.getActiveSubscriptionInfoForSimSlotIndex(slotId);
+            if (info != null) {
+                b = ccm.getConfigForSubId(info.getSubscriptionId());
+            }
         }
         if (b != null) {
             return b.getBoolean(key);
