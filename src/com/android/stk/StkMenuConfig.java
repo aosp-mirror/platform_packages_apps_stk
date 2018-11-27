@@ -21,6 +21,7 @@ import android.content.res.XmlResourceParser;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -111,15 +112,18 @@ public class StkMenuConfig {
     }
 
     private void findConfig(int slotId) {
-        int[] subId = SubscriptionManager.getSubId(slotId);
-        if (subId == null) {
+        SubscriptionManager sm = (SubscriptionManager) mContext.getSystemService(
+                Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+        SubscriptionInfo info = (sm != null) ? sm.getActiveSubscriptionInfoForSimSlotIndex(slotId)
+                : null;
+        if (info == null) {
             mConfigs[slotId] = NO_CONFIG;
             return;
         }
 
         TelephonyManager telephony =
                 (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
-        String operator = telephony.getSimOperator(subId[0]);
+        String operator = telephony.getSimOperator(info.getSubscriptionId());
         if (TextUtils.isEmpty(operator) || (operator.length() < 5)) {
             mConfigs[slotId] = NO_CONFIG;
             return;
