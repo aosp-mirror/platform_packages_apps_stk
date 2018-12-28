@@ -401,10 +401,8 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         }
 
         String savedString = savedInstanceState.getString(INPUT_STRING_KEY);
-        if (!TextUtils.isEmpty(savedString)) {
-            mTextIn.setText(savedString);
-            updateButton();
-        }
+        mTextIn.setText(savedString);
+        updateButton();
 
         mAlarmTime = savedInstanceState.getLong(ALARM_TIME_KEY, NO_INPUT_ALARM);
         if (mAlarmTime != NO_INPUT_ALARM) {
