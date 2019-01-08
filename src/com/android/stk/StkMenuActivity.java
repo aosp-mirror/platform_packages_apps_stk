@@ -67,7 +67,6 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
 
     // Keys for saving the state of the dialog in the bundle
     private static final String STATE_KEY = "state";
-    private static final String MENU_KEY = "menu";
     private static final String ACCEPT_USERS_INPUT_KEY = "accept_users_input";
     private static final String RESPONSE_SENT_KEY = "response_sent";
     private static final String ALARM_TIME_KEY = "alarm_time";
@@ -342,7 +341,6 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     protected void onSaveInstanceState(Bundle outState) {
         CatLog.d(LOG_TAG, "onSaveInstanceState: " + mSlotId);
         outState.putInt(STATE_KEY, mState);
-        outState.putParcelable(MENU_KEY, mStkMenu);
         outState.putBoolean(ACCEPT_USERS_INPUT_KEY, mAcceptUsersInput);
         outState.putBoolean(RESPONSE_SENT_KEY, mIsResponseSent);
         outState.putLong(ALARM_TIME_KEY, mAlarmTime);
@@ -353,7 +351,6 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         CatLog.d(LOG_TAG, "onRestoreInstanceState: " + mSlotId);
         mState = savedInstanceState.getInt(STATE_KEY);
-        mStkMenu = savedInstanceState.getParcelable(MENU_KEY);
         mAcceptUsersInput = savedInstanceState.getBoolean(ACCEPT_USERS_INPUT_KEY);
         if (!mAcceptUsersInput) {
             // Check the latest information as the saved instance state can be outdated.
