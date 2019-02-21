@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.telephony.CarrierConfigManager;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextUtils;
@@ -488,12 +489,16 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         }
 
         // Set input type (alphabet/digit) info close to the InText form.
+        boolean hideHelper = false;
         if (mStkInput.digitOnly) {
             mTextIn.setKeyListener(StkDigitsKeyListener.getInstance());
             inTypeId = R.string.digits;
+            hideHelper = StkAppService.getBooleanCarrierConfig(this,
+                    CarrierConfigManager.KEY_HIDE_DIGITS_HELPER_TEXT_ON_STK_INPUT_SCREEN_BOOL,
+                    mSlotId);
         }
         textInput.setHelperText(getResources().getString(inTypeId));
-        textInput.setHelperTextEnabled(true);
+        textInput.setHelperTextEnabled(!hideHelper);
 
         setTitle(R.string.app_name);
 
