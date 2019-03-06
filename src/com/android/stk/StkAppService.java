@@ -40,7 +40,6 @@ import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -1663,22 +1662,6 @@ public class StkAppService extends Service implements Runnable {
             // if user cannot see the message from the card right now because of it.
             // The notification can be dismissed if user removed the keyguard screen.
             launchNotificationOnKeyguard(slotId, message);
-        } else if (!(pm.isInteractive() && isTopOfStack())) {
-            // User might be doing something but it is not related to the SIM Toolkit.
-            // Play the tone and do vibration in order to attract user's attention.
-            // User will see the input screen or the dialog soon in this case.
-            NotificationChannel channel = mNotificationManager
-                    .getNotificationChannel(STK_NOTIFICATION_CHANNEL_ID);
-            Uri uri = channel.getSound();
-            if (uri != null && !Uri.EMPTY.equals(uri)
-                    && (NotificationManager.IMPORTANCE_LOW) < channel.getImportance()) {
-                RingtoneManager.getRingtone(getApplicationContext(), uri).play();
-            }
-            long[] pattern = channel.getVibrationPattern();
-            if (pattern != null && channel.shouldVibrate()) {
-                ((Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE))
-                        .vibrate(pattern, -1);
-            }
         }
 
         // Turn on the screen.
