@@ -719,6 +719,12 @@ public class StkAppService extends Service implements Runnable {
                 mStkContext[slotId].mCurrentMenu = null;
                 mStkContext[slotId].mMainCmd = null;
                 mStkService[slotId] = null;
+                // Stop the tone currently being played if the relevant SIM is removed or disabled.
+                if (mStkContext[slotId].mCurrentCmd != null
+                        && mStkContext[slotId].mCurrentCmd.getCmdType().value()
+                        == AppInterface.CommandType.PLAY_TONE.value()) {
+                    terminateTone(slotId);
+                }
                 if (isAllOtherCardsAbsent(slotId)) {
                     CatLog.d(LOG_TAG, "All CARDs are ABSENT");
                     StkAppInstaller.unInstall(mContext);
@@ -856,6 +862,14 @@ public class StkAppService extends Service implements Runnable {
         args.putInt(StkAppService.RES_ID, resId);
         args.putBoolean(StkAppService.CONFIRMATION, confirm);
         sendResponse(args, slotId);
+    }
+
+    private void terminateTone(int slotId) {
+        Message msg = new Message();
+        msg.what = OP_STOP_TONE;
+        msg.obj = mServiceHandler.hasMessages(OP_STOP_TONE, PLAY_TONE_WITH_DIALOG)
+                ? PLAY_TONE_WITH_DIALOG : PLAY_TONE_ONLY;
+        handleStopTone(msg, slotId);
     }
 
     private boolean isCmdInteractive(CatCmdMessage cmd) {
@@ -2286,7 +2300,7 @@ public class StkAppService extends Service implements Runnable {
         mServiceHandler.removeMessages(OP_STOP_TONE);
         mServiceHandler.removeMessages(OP_STOP_TONE_USER);
 
-        if (mTonePlayer != null)  {
+        if (mTonePlayer != null) {
             mTonePlayer.stop();
             mTonePlayer.release();
             mTonePlayer = null;
