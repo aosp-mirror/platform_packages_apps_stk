@@ -1565,7 +1565,6 @@ public class StkAppService extends Service implements Runnable {
 
         newIntent.setClassName(PACKAGE_NAME, targetActivity);
         newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
                 | getFlagActivityNoUserAction(InitiatedByUserAction.unknown, slotId));
         newIntent.setData(uriData);
         newIntent.putExtra("TEXT", textMessage);
@@ -2273,9 +2272,7 @@ public class StkAppService extends Service implements Runnable {
             String uriString = STK_TONE_URI + slotId;
             Uri uriData = Uri.parse(uriString);
             newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                    | Intent.FLAG_ACTIVITY_NO_HISTORY
                     | Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
                     | getFlagActivityNoUserAction(InitiatedByUserAction.unknown, slotId));
             newIntent.putExtra("TEXT", mStkContext[slotId].mCurrentCmd.geTextMessage());
             newIntent.putExtra(SLOT_ID, slotId);
