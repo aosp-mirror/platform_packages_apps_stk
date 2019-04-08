@@ -1226,10 +1226,11 @@ public class StkAppService extends Service implements Runnable {
         if (mStkService[slotId] == null) {
             mStkService[slotId] = CatService.getInstance(slotId);
             if (mStkService[slotId] == null) {
-                // This should never happen (we should be responding only to a message
-                // that arrived from StkService). It has to exist by this time
-                CatLog.d(LOG_TAG, "Exception! mStkService is null when we need to send response.");
-                throw new RuntimeException("mStkService is null when we need to send response");
+                // CatService is disposed when the relevant SIM is removed or disabled.
+                // StkAppService can also be stopped when the absent state is notified,
+                // so this situation can happen.
+                CatLog.d(LOG_TAG, "No response is sent back to the missing CatService.");
+                return;
             }
         }
 
