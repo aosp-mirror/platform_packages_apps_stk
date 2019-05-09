@@ -727,12 +727,12 @@ public class StkAppService extends Service implements Runnable {
                         == AppInterface.CommandType.PLAY_TONE.value()) {
                     terminateTone(slotId);
                 }
+                if (!uninstallIfUnnecessary()) {
+                    addToMenuSystemOrUpdateLabel();
+                }
                 if (isAllOtherCardsAbsent(slotId)) {
                     CatLog.d(LOG_TAG, "All CARDs are ABSENT");
-                    StkAppInstaller.uninstall(StkAppService.this);
                     stopSelf();
-                } else {
-                    addToMenuSystemOrUpdateLabel();
                 }
             } else {
                 IccRefreshResponse state = new IccRefreshResponse();
