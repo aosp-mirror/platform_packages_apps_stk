@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="8396461461738434341">"SIM karta menyusi"</string>
+    <string name="app_name" msgid="8396461461738434341">"SIM menyusi"</string>
     <string name="menu_end_session" msgid="7368541737750982217">"Sessiyani yakunlash"</string>
     <string name="help" msgid="9209980881219397319">"Yordam"</string>
     <string name="menu_back" msgid="301227740977453364">"Orqaga"</string>
@@ -33,7 +33,7 @@
     <string name="stk_app_state" msgid="18582277302584082">"Ilova holati"</string>
     <string name="enable_app" msgid="3701224550936728203">"Yoniq"</string>
     <string name="disable_app" msgid="6725081975611415214">"O‘chiq"</string>
-    <string name="stk_dialog_title" msgid="6954825385456886726">"SIM karta menyusi"</string>
+    <string name="stk_dialog_title" msgid="6954825385456886726">"SIM menyusi"</string>
     <string name="default_tone_dialog_msg" msgid="4595366992944391641">"Signal ijrosi"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"Kanal ochilsinmi?"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"Ma’lumot yuborilmoqda"</string>
