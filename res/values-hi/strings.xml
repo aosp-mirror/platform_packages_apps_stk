@@ -37,7 +37,7 @@
     <string name="default_tone_dialog_msg" msgid="4595366992944391641">"टोन बजाया जा रहा है"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"चैनल खोलें?"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"डेटा भेजा जा रहा है"</string>
-    <string name="default_receive_data_msg" msgid="618096941772010682">"डेटा प्राप्त हो रहा है"</string>
+    <string name="default_receive_data_msg" msgid="618096941772010682">"डेटा मिल रहा है"</string>
     <string name="default_close_channel_msg" msgid="765364262263839824">"चैनल बंद हो गया"</string>
     <string name="stk_dialog_accept" msgid="8498901537508923727">"हां"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"नहीं"</string>
