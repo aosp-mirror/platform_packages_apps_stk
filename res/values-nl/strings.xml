@@ -28,7 +28,7 @@
     <string name="button_no" msgid="1824959157582605627">"Nee"</string>
     <string name="alphabet" msgid="1583185545938805861">"Alfabetten"</string>
     <string name="digits" msgid="1746796679021682388">"Symbolen (0-9, *, #, +)"</string>
-    <string name="default_call_setup_msg" msgid="7960194995759849940">"Actieve oproep..."</string>
+    <string name="default_call_setup_msg" msgid="7960194995759849940">"Actief gesprek..."</string>
     <string name="default_setup_call_msg" msgid="6126904475461162162">"Aanroep wordt ingesteld"</string>
     <string name="stk_app_state" msgid="18582277302584082">"Toepassingsstatus"</string>
     <string name="enable_app" msgid="3701224550936728203">"Ingeschakeld"</string>
