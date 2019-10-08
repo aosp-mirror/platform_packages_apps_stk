@@ -32,7 +32,7 @@
     <string name="default_setup_call_msg" msgid="6126904475461162162">"Чалуу орнотулууда"</string>
     <string name="stk_app_state" msgid="18582277302584082">"Колдонмонун абалы"</string>
     <string name="enable_app" msgid="3701224550936728203">"Иштетилген"</string>
-    <string name="disable_app" msgid="6725081975611415214">"Токтотулган"</string>
+    <string name="disable_app" msgid="6725081975611415214">"Өчүк"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"SIM Шаймандары"</string>
     <string name="default_tone_dialog_msg" msgid="4595366992944391641">"Ойноо добушу"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"Канал ачылсынбы?"</string>
