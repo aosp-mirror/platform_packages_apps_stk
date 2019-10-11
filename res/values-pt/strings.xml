@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="8396461461738434341">"Toolkit do SIM"</string>
+    <string name="app_name" msgid="8396461461738434341">"Toolkit do chip"</string>
     <string name="menu_end_session" msgid="7368541737750982217">"Finalizar a sessão"</string>
     <string name="help" msgid="9209980881219397319">"Ajuda"</string>
     <string name="menu_back" msgid="301227740977453364">"Voltar"</string>
@@ -33,7 +33,7 @@
     <string name="stk_app_state" msgid="18582277302584082">"Estado do app"</string>
     <string name="enable_app" msgid="3701224550936728203">"Ativado"</string>
     <string name="disable_app" msgid="6725081975611415214">"Desativado"</string>
-    <string name="stk_dialog_title" msgid="6954825385456886726">"Toolkit do SIM"</string>
+    <string name="stk_dialog_title" msgid="6954825385456886726">"Toolkit do chip"</string>
     <string name="default_tone_dialog_msg" msgid="4595366992944391641">"Reproduzindo tom"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"Abrir canal?"</string>
     <string name="default_send_data_msg" msgid="6011219698689931272">"Enviando dados"</string>
@@ -41,6 +41,6 @@
     <string name="default_close_channel_msg" msgid="765364262263839824">"Canal fechado"</string>
     <string name="stk_dialog_accept" msgid="8498901537508923727">"SIM"</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"NÃO"</string>
-    <string name="no_sim_card_inserted" msgid="5316620398365235988">"Insira o cartão SIM para iniciar a Barra de ferramentas SIM."</string>
+    <string name="no_sim_card_inserted" msgid="5316620398365235988">"Insira o chip para iniciar a Barra de ferramentas SIM."</string>
     <string name="stk_channel_name" msgid="8828587788561382056">"Mensagens de serviço móvel"</string>
 </resources>

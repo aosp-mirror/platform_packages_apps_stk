@@ -24,7 +24,7 @@
     <string name="stk_no_service" msgid="5427773116839809131">"Kein Dienst verfügbar"</string>
     <string name="button_ok" msgid="5760722312558549555">"OK"</string>
     <string name="button_cancel" msgid="1997847915560800261">"Abbrechen"</string>
-    <string name="button_yes" msgid="624420260648337203">"Ja"</string>
+    <string name="button_yes" msgid="624420260648337203">"\"Ja\""</string>
     <string name="button_no" msgid="1824959157582605627">"Nein"</string>
     <string name="alphabet" msgid="1583185545938805861">"Buchstaben"</string>
     <string name="digits" msgid="1746796679021682388">"Ziffern (0-9, *, #, +)"</string>
@@ -39,7 +39,7 @@
     <string name="default_send_data_msg" msgid="6011219698689931272">"Daten senden"</string>
     <string name="default_receive_data_msg" msgid="618096941772010682">"Daten empfangen"</string>
     <string name="default_close_channel_msg" msgid="765364262263839824">"Kanal geschlossen"</string>
-    <string name="stk_dialog_accept" msgid="8498901537508923727">"Ja"</string>
+    <string name="stk_dialog_accept" msgid="8498901537508923727">"\"JA\""</string>
     <string name="stk_dialog_reject" msgid="921848059485746796">"Nein"</string>
     <string name="no_sim_card_inserted" msgid="5316620398365235988">"Bitte lege die SIM-Karte ein, um das SIM-Toolkit zu starten."</string>
     <string name="stk_channel_name" msgid="8828587788561382056">"Mobilfunkdienst-Nachrichten"</string>
