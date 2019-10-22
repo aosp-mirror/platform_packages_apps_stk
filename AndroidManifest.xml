@@ -52,7 +52,7 @@
         </activity>
 
         <activity android:name="StkLauncherActivity"
-            android:theme="@android:style/Theme.Material.Light"
+            android:theme="@android:style/Theme.DeviceDefault.DayNight"
             android:label="@string/app_name"
             android:exported="false"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
@@ -64,7 +64,7 @@
         </activity>
 
         <activity android:name="StkMenuActivity"
-            android:theme="@android:style/Theme.Material.Light"
+            android:theme="@android:style/Theme.DeviceDefault.DayNight"
             android:icon="@drawable/ic_launcher_sim_toolkit"
             android:label="@string/app_name"
             android:configChanges="orientation|locale|screenSize|keyboardHidden|mnc|mcc"
@@ -80,7 +80,7 @@
         <activity android:name="StkInputActivity"
             android:label="@string/app_name"
             android:icon="@drawable/ic_launcher_sim_toolkit"
-            android:theme="@android:style/Theme.Material.Light"
+            android:theme="@android:style/Theme.DeviceDefault.DayNight"
             android:configChanges="orientation|locale|screenSize|keyboardHidden"
             android:exported="false"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
