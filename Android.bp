@@ -5,6 +5,7 @@ android_app {
     libs: ["telephony-common"],
     static_libs: ["android-support-v4"],
     srcs: ["**/*.java"],
+    jarjar_rules: "jarjar-rules.txt",
     platform_apis: true,
     certificate: "platform",
 }
