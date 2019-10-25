@@ -73,6 +73,7 @@ import android.content.IntentFilter;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.android.internal.telephony.PhoneConfigurationManager;
 import com.android.internal.telephony.cat.AppInterface;
 import com.android.internal.telephony.cat.Input;
 import com.android.internal.telephony.cat.LaunchBrowserMode;
@@ -245,6 +246,9 @@ public class StkAppService extends Service implements Runnable {
     // Message id to send user activity event to card.
     private static final int OP_USER_ACTIVITY = 20;
 
+    // Message id that multi-SIM config has changed (ss <-> ds).
+    private static final int EVENT_MULTI_SIM_CONFIG_CHANGED = 21;
+
     // Response ids
     static final int RES_ID_MENU_SELECTION = 11;
     static final int RES_ID_INPUT = 12;
@@ -306,10 +310,11 @@ public class StkAppService extends Service implements Runnable {
         // Initialize members
         int i = 0;
         mContext = getBaseContext();
-        mSimCount = TelephonyManager.from(mContext).getSimCount();
+        mSimCount = TelephonyManager.from(mContext).getActiveModemCount();
+        int maxSimCount = TelephonyManager.from(mContext).getSupportedModemCount();
         CatLog.d(LOG_TAG, "simCount: " + mSimCount);
-        mStkService = new AppInterface[mSimCount];
-        mStkContext = new StkContext[mSimCount];
+        mStkService = new AppInterface[maxSimCount];
+        mStkContext = new StkContext[maxSimCount];
 
         for (i = 0; i < mSimCount; i++) {
             CatLog.d(LOG_TAG, "slotId: " + i);
@@ -323,6 +328,8 @@ public class StkAppService extends Service implements Runnable {
         serviceThread.start();
         mNotificationManager = (NotificationManager) mContext
                 .getSystemService(Context.NOTIFICATION_SERVICE);
+        PhoneConfigurationManager.registerForMultiSimConfigChange(mServiceHandler,
+                EVENT_MULTI_SIM_CONFIG_CHANGED, null);
         sInstance = this;
     }
 
@@ -429,7 +436,7 @@ public class StkAppService extends Service implements Runnable {
     /*
      * Package api used by StkMenuActivity to indicate if its on the foreground.
      */
-    void indicateMenuVisibility(boolean visibility, int slotId) {
+    synchronized void indicateMenuVisibility(boolean visibility, int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             mStkContext[slotId].mMenuIsVisible = visibility;
         }
@@ -438,13 +445,13 @@ public class StkAppService extends Service implements Runnable {
     /*
      * Package api used by StkDialogActivity to indicate if its on the foreground.
      */
-    void setDisplayTextDlgVisibility(boolean visibility, int slotId) {
+    synchronized void setDisplayTextDlgVisibility(boolean visibility, int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             mStkContext[slotId].mDisplayTextDlgIsVisibile = visibility;
         }
     }
 
-    boolean isInputPending(int slotId) {
+    synchronized boolean isInputPending(int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             CatLog.d(LOG_TAG, "isInputFinishBySrv: " + mStkContext[slotId].mIsInputPending);
             return mStkContext[slotId].mIsInputPending;
@@ -452,7 +459,7 @@ public class StkAppService extends Service implements Runnable {
         return false;
     }
 
-    boolean isMenuPending(int slotId) {
+    synchronized boolean isMenuPending(int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             CatLog.d(LOG_TAG, "isMenuPending: " + mStkContext[slotId].mIsMenuPending);
             return mStkContext[slotId].mIsMenuPending;
@@ -460,7 +467,7 @@ public class StkAppService extends Service implements Runnable {
         return false;
     }
 
-    boolean isDialogPending(int slotId) {
+    synchronized boolean isDialogPending(int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             CatLog.d(LOG_TAG, "isDialogPending: " + mStkContext[slotId].mIsDialogPending);
             return mStkContext[slotId].mIsDialogPending;
@@ -468,7 +475,7 @@ public class StkAppService extends Service implements Runnable {
         return false;
     }
 
-    boolean isMainMenuAvailable(int slotId) {
+    synchronized boolean isMainMenuAvailable(int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             // The main menu can handle the next user operation if the previous session finished.
             return (mStkContext[slotId].lastSelectedItem == null) ? true : false;
@@ -479,7 +486,7 @@ public class StkAppService extends Service implements Runnable {
     /*
      * Package api used by StkMenuActivity to get its Menu parameter.
      */
-    Menu getMenu(int slotId) {
+    synchronized Menu getMenu(int slotId) {
         CatLog.d(LOG_TAG, "StkAppService, getMenu, sim id: " + slotId);
         if (slotId >=0 && slotId < mSimCount) {
             return mStkContext[slotId].mCurrentMenu;
@@ -491,7 +498,7 @@ public class StkAppService extends Service implements Runnable {
     /*
      * Package api used by StkMenuActivity to get its Main Menu parameter.
      */
-    Menu getMainMenu(int slotId) {
+    synchronized Menu getMainMenu(int slotId) {
         CatLog.d(LOG_TAG, "StkAppService, getMainMenu, sim id: " + slotId);
         if (slotId >=0 && slotId < mSimCount && (mStkContext[slotId].mMainCmd != null)) {
             Menu menu = mStkContext[slotId].mMainCmd.getMenu();
@@ -711,6 +718,9 @@ public class StkAppService extends Service implements Runnable {
                     checkForSetupEvent(USER_ACTIVITY_EVENT, null, slot);
                 }
                 break;
+            case EVENT_MULTI_SIM_CONFIG_CHANGED:
+                handleMultiSimConfigChanged();
+                break;
             }
         }
 
@@ -743,6 +753,28 @@ public class StkAppService extends Service implements Runnable {
             }
         }
     }
+
+    private synchronized void handleMultiSimConfigChanged() {
+        int oldSimCount = mSimCount;
+        mSimCount = TelephonyManager.from(mContext).getActiveModemCount();
+        for (int i = oldSimCount; i < mSimCount; i++) {
+            CatLog.d(LOG_TAG, "slotId: " + i);
+            mStkService[i] = CatService.getInstance(i);
+            mStkContext[i] = new StkContext();
+            mStkContext[i].mSlotId = i;
+            mStkContext[i].mCmdsQ = new LinkedList<DelayedCmd>();
+        }
+
+        for (int i = mSimCount; i < oldSimCount; i++) {
+            CatLog.d(LOG_TAG, "slotId: " + i);
+            if (mStkService[i] != null) {
+                mStkService[i].dispose();
+                mStkService[i] = null;
+            }
+            mStkContext[i] = null;
+        }
+    }
+
     /*
      * Check if all SIMs are absent except the id of slot equals "slotId".
      */
@@ -2440,7 +2472,7 @@ public class StkAppService extends Service implements Runnable {
         return false;
     }
 
-    StkContext getStkContext(int slotId) {
+    synchronized StkContext getStkContext(int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             return mStkContext[slotId];
         } else {
