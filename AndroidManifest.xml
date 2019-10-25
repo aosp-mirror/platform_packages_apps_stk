@@ -44,6 +44,7 @@
             android:label="@string/app_name"
             android:enabled="false"
             android:exported="true"
+            android:autoRemoveFromRecents="true"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -55,6 +56,7 @@
             android:theme="@android:style/Theme.DeviceDefault.DayNight"
             android:label="@string/app_name"
             android:exported="false"
+            android:autoRemoveFromRecents="true"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
             <intent-filter>
                  <action android:name="android.intent.action.VIEW" />
@@ -69,6 +71,7 @@
             android:label="@string/app_name"
             android:configChanges="orientation|locale|screenSize|keyboardHidden|mnc|mcc"
             android:exported="false"
+            android:autoRemoveFromRecents="true"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -83,6 +86,7 @@
             android:theme="@android:style/Theme.DeviceDefault.DayNight"
             android:configChanges="orientation|locale|screenSize|keyboardHidden"
             android:exported="false"
+            android:autoRemoveFromRecents="true"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
                 <intent-filter>
                         <action android:name="android.intent.action.VIEW" />
@@ -94,12 +98,14 @@
             android:configChanges="orientation|locale|screenSize|keyboardHidden"
             android:theme="@style/Transparent"
             android:exported="false"
+            android:autoRemoveFromRecents="true"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
         </activity>
 
         <activity android:name="ToneDialog"
             android:exported="false"
             android:theme="@style/Transparent"
+            android:autoRemoveFromRecents="true"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
         </activity>
 
