@@ -55,7 +55,6 @@ import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.provider.Settings;
-import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.CarrierConfigManager;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
@@ -71,6 +70,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.IntentFilter;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.internal.telephony.cat.AppInterface;
 import com.android.internal.telephony.cat.Input;
