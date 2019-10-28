@@ -3,7 +3,7 @@
 android_app {
     name: "Stk",
     libs: ["telephony-common"],
-    static_libs: ["android-support-v4"],
+    static_libs: ["com.google.android.material_material"],
     srcs: ["**/*.java"],
     platform_apis: true,
     certificate: "platform",
