@@ -83,7 +83,7 @@
         <activity android:name="StkInputActivity"
             android:label="@string/app_name"
             android:icon="@drawable/ic_launcher_sim_toolkit"
-            android:theme="@android:style/Theme.DeviceDefault.DayNight"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
             android:configChanges="orientation|locale|screenSize|keyboardHidden"
             android:exported="false"
             android:autoRemoveFromRecents="true"
