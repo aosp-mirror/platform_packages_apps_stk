@@ -993,13 +993,15 @@ public class StkAppService extends Service implements Runnable {
     /**
      * Get the boolean config from carrier config manager.
      *
+     * @param context the context to get carrier service
      * @param key config key defined in CarrierConfigManager
      * @param slotId slot ID.
      * @return boolean value of corresponding key.
      */
-    private boolean getBooleanCarrierConfig(String key, int slotId) {
-        CarrierConfigManager ccm = (CarrierConfigManager) getSystemService(CARRIER_CONFIG_SERVICE);
-        SubscriptionManager sm = (SubscriptionManager) getSystemService(
+    /* package */ static boolean getBooleanCarrierConfig(Context context, String key, int slotId) {
+        CarrierConfigManager ccm = (CarrierConfigManager) context.getSystemService(
+                Context.CARRIER_CONFIG_SERVICE);
+        SubscriptionManager sm = (SubscriptionManager) context.getSystemService(
                 Context.TELEPHONY_SUBSCRIPTION_SERVICE);
         PersistableBundle b = null;
         if (ccm != null && sm != null) {
@@ -1013,6 +1015,10 @@ public class StkAppService extends Service implements Runnable {
         }
         // Return static default defined in CarrierConfigManager.
         return CarrierConfigManager.getDefaultConfig().getBoolean(key);
+    }
+
+    private boolean getBooleanCarrierConfig(String key, int slotId) {
+        return getBooleanCarrierConfig(this, key, slotId);
     }
 
     private void handleCmd(CatCmdMessage cmdMsg, int slotId) {
