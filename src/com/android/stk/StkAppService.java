@@ -239,9 +239,6 @@ public class StkAppService extends Service implements Runnable {
     // Message id to signal stop tone on user keyback.
     static final int OP_STOP_TONE_USER = 17;
 
-    // Message id to remove stop tone message from queue.
-    private static final int STOP_TONE_WHAT = 100;
-
     // Message id to send user activity event to card.
     private static final int OP_USER_ACTIVITY = 20;
 
@@ -264,6 +261,9 @@ public class StkAppService extends Service implements Runnable {
     static final int STATE_UNKNOWN = -1;
     static final int STATE_NOT_EXIST = 0;
     static final int STATE_EXIST = 1;
+
+    private static final Integer PLAY_TONE_ONLY = 0;
+    private static final Integer PLAY_TONE_WITH_DIALOG = 1;
 
     private static final String PACKAGE_NAME = "com.android.stk";
     private static final String STK_MENU_ACTIVITY_NAME = PACKAGE_NAME + ".StkMenuActivity";
@@ -373,10 +373,8 @@ public class StkAppService extends Service implements Runnable {
 
         waitForLooper();
 
-        Message msg = mServiceHandler.obtainMessage();
-        msg.arg1 = op;
-        msg.arg2 = slotId;
-        switch(msg.arg1) {
+        Message msg = mServiceHandler.obtainMessage(op, 0, slotId);
+        switch (op) {
         case OP_CMD:
             msg.obj = args.getParcelable(CMD_MSG);
             break;
@@ -385,15 +383,12 @@ public class StkAppService extends Service implements Runnable {
         case OP_LOCALE_CHANGED:
         case OP_ALPHA_NOTIFY:
         case OP_IDLE_SCREEN:
+        case OP_STOP_TONE_USER:
             msg.obj = args;
             /* falls through */
         case OP_LAUNCH_APP:
         case OP_END_SESSION:
         case OP_BOOT_COMPLETED:
-            break;
-        case OP_STOP_TONE_USER:
-            msg.obj = args;
-            msg.what = STOP_TONE_WHAT;
             break;
         default:
             return;
@@ -547,7 +542,7 @@ public class StkAppService extends Service implements Runnable {
                 CatLog.d(LOG_TAG, "ServiceHandler handleMessage msg is null");
                 return;
             }
-            int opcode = msg.arg1;
+            int opcode = msg.what;
             int slotId = msg.arg2;
 
             CatLog.d(LOG_TAG, "handleMessage opcode[" + opcode + "], sim id[" + slotId + "]");
@@ -725,6 +720,12 @@ public class StkAppService extends Service implements Runnable {
                 mStkContext[slotId].mCurrentMenu = null;
                 mStkContext[slotId].mMainCmd = null;
                 mStkService[slotId] = null;
+                // Stop the tone currently being played if the relevant SIM is removed or disabled.
+                if (mStkContext[slotId].mCurrentCmd != null
+                        && mStkContext[slotId].mCurrentCmd.getCmdType().value()
+                        == AppInterface.CommandType.PLAY_TONE.value()) {
+                    terminateTone(slotId);
+                }
                 if (isAllOtherCardsAbsent(slotId)) {
                     CatLog.d(LOG_TAG, "All CARDs are ABSENT");
                     StkAppInstaller.unInstall(mContext);
@@ -853,22 +854,23 @@ public class StkAppService extends Service implements Runnable {
      * @param slotId slot identifier
      */
     public void sendResponse(Bundle args, int slotId) {
-        Message msg = mServiceHandler.obtainMessage();
-        msg.arg1 = OP_RESPONSE;
-        msg.arg2 = slotId;
-        msg.obj = args;
+        Message msg = mServiceHandler.obtainMessage(OP_RESPONSE, 0, slotId, args);
         mServiceHandler.sendMessage(msg);
     }
 
     private void sendResponse(int resId, int slotId, boolean confirm) {
-        Message msg = mServiceHandler.obtainMessage();
-        msg.arg1 = OP_RESPONSE;
-        msg.arg2 = slotId;
         Bundle args = new Bundle();
         args.putInt(StkAppService.RES_ID, resId);
         args.putBoolean(StkAppService.CONFIRMATION, confirm);
-        msg.obj = args;
-        mServiceHandler.sendMessage(msg);
+        sendResponse(args, slotId);
+    }
+
+    private void terminateTone(int slotId) {
+        Message msg = new Message();
+        msg.what = OP_STOP_TONE;
+        msg.obj = mServiceHandler.hasMessages(OP_STOP_TONE, PLAY_TONE_WITH_DIALOG)
+                ? PLAY_TONE_WITH_DIALOG : PLAY_TONE_ONLY;
+        handleStopTone(msg, slotId);
     }
 
     private boolean isCmdInteractive(CatCmdMessage cmd) {
@@ -912,17 +914,12 @@ public class StkAppService extends Service implements Runnable {
     }
 
     private void callDelayedMsg(int slotId) {
-        Message msg = mServiceHandler.obtainMessage();
-        msg.arg1 = OP_DELAYED_MSG;
-        msg.arg2 = slotId;
+        Message msg = mServiceHandler.obtainMessage(OP_DELAYED_MSG, 0, slotId);
         mServiceHandler.sendMessage(msg);
     }
 
-    private void callSetActivityInstMsg(int inst_type, int slotId, Object obj) {
-        Message msg = mServiceHandler.obtainMessage();
-        msg.obj = obj;
-        msg.arg1 = inst_type;
-        msg.arg2 = slotId;
+    private void callSetActivityInstMsg(int opcode, int slotId, Object obj) {
+        Message msg = mServiceHandler.obtainMessage(opcode, 0, slotId, obj);
         mServiceHandler.sendMessage(msg);
     }
 
@@ -1798,8 +1795,7 @@ public class StkAppService extends Service implements Runnable {
                 @Override public void onReceive(Context context, Intent intent) {
                     if (WindowManagerPolicyConstants.ACTION_USER_ACTIVITY_NOTIFICATION.equals(
                             intent.getAction())) {
-                        Message message = mServiceHandler.obtainMessage();
-                        message.arg1 = OP_USER_ACTIVITY;
+                        Message message = mServiceHandler.obtainMessage(OP_USER_ACTIVITY);
                         mServiceHandler.sendMessage(message);
                         unregisterUserActivityReceiver();
                     }
@@ -1831,8 +1827,7 @@ public class StkAppService extends Service implements Runnable {
                     @Override
                     public void onForegroundActivitiesChanged(int pid, int uid, boolean fg) {
                         if (isScreenIdle()) {
-                            Message message = mServiceHandler.obtainMessage();
-                            message.arg1 = OP_IDLE_SCREEN;
+                            Message message = mServiceHandler.obtainMessage(OP_IDLE_SCREEN);
                             mServiceHandler.sendMessage(message);
                             unregisterProcessObserver();
                         }
@@ -1898,8 +1893,7 @@ public class StkAppService extends Service implements Runnable {
             mLocaleChangeReceiver = new BroadcastReceiver() {
                 @Override public void onReceive(Context context, Intent intent) {
                     if (Intent.ACTION_LOCALE_CHANGED.equals(intent.getAction())) {
-                        Message message = mServiceHandler.obtainMessage();
-                        message.arg1 = OP_LOCALE_CHANGED;
+                        Message message = mServiceHandler.obtainMessage(OP_LOCALE_CHANGED);
                         mServiceHandler.sendMessage(message);
                     }
                 }
@@ -2264,11 +2258,8 @@ public class StkAppService extends Service implements Runnable {
             timeout = StkApp.TONE_DEFAULT_TIMEOUT;
         }
 
-        Message msg = mServiceHandler.obtainMessage();
-        msg.arg1 = OP_STOP_TONE;
-        msg.arg2 = slotId;
-        msg.obj = (Integer)(showUserInfo ? 1 : 0);
-        msg.what = STOP_TONE_WHAT;
+        Message msg = mServiceHandler.obtainMessage(OP_STOP_TONE, 0, slotId,
+                (showUserInfo ? PLAY_TONE_WITH_DIALOG : PLAY_TONE_ONLY));
         mServiceHandler.sendMessageDelayed(msg, timeout);
         if (settings.vibrate) {
             mVibrator.vibrate(timeout);
@@ -2300,18 +2291,20 @@ public class StkAppService extends Service implements Runnable {
         // Stop the play tone in following cases:
         // 1.OP_STOP_TONE: play tone timer expires.
         // 2.STOP_TONE_USER: user pressed the back key.
-        if (msg.arg1 == OP_STOP_TONE) {
+        if (msg.what == OP_STOP_TONE) {
             resId = RES_ID_DONE;
             // Dismiss Tone dialog, after finishing off playing the tone.
-            int finishActivity = (Integer) msg.obj;
-            if (finishActivity == 1) finishToneDialogActivity();
-        } else if (msg.arg1 == OP_STOP_TONE_USER) {
+            if (PLAY_TONE_WITH_DIALOG.equals((Integer) msg.obj)) finishToneDialogActivity();
+        } else if (msg.what == OP_STOP_TONE_USER) {
             resId = RES_ID_END_SESSION;
         }
 
         sendResponse(resId, slotId, true);
-        mServiceHandler.removeMessages(STOP_TONE_WHAT);
-        if (mTonePlayer != null)  {
+
+        mServiceHandler.removeMessages(OP_STOP_TONE);
+        mServiceHandler.removeMessages(OP_STOP_TONE_USER);
+
+        if (mTonePlayer != null) {
             mTonePlayer.stop();
             mTonePlayer.release();
             mTonePlayer = null;
@@ -2345,11 +2338,7 @@ public class StkAppService extends Service implements Runnable {
                             Bundle args = new Bundle();
                             args.putInt(RES_ID, RES_ID_CHOICE);
                             args.putInt(CHOICE, YES);
-                            Message message = mServiceHandler.obtainMessage();
-                            message.arg1 = OP_RESPONSE;
-                            message.arg2 = slotId;
-                            message.obj = args;
-                            mServiceHandler.sendMessage(message);
+                            sendResponse(args, slotId);
                         }
                     })
                     .setNegativeButton(getResources().getString(R.string.stk_dialog_reject),
@@ -2358,11 +2347,7 @@ public class StkAppService extends Service implements Runnable {
                             Bundle args = new Bundle();
                             args.putInt(RES_ID, RES_ID_CHOICE);
                             args.putInt(CHOICE, NO);
-                            Message message = mServiceHandler.obtainMessage();
-                            message.arg1 = OP_RESPONSE;
-                            message.arg2 = slotId;
-                            message.obj = args;
-                            mServiceHandler.sendMessage(message);
+                            sendResponse(args, slotId);
                         }
                     })
                     .create();
