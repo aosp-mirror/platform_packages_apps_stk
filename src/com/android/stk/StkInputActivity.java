@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.telephony.CarrierConfigManager;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextUtils;
@@ -42,13 +43,18 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.TextView.BufferType;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import com.android.internal.telephony.cat.CatLog;
 import com.android.internal.telephony.cat.Input;
+
+import com.google.android.material.textfield.TextInputLayout;
 
 /**
  * Display a request for a text input a long with a text edit form.
  */
-public class StkInputActivity extends Activity implements View.OnClickListener,
+public class StkInputActivity extends AppCompatActivity implements View.OnClickListener,
         TextWatcher {
 
     // Members
@@ -158,18 +164,13 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             return;
         }
 
-        ActionBar actionBar = null;
-        if (getResources().getBoolean(R.bool.show_menu_title_only_on_menu)) {
-            actionBar = getActionBar();
-            if (actionBar != null) {
-                actionBar.hide();
-            }
-        }
-
         // Set the layout for this activity.
         setContentView(R.layout.stk_input);
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
-        if (actionBar != null) {
+        if (getResources().getBoolean(R.bool.show_menu_title_only_on_menu)) {
+            getSupportActionBar().hide();
+
             mMoreOptions = findViewById(R.id.more);
             mMoreOptions.setVisibility(View.VISIBLE);
             mMoreOptions.setOnClickListener(this);
@@ -476,8 +477,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     }
 
     private void configInputDisplay() {
-        TextView numOfCharsView = (TextView) findViewById(R.id.num_of_chars);
-        TextView inTypeView = (TextView) findViewById(R.id.input_type);
+        TextInputLayout textInput = (TextInputLayout) findViewById(R.id.text_input_layout);
 
         int inTypeId = R.string.alphabet;
 
@@ -489,11 +489,16 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         }
 
         // Set input type (alphabet/digit) info close to the InText form.
+        boolean hideHelper = false;
         if (mStkInput.digitOnly) {
             mTextIn.setKeyListener(StkDigitsKeyListener.getInstance());
             inTypeId = R.string.digits;
+            hideHelper = StkAppService.getBooleanCarrierConfig(this,
+                    CarrierConfigManager.KEY_HIDE_DIGITS_HELPER_TEXT_ON_STK_INPUT_SCREEN_BOOL,
+                    mSlotId);
         }
-        inTypeView.setText(inTypeId);
+        textInput.setHelperText(getResources().getString(inTypeId));
+        textInput.setHelperTextEnabled(!hideHelper);
 
         setTitle(R.string.app_name);
 
@@ -506,17 +511,10 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         // Handle specific global and text attributes.
         switch (mState) {
         case STATE_TEXT:
-            int maxLen = mStkInput.maxLen;
-            int minLen = mStkInput.minLen;
-            mTextIn.setFilters(new InputFilter[] {new InputFilter.LengthFilter(
-                    maxLen)});
+            mTextIn.setFilters(new InputFilter[] {new InputFilter.LengthFilter(mStkInput.maxLen)});
 
-            // Set number of chars info.
-            String lengthLimit = String.valueOf(minLen);
-            if (maxLen != minLen) {
-                lengthLimit = minLen + " - " + maxLen;
-            }
-            numOfCharsView.setText(lengthLimit);
+            textInput.setCounterMaxLength(mStkInput.maxLen);
+            textInput.setCounterEnabled(true);
 
             if (!mStkInput.echo) {
                 mTextIn.setTransformationMethod(PasswordTransformationMethod
