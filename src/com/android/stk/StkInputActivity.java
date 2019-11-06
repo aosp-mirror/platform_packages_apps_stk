@@ -67,8 +67,8 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
     private View mNormalLayout = null;
 
     // Constants
-    private static final String className = new Object(){}.getClass().getEnclosingClass().getName();
-    private static final String LOG_TAG = className.substring(className.lastIndexOf('.') + 1);
+    private static final String LOG_TAG =
+            new Object(){}.getClass().getEnclosingClass().getSimpleName();
 
     private Input mStkInput = null;
     // Constants
