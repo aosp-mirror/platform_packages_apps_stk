@@ -87,7 +87,6 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
     private static final String RESPONSE_SENT_KEY = "response_sent";
     private static final String INPUT_STRING_KEY = "input_string";
     private static final String ALARM_TIME_KEY = "alarm_time";
-    private static final String PENDING = "pending";
 
     private static final String INPUT_ALARM_TAG = LOG_TAG;
     private static final long NO_INPUT_ALARM = -1;
@@ -96,8 +95,6 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
     private StkAppService appService = StkAppService.getInstance();
 
     private boolean mIsResponseSent = false;
-    // Determines whether this is in the pending state.
-    private boolean mIsPending = false;
     private int mSlotId = -1;
 
     // Click listener to handle buttons press..
@@ -193,6 +190,7 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         mYesNoLayout = findViewById(R.id.yes_no_layout);
         mNormalLayout = findViewById(R.id.normal_layout);
         initFromIntent(getIntent());
+        appService.getStkContext(mSlotId).setPendingActivityInstance(this);
     }
 
     @Override
@@ -207,12 +205,6 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         super.onResume();
         CatLog.d(LOG_TAG, "onResume - mIsResponseSent[" + mIsResponseSent +
                 "], slot id: " + mSlotId);
-        // If the terminal has already sent response to the card when this activity is resumed,
-        // keep this as a pending activity as this should be finished when the session ends.
-        if (!mIsResponseSent) {
-            setPendingState(false);
-        }
-
         if (mAlarmTime == NO_INPUT_ALARM) {
             startTimeOut();
         }
@@ -231,23 +223,6 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
     public void onStop() {
         super.onStop();
         CatLog.d(LOG_TAG, "onStop - mIsResponseSent[" + mIsResponseSent + "]");
-
-        // Nothing should be done here if this activity is being finished or restarted now.
-        if (isFinishing() || isChangingConfigurations()) {
-            return;
-        }
-
-        if (mIsResponseSent) {
-            // It is unnecessary to keep this activity if the response was already sent and
-            // the dialog activity is NOT on the top of this activity.
-            if (!appService.isStkDialogActivated()) {
-                finish();
-            }
-        } else {
-            // This should be registered as the pending activity here
-            // only when no response has been sent back to the card.
-            setPendingState(true);
-        }
     }
 
     @Override
@@ -327,11 +302,6 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         }
         args.putBoolean(StkAppService.HELP, help);
         appService.sendResponse(args, mSlotId);
-
-        // This instance should be set as a pending activity and finished by the service
-        if (resId != StkAppService.RES_ID_END_SESSION) {
-            setPendingState(true);
-        }
     }
 
     @Override
@@ -389,7 +359,6 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         outState.putBoolean(RESPONSE_SENT_KEY, mIsResponseSent);
         outState.putString(INPUT_STRING_KEY, mTextIn.getText().toString());
         outState.putLong(ALARM_TIME_KEY, mAlarmTime);
-        outState.putBoolean(PENDING, mIsPending);
     }
 
     @Override
@@ -408,22 +377,6 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         mAlarmTime = savedInstanceState.getLong(ALARM_TIME_KEY, NO_INPUT_ALARM);
         if (mAlarmTime != NO_INPUT_ALARM) {
             startTimeOut();
-        }
-
-        if (!mIsResponseSent && !savedInstanceState.getBoolean(PENDING)) {
-            // If this is in the foreground and no response has been sent to the card,
-            // this must not be registered as pending activity by the previous instance.
-            // No need to renew nor clear pending activity in this case.
-        } else {
-            // Renew the instance of the pending activity.
-            setPendingState(true);
-        }
-    }
-
-    private void setPendingState(boolean on) {
-        if (mIsPending != on) {
-            appService.getStkContext(mSlotId).setPendingActivityInstance(on ? this : null);
-            mIsPending = on;
         }
     }
 
