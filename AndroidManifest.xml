@@ -44,6 +44,7 @@
             android:label="@string/app_name"
             android:enabled="false"
             android:exported="true"
+            android:autoRemoveFromRecents="true"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -52,9 +53,10 @@
         </activity>
 
         <activity android:name="StkLauncherActivity"
-            android:theme="@android:style/Theme.Material.Light"
+            android:theme="@android:style/Theme.DeviceDefault.DayNight"
             android:label="@string/app_name"
             android:exported="false"
+            android:autoRemoveFromRecents="true"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
             <intent-filter>
                  <action android:name="android.intent.action.VIEW" />
@@ -64,11 +66,12 @@
         </activity>
 
         <activity android:name="StkMenuActivity"
-            android:theme="@android:style/Theme.Material.Light"
+            android:theme="@android:style/Theme.DeviceDefault.DayNight"
             android:icon="@drawable/ic_launcher_sim_toolkit"
             android:label="@string/app_name"
             android:configChanges="orientation|locale|screenSize|keyboardHidden|mnc|mcc"
             android:exported="false"
+            android:autoRemoveFromRecents="true"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -80,9 +83,10 @@
         <activity android:name="StkInputActivity"
             android:label="@string/app_name"
             android:icon="@drawable/ic_launcher_sim_toolkit"
-            android:theme="@android:style/Theme.Material.Light"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
             android:configChanges="orientation|locale|screenSize|keyboardHidden"
             android:exported="false"
+            android:autoRemoveFromRecents="true"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
                 <intent-filter>
                         <action android:name="android.intent.action.VIEW" />
@@ -94,12 +98,14 @@
             android:configChanges="orientation|locale|screenSize|keyboardHidden"
             android:theme="@style/Transparent"
             android:exported="false"
+            android:autoRemoveFromRecents="true"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
         </activity>
 
         <activity android:name="ToneDialog"
             android:exported="false"
             android:theme="@style/Transparent"
+            android:autoRemoveFromRecents="true"
             android:taskAffinity="android.task.stk.StkLauncherActivity">
         </activity>
 
