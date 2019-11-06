@@ -145,29 +145,29 @@ public class StkAppService extends Service implements Runnable {
         // Determins whether the current session was initiated by user operation.
         protected boolean mIsSessionFromUser = false;
         final synchronized void setPendingActivityInstance(Activity act) {
-            CatLog.d(this, "setPendingActivityInstance act : " + mSlotId + ", " + act);
+            CatLog.d(LOG_TAG, "setPendingActivityInstance act : " + mSlotId + ", " + act);
             callSetActivityInstMsg(OP_SET_ACT_INST, mSlotId, act);
         }
         final synchronized Activity getPendingActivityInstance() {
-            CatLog.d(this, "getPendingActivityInstance act : " + mSlotId + ", " +
+            CatLog.d(LOG_TAG, "getPendingActivityInstance act : " + mSlotId + ", " +
                     mActivityInstance);
             return mActivityInstance;
         }
         final synchronized void setPendingDialogInstance(Activity act) {
-            CatLog.d(this, "setPendingDialogInstance act : " + mSlotId + ", " + act);
+            CatLog.d(LOG_TAG, "setPendingDialogInstance act : " + mSlotId + ", " + act);
             callSetActivityInstMsg(OP_SET_DAL_INST, mSlotId, act);
         }
         final synchronized Activity getPendingDialogInstance() {
-            CatLog.d(this, "getPendingDialogInstance act : " + mSlotId + ", " +
+            CatLog.d(LOG_TAG, "getPendingDialogInstance act : " + mSlotId + ", " +
                     mDialogInstance);
             return mDialogInstance;
         }
         final synchronized void setImmediateDialogInstance(Activity act) {
-            CatLog.d(this, "setImmediateDialogInstance act : " + mSlotId + ", " + act);
+            CatLog.d(LOG_TAG, "setImmediateDialogInstance act : " + mSlotId + ", " + act);
             callSetActivityInstMsg(OP_SET_IMMED_DAL_INST, mSlotId, act);
         }
         final synchronized Activity getImmediateDialogInstance() {
-            CatLog.d(this, "getImmediateDialogInstance act : " + mSlotId + ", " +
+            CatLog.d(LOG_TAG, "getImmediateDialogInstance act : " + mSlotId + ", " +
                     mImmediateDialogInstance);
             return mImmediateDialogInstance;
         }
@@ -279,7 +279,8 @@ public class StkAppService extends Service implements Runnable {
     // Notification channel containing all mobile service messages notifications.
     private static final String STK_NOTIFICATION_CHANNEL_ID = "mobileServiceMessages";
 
-    private static final String LOG_TAG = new Object(){}.getClass().getEnclosingClass().getName();
+    private static final String LOG_TAG =
+            new Object(){}.getClass().getEnclosingClass().getSimpleName();
 
     static final String SESSION_ENDED = "session_ended";
 
@@ -679,7 +680,7 @@ public class StkAppService extends Service implements Runnable {
                 mStkContext[slotId].mImmediateDialogInstance = immedDal;
                 break;
             case OP_LOCALE_CHANGED:
-                CatLog.d(this, "Locale Changed");
+                CatLog.d(LOG_TAG, "Locale Changed");
                 for (int slot = PhoneConstants.SIM_ID_1; slot < mSimCount; slot++) {
                     checkForSetupEvent(LANGUAGE_SELECTION_EVENT, (Bundle) msg.obj, slot);
                 }
@@ -698,7 +699,7 @@ public class StkAppService extends Service implements Runnable {
                 break;
             case OP_STOP_TONE_USER:
             case OP_STOP_TONE:
-                CatLog.d(this, "Stop tone");
+                CatLog.d(LOG_TAG, "Stop tone");
                 handleStopTone(msg, slotId);
                 break;
             case OP_USER_ACTIVITY:
@@ -874,7 +875,7 @@ public class StkAppService extends Service implements Runnable {
     private void handleIdleScreen(int slotId) {
         // If the idle screen event is present in the list need to send the
         // response to SIM.
-        CatLog.d(this, "Need to send IDLE SCREEN Available event to SIM");
+        CatLog.d(LOG_TAG, "Need to send IDLE SCREEN Available event to SIM");
         checkForSetupEvent(IDLE_SCREEN_AVAILABLE_EVENT, null, slotId);
 
         if (mStkContext[slotId].mIdleModeTextCmd != null
@@ -888,7 +889,7 @@ public class StkAppService extends Service implements Runnable {
             return;
         }
         CatResponseMessage resMsg = new CatResponseMessage(mStkContext[slotId].mCurrentCmd);
-        CatLog.d(this, "SCREEN_BUSY");
+        CatLog.d(LOG_TAG, "SCREEN_BUSY");
         resMsg.setResultCode(ResultCode.TERMINAL_CRNTLY_UNABLE_TO_PROCESS);
         mStkService[slotId].onCmdResponse(resMsg);
         if (mStkContext[slotId].mCmdsQ.size() != 0) {
@@ -1163,7 +1164,7 @@ public class StkAppService extends Service implements Runnable {
             mStkContext[slotId].mCurrentCmd = mStkContext[slotId].mMainCmd;
             if (mStkContext[slotId].mIdleModeTextCmd != null) {
                 if (mStkContext[slotId].mIdleModeTextVisible || isScreenIdle()) {
-                    CatLog.d(this, "set up idle mode");
+                    CatLog.d(LOG_TAG, "set up idle mode");
                     launchIdleText(slotId);
                 } else {
                     registerProcessObserver();
@@ -1184,7 +1185,7 @@ public class StkAppService extends Service implements Runnable {
             // The device setup process should not be interrupted by launching browser.
             if (Settings.Global.getInt(mContext.getContentResolver(),
                     Settings.Global.DEVICE_PROVISIONED, 0) == 0) {
-                CatLog.d(this, "The command is not performed if the setup has not been completed.");
+                CatLog.d(LOG_TAG, "Not perform if the setup process has not been completed.");
                 sendScreenBusyResponse(slotId);
                 break;
             }
@@ -1192,7 +1193,7 @@ public class StkAppService extends Service implements Runnable {
             /* Check if Carrier would not want to launch browser */
             if (getBooleanCarrierConfig(CarrierConfigManager.KEY_STK_DISABLE_LAUNCH_BROWSER_BOOL,
                     slotId)) {
-                CatLog.d(this, "Browser is not launched as per carrier.");
+                CatLog.d(LOG_TAG, "Browser is not launched as per carrier.");
                 sendResponse(RES_ID_DONE, slotId, true);
                 break;
             }
@@ -1200,14 +1201,14 @@ public class StkAppService extends Service implements Runnable {
             mStkContext[slotId].mBrowserSettings =
                     mStkContext[slotId].mCurrentCmd.getBrowserSettings();
             if (!isUrlAvailableToLaunchBrowser(mStkContext[slotId].mBrowserSettings)) {
-                CatLog.d(this, "Browser url property is not set - send error");
+                CatLog.d(LOG_TAG, "Browser url property is not set - send error");
                 sendResponse(RES_ID_ERROR, slotId, true);
             } else {
                 TextMessage alphaId = mStkContext[slotId].mCurrentCmd.geTextMessage();
                 if ((alphaId == null) || TextUtils.isEmpty(alphaId.text)) {
                     // don't need user confirmation in this case
                     // just launch the browser or spawn a new tab
-                    CatLog.d(this, "user confirmation is not currently needed.\n" +
+                    CatLog.d(LOG_TAG, "user confirmation is not currently needed.\n" +
                             "supressing confirmation dialogue and confirming silently...");
                     mStkContext[slotId].launchBrowser = true;
                     sendResponse(RES_ID_CONFIRM, slotId, true);
@@ -1221,7 +1222,7 @@ public class StkAppService extends Service implements Runnable {
             if((mesg != null) && (mesg.text == null || mesg.text.length() == 0)) {
                 mesg.text = getResources().getString(R.string.default_setup_call_msg);
             }
-            CatLog.d(this, "SET_UP_CALL mesg.text " + mesg.text);
+            CatLog.d(LOG_TAG, "SET_UP_CALL mesg.text " + mesg.text);
             launchConfirmationDialog(mesg, slotId);
             break;
         case PLAY_TONE:
@@ -1256,7 +1257,7 @@ public class StkAppService extends Service implements Runnable {
         case SET_UP_EVENT_LIST:
             replaceEventList(slotId);
             if (isScreenIdle()) {
-                CatLog.d(this," Check if IDLE_SCREEN_AVAILABLE_EVENT is present in List");
+                CatLog.d(LOG_TAG," Check if IDLE_SCREEN_AVAILABLE_EVENT is present in List");
                 checkForSetupEvent(IDLE_SCREEN_AVAILABLE_EVENT, null, slotId);
             }
             break;
@@ -1336,7 +1337,7 @@ public class StkAppService extends Service implements Runnable {
             }
             break;
         case RES_ID_CONFIRM:
-            CatLog.d(this, "RES_ID_CONFIRM");
+            CatLog.d(LOG_TAG, "RES_ID_CONFIRM");
             confirmed = args.getBoolean(CONFIRMATION);
             switch (mStkContext[slotId].mCurrentCmd.getCmdType()) {
             case DISPLAY_TEXT:
@@ -1393,7 +1394,7 @@ public class StkAppService extends Service implements Runnable {
             break;
         case RES_ID_CHOICE:
             int choice = args.getInt(CHOICE);
-            CatLog.d(this, "User Choice=" + choice);
+            CatLog.d(LOG_TAG, "User Choice=" + choice);
             switch (choice) {
                 case YES:
                     resMsg.setResultCode(ResultCode.OK);
@@ -1847,7 +1848,7 @@ public class StkAppService extends Service implements Runnable {
                         ServiceManager.getService(Context.WINDOW_SERVICE));
                 wm.requestUserActivityNotification();
             } catch (RemoteException e) {
-                CatLog.e(this, "failed to init WindowManager:" + e);
+                CatLog.e(LOG_TAG, "failed to init WindowManager:" + e);
             }
         }
     }
@@ -1881,10 +1882,10 @@ public class StkAppService extends Service implements Runnable {
                     }
                 };
                 ActivityManagerNative.getDefault().registerProcessObserver(observer);
-                CatLog.d(this, "Started to observe the foreground activity");
+                CatLog.d(LOG_TAG, "Started to observe the foreground activity");
                 mProcessObserver = observer;
             } catch (RemoteException e) {
-                CatLog.d(this, "Failed to register the process observer");
+                CatLog.e(LOG_TAG, "Failed to register the process observer");
             }
         }
     }
@@ -1919,10 +1920,10 @@ public class StkAppService extends Service implements Runnable {
         if (mProcessObserver != null) {
             try {
                 ActivityManagerNative.getDefault().unregisterProcessObserver(mProcessObserver);
-                CatLog.d(this, "Stopped to observe the foreground activity");
+                CatLog.d(LOG_TAG, "Stopped to observe the foreground activity");
                 mProcessObserver = null;
             } catch (RemoteException e) {
-                CatLog.d(this, "Failed to unregister the process observer");
+                CatLog.d(LOG_TAG, "Failed to unregister the process observer");
             }
         }
     }
@@ -1949,10 +1950,10 @@ public class StkAppService extends Service implements Runnable {
     }
 
     private void sendSetUpEventResponse(int event, byte[] addedInfo, int slotId) {
-        CatLog.d(this, "sendSetUpEventResponse: event : " + event + "slotId = " + slotId);
+        CatLog.d(LOG_TAG, "sendSetUpEventResponse: event : " + event + "slotId = " + slotId);
 
         if (mStkContext[slotId].mCurrentSetupEventCmd == null){
-            CatLog.e(this, "mCurrentSetupEventCmd is null");
+            CatLog.e(LOG_TAG, "mCurrentSetupEventCmd is null");
             return;
         }
 
@@ -1967,7 +1968,7 @@ public class StkAppService extends Service implements Runnable {
     private void checkForSetupEvent(int event, Bundle args, int slotId) {
         boolean eventPresent = false;
         byte[] addedInfo = null;
-        CatLog.d(this, "Event :" + event);
+        CatLog.d(LOG_TAG, "Event :" + event);
 
         if (mStkContext[slotId].mSetupEventListSettings != null) {
             /* Checks if the event is present in the EventList updated by last
@@ -1981,7 +1982,7 @@ public class StkAppService extends Service implements Runnable {
 
             /* If Event is present send the response to ICC */
             if (eventPresent == true) {
-                CatLog.d(this, " Event " + event + "exists in the EventList");
+                CatLog.d(LOG_TAG, " Event " + event + "exists in the EventList");
 
                 switch (event) {
                     case USER_ACTIVITY_EVENT:
@@ -1992,7 +1993,7 @@ public class StkAppService extends Service implements Runnable {
                     case LANGUAGE_SELECTION_EVENT:
                         String language =  mContext
                                 .getResources().getConfiguration().locale.getLanguage();
-                        CatLog.d(this, "language: " + language);
+                        CatLog.d(LOG_TAG, "language: " + language);
                         // Each language code is a pair of alpha-numeric characters.
                         // Each alpha-numeric character shall be coded on one byte
                         // using the SMS default 7-bit coded alphabet
@@ -2003,15 +2004,15 @@ public class StkAppService extends Service implements Runnable {
                         break;
                 }
             } else {
-                CatLog.e(this, " Event does not exist in the EventList");
+                CatLog.e(LOG_TAG, " Event does not exist in the EventList");
             }
         } else {
-            CatLog.e(this, "SetupEventList is not received. Ignoring the event: " + event);
+            CatLog.e(LOG_TAG, "SetupEventList is not received. Ignoring the event: " + event);
         }
     }
 
     private void removeSetUpEvent(int event, int slotId) {
-        CatLog.d(this, "Remove Event :" + event);
+        CatLog.d(LOG_TAG, "Remove Event :" + event);
 
         if (mStkContext[slotId].mSetupEventListSettings != null) {
             /*
@@ -2110,22 +2111,22 @@ public class StkAppService extends Service implements Runnable {
         if (settings.url == null) {
             // if the command did not contain a URL,
             // launch the browser to the default homepage.
-            CatLog.d(this, "no url data provided by proactive command." +
+            CatLog.d(LOG_TAG, "no url data provided by proactive command." +
                        " launching browser with stk default URL ... ");
             url = SystemProperties.get(STK_BROWSER_DEFAULT_URL_SYSPROP,
                     "http://www.google.com");
         } else {
-            CatLog.d(this, "launch browser command has attached url = " + settings.url);
+            CatLog.d(LOG_TAG, "launch browser command has attached url = " + settings.url);
             url = settings.url;
         }
 
         if (url.startsWith("http://") || url.startsWith("https://")) {
             data = Uri.parse(url);
-            CatLog.d(this, "launching browser with url = " + url);
+            CatLog.d(LOG_TAG, "launching browser with url = " + url);
         } else {
             String modifiedUrl = "http://" + url;
             data = Uri.parse(modifiedUrl);
-            CatLog.d(this, "launching browser with modified url = " + modifiedUrl);
+            CatLog.d(LOG_TAG, "launching browser with modified url = " + modifiedUrl);
         }
 
         Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -2260,23 +2261,23 @@ public class StkAppService extends Service implements Runnable {
         // without showing user any information.
         // Alpha Id is Present, but the text data is null.
         if ((toneMsg.text != null ) && (toneMsg.text.equals(""))) {
-            CatLog.d(this, "Alpha identifier data is null, play only tone");
+            CatLog.d(LOG_TAG, "Alpha identifier data is null, play only tone");
             showUser = false;
         }
         // Alpha Id is not present AND we need to show info to the user.
         if (toneMsg.text == null && displayDialog) {
-            CatLog.d(this, "toneMsg.text " + toneMsg.text
+            CatLog.d(LOG_TAG, "toneMsg.text " + toneMsg.text
                     + " Starting ToneDialog activity with default message.");
             toneMsg.text = getResources().getString(R.string.default_tone_dialog_msg);
             showUser = true;
         }
         // Dont show user info, if config setting is true.
         if (toneMsg.text == null && !displayDialog) {
-            CatLog.d(this, "config value stkNoAlphaUsrCnf is true");
+            CatLog.d(LOG_TAG, "config value stkNoAlphaUsrCnf is true");
             showUser = false;
         }
 
-        CatLog.d(this, "toneMsg.text: " + toneMsg.text + "showUser: " +showUser +
+        CatLog.d(LOG_TAG, "toneMsg.text: " + toneMsg.text + "showUser: " +showUser +
                 "displayDialog: " +displayDialog);
         playTone(showUser, slotId);
     }
@@ -2285,7 +2286,7 @@ public class StkAppService extends Service implements Runnable {
         // Start playing tone and vibration
         ToneSettings settings = mStkContext[slotId].mCurrentCmd.getToneSettings();
         if (null == settings) {
-            CatLog.d(this, "null settings, not playing tone.");
+            CatLog.d(LOG_TAG, "null settings, not playing tone.");
             return;
         }
 
@@ -2482,7 +2483,7 @@ public class StkAppService extends Service implements Runnable {
     private void handleAlphaNotify(Bundle args) {
         String alphaString = args.getString(AppInterface.ALPHA_STRING);
 
-        CatLog.d(this, "Alpha string received from card: " + alphaString);
+        CatLog.d(LOG_TAG, "Alpha string received from card: " + alphaString);
         Toast toast = Toast.makeText(sInstance, alphaString, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.TOP, 0, 0);
         toast.show();

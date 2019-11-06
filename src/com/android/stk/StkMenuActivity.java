@@ -59,8 +59,9 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     private TextView mTitleTextView = null;
     private ImageView mTitleIconView = null;
     private ProgressBar mProgressView = null;
-    private static final String className = new Object(){}.getClass().getEnclosingClass().getName();
-    private static final String LOG_TAG = className.substring(className.lastIndexOf('.') + 1);
+
+    private static final String LOG_TAG =
+            new Object(){}.getClass().getEnclosingClass().getSimpleName();
 
     private StkAppService appService = StkAppService.getInstance();
 
@@ -281,13 +282,13 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v,
             ContextMenuInfo menuInfo) {
-        CatLog.d(this, "onCreateContextMenu");
+        CatLog.d(LOG_TAG, "onCreateContextMenu");
         boolean helpVisible = false;
         if (mStkMenu != null) {
             helpVisible = mStkMenu.helpAvailable;
         }
         if (helpVisible) {
-            CatLog.d(this, "add menu");
+            CatLog.d(LOG_TAG, "add menu");
             menu.add(0, CONTEXT_MENU_HELP, 0, R.string.help);
         }
     }
@@ -303,10 +304,10 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         switch (item.getItemId()) {
             case CONTEXT_MENU_HELP:
                 int position = info.position;
-                CatLog.d(this, "Position:" + position);
+                CatLog.d(LOG_TAG, "Position:" + position);
                 Item stkItem = getSelectedItem(position);
                 if (stkItem != null) {
-                    CatLog.d(this, "item id:" + stkItem.id);
+                    CatLog.d(LOG_TAG, "item id:" + stkItem.id);
                     sendResponse(StkAppService.RES_ID_MENU_SELECTION, stkItem.id, true);
                 }
                 return true;
