@@ -651,18 +651,12 @@ public class StkAppService extends Service implements Runnable {
                         CatLog.d(LOG_TAG, "Finish the previous pending activity - " + previous);
                         previous.finish();
                     }
-                    // Pending activity is registered in the following 2 scnarios;
-                    // A. TERMINAL RESPONSE was sent to the card.
-                    // B. Activity was moved to the background before TR is sent to the card.
-                    // No need to observe idle screen for the pending activity in the scenario A.
-                    if (act != null && mStkContext[slotId].mCmdInProgress) {
-                        startToObserveIdleScreen(slotId);
-                    } else {
-                        if (mStkContext[slotId].mCurrentCmd != null) {
-                            unregisterProcessObserver(
-                                    mStkContext[slotId].mCurrentCmd.getCmdType(), slotId);
-                        }
-                    }
+                }
+                // Clear pending dialog instance if it has not been cleared yet.
+                Activity dialog = mStkContext[slotId].getPendingDialogInstance();
+                if (dialog != null && (dialog.isDestroyed() || dialog.isFinishing())) {
+                    CatLog.d(LOG_TAG, "Clear pending dialog instance - " + dialog);
+                    mStkContext[slotId].mDialogInstance = null;
                 }
                 break;
             case OP_SET_DAL_INST:
@@ -670,14 +664,6 @@ public class StkAppService extends Service implements Runnable {
                 if (mStkContext[slotId].mDialogInstance != dal) {
                     CatLog.d(LOG_TAG, "Set pending dialog instance - " + dal);
                     mStkContext[slotId].mDialogInstance = dal;
-                    if (dal != null) {
-                        startToObserveIdleScreen(slotId);
-                    } else {
-                        if (mStkContext[slotId].mCurrentCmd != null) {
-                            unregisterProcessObserver(
-                                    mStkContext[slotId].mCurrentCmd.getCmdType(), slotId);
-                        }
-                    }
                 }
                 break;
             case OP_SET_IMMED_DAL_INST:
@@ -1255,6 +1241,7 @@ public class StkAppService extends Service implements Runnable {
     @SuppressWarnings("FallThrough")
     private void handleCmdResponse(Bundle args, int slotId) {
         CatLog.d(LOG_TAG, "handleCmdResponse, sim id: " + slotId);
+        unregisterProcessObserver();
         if (mStkContext[slotId].mCurrentCmd == null) {
             return;
         }
@@ -1562,6 +1549,9 @@ public class StkAppService extends Service implements Runnable {
             newIntent.putExtra("STATE", StkMenuActivity.STATE_SECONDARY);
             mStkContext[slotId].mMenuState = StkMenuActivity.STATE_SECONDARY;
         }
+        if (mStkContext[slotId].mMenuState == StkMenuActivity.STATE_SECONDARY) {
+            startToObserveIdleScreen(slotId);
+        }
         newIntent.putExtra(SLOT_ID, slotId);
         newIntent.setData(uriData);
         newIntent.setFlags(intentFlags);
@@ -1588,6 +1578,7 @@ public class StkAppService extends Service implements Runnable {
             notifyUserIfNecessary(slotId, input.text);
         }
         startActivity(newIntent);
+        startToObserveIdleScreen(slotId);
     }
 
     private void launchTextDialog(int slotId) {
@@ -1616,6 +1607,8 @@ public class StkAppService extends Service implements Runnable {
         // the immediate response tlv.
         if (!mStkContext[slotId].mCurrentCmd.geTextMessage().responseNeeded) {
             sendResponse(RES_ID_CONFIRM, slotId, true);
+        } else {
+            startToObserveIdleScreen(slotId);
         }
     }
 
@@ -1724,25 +1717,6 @@ public class StkAppService extends Service implements Runnable {
 
     private int getNotificationId(int notificationType, int slotId) {
         return getNotificationId(slotId) + (notificationType * mSimCount);
-    }
-
-    /**
-     * Checks whether the dialog exists as the top activity of this task.
-     *
-     * @return true if the top activity of this task is the dialog.
-     */
-    public boolean isStkDialogActivated() {
-        ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        ComponentName componentName = am.getAppTasks().get(0).getTaskInfo().topActivity;
-        if (componentName != null) {
-            String[] split = componentName.getClassName().split(Pattern.quote("."));
-            String topActivity = split[split.length - 1];
-            CatLog.d(LOG_TAG, "Top activity: " + topActivity);
-            if (TextUtils.equals(topActivity, StkDialogActivity.class.getSimpleName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void replaceEventList(int slotId) {
