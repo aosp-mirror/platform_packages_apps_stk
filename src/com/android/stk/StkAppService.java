@@ -557,7 +557,10 @@ public class StkAppService extends Service implements Runnable {
                     ((CatCmdMessage)msg.obj).getCmdType()!= null) {
                 CatLog.d(LOG_TAG, "cmdName[" + ((CatCmdMessage)msg.obj).getCmdType().name() + "]");
             }
-            if (slotId > mStkContext.length || mStkContext[slotId] == null) return;
+            if (slotId >= mStkContext.length || mStkContext[slotId] == null) {
+                CatLog.d(LOG_TAG, "invalid slotId " + slotId);
+                return;
+            }
 
             mStkContext[slotId].mOpCode = opcode;
             switch (opcode) {
