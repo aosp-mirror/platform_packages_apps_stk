@@ -36,8 +36,8 @@ import android.widget.Toast;
  *
  */
  public class StkMain extends Activity {
-    private static final String className = new Object(){}.getClass().getEnclosingClass().getName();
-    private static final String LOG_TAG = className.substring(className.lastIndexOf('.') + 1);
+    private static final String LOG_TAG =
+            new Object(){}.getClass().getEnclosingClass().getSimpleName();
     private int mSingleSimId = -1;
     private Context mContext = null;
     private TelephonyManager mTm = null;
@@ -96,8 +96,7 @@ import android.widget.Toast;
         Bundle args = new Bundle();
         CatLog.d(LOG_TAG, "launchSTKMainMenu.");
         args.putInt(StkAppService.OPCODE, StkAppService.OP_LAUNCH_APP);
-        args.putInt(StkAppService.SLOT_ID
-                , PhoneConstants.SIM_ID_1 + slotId);
+        args.putInt(StkAppService.SLOT_ID, slotId);
         startService(new Intent(this, StkAppService.class)
                 .putExtras(args));
     }

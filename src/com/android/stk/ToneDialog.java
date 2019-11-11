@@ -43,7 +43,8 @@ public class ToneDialog extends Activity {
     int mSlotId = -1;
     private AlertDialog mAlertDialog;
 
-    private static final String LOG_TAG = new Object(){}.getClass().getEnclosingClass().getName();
+    private static final String LOG_TAG =
+            new Object(){}.getClass().getEnclosingClass().getSimpleName();
 
     @Override
     protected void onCreate(Bundle icicle) {
@@ -112,7 +113,7 @@ public class ToneDialog extends Activity {
             // Intent received from StkAppService to finish ToneDialog activity,
             // after finishing off playing the tone.
             if (intent.getAction().equals(StkAppService.FINISH_TONE_ACTIVITY_ACTION)) {
-                CatLog.d(this, "Finishing Tone dialog activity");
+                CatLog.d(LOG_TAG, "Finishing Tone dialog activity");
                 finish();
             }
         }
