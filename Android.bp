@@ -3,8 +3,9 @@
 android_app {
     name: "Stk",
     libs: ["telephony-common"],
-    static_libs: ["android-support-v4"],
+    static_libs: ["com.google.android.material_material"],
     srcs: ["**/*.java"],
+    jarjar_rules: "jarjar-rules.txt",
     platform_apis: true,
     certificate: "platform",
 }
