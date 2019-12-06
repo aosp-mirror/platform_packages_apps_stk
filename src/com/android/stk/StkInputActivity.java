@@ -105,22 +105,18 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
             return;
         }
 
-        switch (v.getId()) {
-        case R.id.button_ok:
+        if (v.getId() == R.id.button_ok) {
             input = mTextIn.getText().toString();
-            break;
-        case R.id.button_cancel:
+        } else if (v.getId() == R.id.button_cancel) {
             sendResponse(StkAppService.RES_ID_END_SESSION);
             finish();
             return;
-        // Yes/No layout buttons.
-        case R.id.button_yes:
+            // Yes/No layout buttons.
+        } else if (v.getId() == R.id.button_yes) {
             input = YES_STR_RESPONSE;
-            break;
-        case R.id.button_no:
+        } else if (v.getId() == R.id.button_no) {
             input = NO_STR_RESPONSE;
-            break;
-        case R.id.more:
+        } else if (v.getId() == R.id.more) {
             if (mPopupMenu == null) {
                 mPopupMenu = new PopupMenu(this, v);
                 Menu menu = mPopupMenu.getMenu();
@@ -140,8 +136,6 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
                 mPopupMenu.show();
             }
             return;
-        default:
-            break;
         }
         CatLog.d(LOG_TAG, "handleClick, ready to response");
         sendResponse(StkAppService.RES_ID_INPUT, input, false);
