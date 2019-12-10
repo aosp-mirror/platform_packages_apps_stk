@@ -9,5 +9,4 @@ android_app {
     static_libs: ["com.google.android.material_material"],
     platform_apis: true,
     certificate: "platform",
-    required: ["StkLib"],
 }
