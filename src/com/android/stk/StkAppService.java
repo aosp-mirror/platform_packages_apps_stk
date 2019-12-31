@@ -16,26 +16,29 @@
 
 package com.android.stk;
 
+import static com.android.internal.telephony.cat.CatCmdMessage.SetupEventListConstants.IDLE_SCREEN_AVAILABLE_EVENT;
+import static com.android.internal.telephony.cat.CatCmdMessage.SetupEventListConstants.LANGUAGE_SELECTION_EVENT;
+import static com.android.internal.telephony.cat.CatCmdMessage.SetupEventListConstants.USER_ACTIVITY_EVENT;
+
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningTaskInfo;
+import android.app.ActivityManagerNative;
 import android.app.AlertDialog;
+import android.app.IProcessObserver;
 import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.app.Activity;
-import android.app.ActivityManagerNative;
-import android.app.IProcessObserver;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
@@ -50,13 +53,13 @@ import android.os.Parcel;
 import android.os.PersistableBundle;
 import android.os.PowerManager;
 import android.os.RemoteException;
-import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.telephony.CarrierConfigManager;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
+import android.telephony.TelephonyFrameworkInitializer;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -68,40 +71,29 @@ import android.view.WindowManagerPolicyConstants;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.content.IntentFilter;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.android.internal.telephony.GsmAlphabet;
 import com.android.internal.telephony.PhoneConfigurationManager;
+import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.cat.AppInterface;
-import com.android.internal.telephony.cat.Input;
-import com.android.internal.telephony.cat.LaunchBrowserMode;
-import com.android.internal.telephony.cat.Menu;
-import com.android.internal.telephony.cat.Item;
-import com.android.internal.telephony.cat.ResultCode;
 import com.android.internal.telephony.cat.CatCmdMessage;
 import com.android.internal.telephony.cat.CatCmdMessage.BrowserSettings;
 import com.android.internal.telephony.cat.CatCmdMessage.SetupEventListSettings;
 import com.android.internal.telephony.cat.CatLog;
 import com.android.internal.telephony.cat.CatResponseMessage;
+import com.android.internal.telephony.cat.CatService;
+import com.android.internal.telephony.cat.Input;
+import com.android.internal.telephony.cat.Item;
+import com.android.internal.telephony.cat.Menu;
+import com.android.internal.telephony.cat.ResultCode;
 import com.android.internal.telephony.cat.TextMessage;
 import com.android.internal.telephony.cat.ToneSettings;
 import com.android.internal.telephony.uicc.IccRefreshResponse;
-import com.android.internal.telephony.PhoneConstants;
-import com.android.internal.telephony.GsmAlphabet;
-import com.android.internal.telephony.cat.CatService;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Pattern;
-
-import static com.android.internal.telephony.cat.CatCmdMessage.
-                   SetupEventListConstants.IDLE_SCREEN_AVAILABLE_EVENT;
-import static com.android.internal.telephony.cat.CatCmdMessage.
-                   SetupEventListConstants.LANGUAGE_SELECTION_EVENT;
-import static com.android.internal.telephony.cat.CatCmdMessage.
-                   SetupEventListConstants.USER_ACTIVITY_EVENT;
 
 /**
  * SIM toolkit application level service. Interacts with Telephopny messages,
@@ -1833,7 +1825,10 @@ public class StkAppService extends Service implements Runnable {
                     WindowManagerPolicyConstants.ACTION_USER_ACTIVITY_NOTIFICATION));
             try {
                 IWindowManager wm = IWindowManager.Stub.asInterface(
-                        ServiceManager.getService(Context.WINDOW_SERVICE));
+                        TelephonyFrameworkInitializer
+                                .getTelephonyServiceManager()
+                                .getWindowServiceRegisterer()
+                                .get());
                 wm.requestUserActivityNotification();
             } catch (RemoteException e) {
                 CatLog.e(LOG_TAG, "failed to init WindowManager:" + e);
