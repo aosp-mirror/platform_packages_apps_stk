@@ -18,4 +18,8 @@ android_app {
             "proguard.proguard",
         ],
     },
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.telephony"
+    ],
 }
