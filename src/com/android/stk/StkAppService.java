@@ -75,6 +75,7 @@ import android.widget.Toast;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.internal.telephony.GsmAlphabet;
+import com.android.internal.telephony.ITelephony;
 import com.android.internal.telephony.PhoneConfigurationManager;
 import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.cat.AppInterface;
@@ -1824,12 +1825,12 @@ public class StkAppService extends Service implements Runnable {
             registerReceiver(mUserActivityReceiver, new IntentFilter(
                     WindowManagerPolicyConstants.ACTION_USER_ACTIVITY_NOTIFICATION));
             try {
-                IWindowManager wm = IWindowManager.Stub.asInterface(
+                ITelephony telephony = ITelephony.Stub.asInterface(
                         TelephonyFrameworkInitializer
                                 .getTelephonyServiceManager()
-                                .getWindowServiceRegisterer()
+                                .getTelephonyServiceRegisterer()
                                 .get());
-                wm.requestUserActivityNotification();
+                telephony.requestUserActivityNotification();
             } catch (RemoteException e) {
                 CatLog.e(LOG_TAG, "failed to init WindowManager:" + e);
             }
