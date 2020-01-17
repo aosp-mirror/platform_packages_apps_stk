@@ -2,10 +2,6 @@
 
 android_app {
     name: "Stk",
-    libs: [
-        "telephony-common",
-        "StkLib",
-    ],
     static_libs: ["com.google.android.material_material"],
     platform_apis: true,
     certificate: "platform",
