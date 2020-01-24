@@ -334,8 +334,6 @@ public class StkAppService extends Service implements Runnable {
         serviceThread.start();
         mNotificationManager = (NotificationManager) mContext
                 .getSystemService(Context.NOTIFICATION_SERVICE);
-        PhoneConfigurationManager.registerForMultiSimConfigChange(mServiceHandler,
-                EVENT_MULTI_SIM_CONFIG_CHANGED, null);
         sInstance = this;
     }
 
@@ -418,6 +416,7 @@ public class StkAppService extends Service implements Runnable {
         unregisterHomeKeyEventReceiver();
         sInstance = null;
         waitForLooper();
+        PhoneConfigurationManager.unregisterForMultiSimConfigChange(mServiceHandler);
         mServiceLooper.quit();
     }
 
@@ -431,6 +430,9 @@ public class StkAppService extends Service implements Runnable {
 
         mServiceLooper = Looper.myLooper();
         mServiceHandler = new ServiceHandler();
+
+        PhoneConfigurationManager.registerForMultiSimConfigChange(mServiceHandler,
+                EVENT_MULTI_SIM_CONFIG_CHANGED, null);
 
         Looper.loop();
     }
