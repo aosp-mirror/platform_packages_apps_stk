@@ -62,19 +62,20 @@ import android.telephony.TelephonyFrameworkInitializer;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.view.Gravity;
-import android.view.IWindowManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.WindowManagerPolicyConstants;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.internal.telephony.GsmAlphabet;
 import com.android.internal.telephony.ITelephony;
 import com.android.internal.telephony.PhoneConfigurationManager;
 import com.android.internal.telephony.PhoneConstants;
+import com.android.internal.telephony.TelephonyIntents;
 import com.android.internal.telephony.cat.AppInterface;
 import com.android.internal.telephony.cat.CatCmdMessage;
 import com.android.internal.telephony.cat.CatCmdMessage.BrowserSettings;
@@ -92,8 +93,6 @@ import com.android.internal.telephony.uicc.IccRefreshResponse;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 /**
  * SIM toolkit application level service. Interacts with Telephopny messages,
@@ -1813,7 +1812,7 @@ public class StkAppService extends Service implements Runnable {
         if (mUserActivityReceiver == null) {
             mUserActivityReceiver = new BroadcastReceiver() {
                 @Override public void onReceive(Context context, Intent intent) {
-                    if (WindowManagerPolicyConstants.ACTION_USER_ACTIVITY_NOTIFICATION.equals(
+                    if (TelephonyIntents.ACTION_USER_ACTIVITY_NOTIFICATION.equals(
                             intent.getAction())) {
                         Message message = mServiceHandler.obtainMessage(OP_USER_ACTIVITY);
                         mServiceHandler.sendMessage(message);
@@ -1822,7 +1821,7 @@ public class StkAppService extends Service implements Runnable {
                 }
             };
             registerReceiver(mUserActivityReceiver, new IntentFilter(
-                    WindowManagerPolicyConstants.ACTION_USER_ACTIVITY_NOTIFICATION));
+                    TelephonyIntents.ACTION_USER_ACTIVITY_NOTIFICATION));
             try {
                 ITelephony telephony = ITelephony.Stub.asInterface(
                         TelephonyFrameworkInitializer
