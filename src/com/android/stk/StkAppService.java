@@ -1680,7 +1680,7 @@ public class StkAppService extends Service implements Runnable {
             builder.setContentTitle(menu.title);
         }
 
-        builder.setSmallIcon(com.android.internal.R.drawable.stat_notify_sim_toolkit);
+        builder.setSmallIcon(R.drawable.stat_notify_sim_toolkit);
         builder.setOngoing(true);
         builder.setOnlyAlertOnce(true);
         builder.setColor(getResources().getColor(
@@ -2147,7 +2147,7 @@ public class StkAppService extends Service implements Runnable {
                 notificationBuilder.setContentTitle("");
             }
             notificationBuilder
-                    .setSmallIcon(com.android.internal.R.drawable.stat_notify_sim_toolkit);
+                    .setSmallIcon(R.drawable.stat_notify_sim_toolkit);
             notificationBuilder.setContentIntent(pendingIntent);
             notificationBuilder.setOngoing(true);
             notificationBuilder.setOnlyAlertOnce(true);
@@ -2164,7 +2164,7 @@ public class StkAppService extends Service implements Runnable {
             } else {
                 Bitmap bitmapIcon = BitmapFactory.decodeResource(StkAppService.this
                     .getResources().getSystem(),
-                    com.android.internal.R.drawable.stat_notify_sim_toolkit);
+                    R.drawable.stat_notify_sim_toolkit);
                 notificationBuilder.setLargeIcon(bitmapIcon);
             }
             notificationBuilder.setColor(mContext.getResources().getColor(
@@ -2215,7 +2215,7 @@ public class StkAppService extends Service implements Runnable {
         Resources resource = Resources.getSystem();
         try {
             displayDialog = !resource.getBoolean(
-                    com.android.internal.R.bool.config_stkNoAlphaUsrCnf);
+                    R.bool.config_stkNoAlphaUsrCnf);
         } catch (NotFoundException e) {
             displayDialog = true;
         }
@@ -2361,7 +2361,7 @@ public class StkAppService extends Service implements Runnable {
 
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         if (!mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_sf_slowBlur)) {
+                R.bool.config_sf_slowBlur)) {
             dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
         }
 
@@ -2390,8 +2390,7 @@ public class StkAppService extends Service implements Runnable {
                     .create();
 
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-        if (!mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_sf_slowBlur)) {
+        if (!mContext.getResources().getBoolean(R.bool.config_sf_slowBlur)) {
             dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
         }
 
