@@ -153,7 +153,7 @@ public class StkMenuConfig {
     private void initialize(Context context) {
         mContext = context;
         mArray = new ArrayList<Config>();
-        mConfigs = new Config[TelephonyManager.from(mContext).getSimCount()];
+        mConfigs = new Config[TelephonyManager.from(mContext).getSupportedModemCount()];
 
         XmlResourceParser parser = mContext.getResources().getXml(R.xml.menu_conf);
 
