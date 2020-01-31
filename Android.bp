@@ -5,7 +5,6 @@ android_app {
     libs: ["telephony-common"],
     static_libs: ["com.google.android.material_material"],
     srcs: ["**/*.java"],
-    jarjar_rules: "jarjar-rules.txt",
     platform_apis: true,
     certificate: "platform",
     aaptflags: [
