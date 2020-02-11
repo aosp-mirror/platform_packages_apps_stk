@@ -46,8 +46,8 @@ import java.util.ArrayList;
 public class StkLauncherActivity extends ListActivity {
     private TextView mTitleTextView = null;
     private ImageView mTitleIconView = null;
-    private static final String className = new Object(){}.getClass().getEnclosingClass().getName();
-    private static final String LOG_TAG = className.substring(className.lastIndexOf('.') + 1);
+    private static final String LOG_TAG =
+            new Object(){}.getClass().getEnclosingClass().getSimpleName();
     private ArrayList<Item> mStkMenuList = null;
     private int mSingleSimId = -1;
     private Context mContext = null;
@@ -94,7 +94,7 @@ public class StkLauncherActivity extends ListActivity {
             return;
         }
         CatLog.d(LOG_TAG, "launch stk menu id: " + item.id);
-        if (item.id >= PhoneConstants.SIM_ID_1 && item.id < simCount) {
+        if (item.id >= 0 && item.id < simCount) {
             mAcceptUsersInput = false;
             launchSTKMainMenu(item.id);
         }
@@ -220,8 +220,7 @@ public class StkLauncherActivity extends ListActivity {
         Bundle args = new Bundle();
         CatLog.d(LOG_TAG, "launchSTKMainMenu.");
         args.putInt(StkAppService.OPCODE, StkAppService.OP_LAUNCH_APP);
-        args.putInt(StkAppService.SLOT_ID
-                , PhoneConstants.SIM_ID_1 + slodId);
+        args.putInt(StkAppService.SLOT_ID, slodId);
         startService(new Intent(this, StkAppService.class)
                 .putExtras(args));
     }
