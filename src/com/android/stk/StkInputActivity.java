@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.telephony.CarrierConfigManager;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextUtils;
@@ -42,13 +43,18 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.TextView.BufferType;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import com.android.internal.telephony.cat.CatLog;
 import com.android.internal.telephony.cat.Input;
+
+import com.google.android.material.textfield.TextInputLayout;
 
 /**
  * Display a request for a text input a long with a text edit form.
  */
-public class StkInputActivity extends Activity implements View.OnClickListener,
+public class StkInputActivity extends AppCompatActivity implements View.OnClickListener,
         TextWatcher {
 
     // Members
@@ -61,8 +67,8 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     private View mNormalLayout = null;
 
     // Constants
-    private static final String className = new Object(){}.getClass().getEnclosingClass().getName();
-    private static final String LOG_TAG = className.substring(className.lastIndexOf('.') + 1);
+    private static final String LOG_TAG =
+            new Object(){}.getClass().getEnclosingClass().getSimpleName();
 
     private Input mStkInput = null;
     // Constants
@@ -81,7 +87,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     private static final String RESPONSE_SENT_KEY = "response_sent";
     private static final String INPUT_STRING_KEY = "input_string";
     private static final String ALARM_TIME_KEY = "alarm_time";
-    private static final String PENDING = "pending";
 
     private static final String INPUT_ALARM_TAG = LOG_TAG;
     private static final long NO_INPUT_ALARM = -1;
@@ -90,8 +95,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     private StkAppService appService = StkAppService.getInstance();
 
     private boolean mIsResponseSent = false;
-    // Determines whether this is in the pending state.
-    private boolean mIsPending = false;
     private int mSlotId = -1;
 
     // Click listener to handle buttons press..
@@ -102,22 +105,18 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             return;
         }
 
-        switch (v.getId()) {
-        case R.id.button_ok:
+        if (v.getId() == R.id.button_ok) {
             input = mTextIn.getText().toString();
-            break;
-        case R.id.button_cancel:
+        } else if (v.getId() == R.id.button_cancel) {
             sendResponse(StkAppService.RES_ID_END_SESSION);
             finish();
             return;
-        // Yes/No layout buttons.
-        case R.id.button_yes:
+            // Yes/No layout buttons.
+        } else if (v.getId() == R.id.button_yes) {
             input = YES_STR_RESPONSE;
-            break;
-        case R.id.button_no:
+        } else if (v.getId() == R.id.button_no) {
             input = NO_STR_RESPONSE;
-            break;
-        case R.id.more:
+        } else if (v.getId() == R.id.more) {
             if (mPopupMenu == null) {
                 mPopupMenu = new PopupMenu(this, v);
                 Menu menu = mPopupMenu.getMenu();
@@ -137,8 +136,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
                 mPopupMenu.show();
             }
             return;
-        default:
-            break;
         }
         CatLog.d(LOG_TAG, "handleClick, ready to response");
         sendResponse(StkAppService.RES_ID_INPUT, input, false);
@@ -158,18 +155,13 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
             return;
         }
 
-        ActionBar actionBar = null;
-        if (getResources().getBoolean(R.bool.show_menu_title_only_on_menu)) {
-            actionBar = getActionBar();
-            if (actionBar != null) {
-                actionBar.hide();
-            }
-        }
-
         // Set the layout for this activity.
         setContentView(R.layout.stk_input);
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
-        if (actionBar != null) {
+        if (getResources().getBoolean(R.bool.show_menu_title_only_on_menu)) {
+            getSupportActionBar().hide();
+
             mMoreOptions = findViewById(R.id.more);
             mMoreOptions.setVisibility(View.VISIBLE);
             mMoreOptions.setOnClickListener(this);
@@ -192,6 +184,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         mYesNoLayout = findViewById(R.id.yes_no_layout);
         mNormalLayout = findViewById(R.id.normal_layout);
         initFromIntent(getIntent());
+        appService.getStkContext(mSlotId).setPendingActivityInstance(this);
     }
 
     @Override
@@ -206,12 +199,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         super.onResume();
         CatLog.d(LOG_TAG, "onResume - mIsResponseSent[" + mIsResponseSent +
                 "], slot id: " + mSlotId);
-        // If the terminal has already sent response to the card when this activity is resumed,
-        // keep this as a pending activity as this should be finished when the session ends.
-        if (!mIsResponseSent) {
-            setPendingState(false);
-        }
-
         if (mAlarmTime == NO_INPUT_ALARM) {
             startTimeOut();
         }
@@ -230,23 +217,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     public void onStop() {
         super.onStop();
         CatLog.d(LOG_TAG, "onStop - mIsResponseSent[" + mIsResponseSent + "]");
-
-        // Nothing should be done here if this activity is being finished or restarted now.
-        if (isFinishing() || isChangingConfigurations()) {
-            return;
-        }
-
-        if (mIsResponseSent) {
-            // It is unnecessary to keep this activity if the response was already sent and
-            // the dialog activity is NOT on the top of this activity.
-            if (!appService.isStkDialogActivated()) {
-                finish();
-            }
-        } else {
-            // This should be registered as the pending activity here
-            // only when no response has been sent back to the card.
-            setPendingState(true);
-        }
     }
 
     @Override
@@ -326,11 +296,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         }
         args.putBoolean(StkAppService.HELP, help);
         appService.sendResponse(args, mSlotId);
-
-        // This instance should be set as a pending activity and finished by the service
-        if (resId != StkAppService.RES_ID_END_SESSION) {
-            setPendingState(true);
-        }
     }
 
     @Override
@@ -388,7 +353,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         outState.putBoolean(RESPONSE_SENT_KEY, mIsResponseSent);
         outState.putString(INPUT_STRING_KEY, mTextIn.getText().toString());
         outState.putLong(ALARM_TIME_KEY, mAlarmTime);
-        outState.putBoolean(PENDING, mIsPending);
     }
 
     @Override
@@ -407,22 +371,6 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         mAlarmTime = savedInstanceState.getLong(ALARM_TIME_KEY, NO_INPUT_ALARM);
         if (mAlarmTime != NO_INPUT_ALARM) {
             startTimeOut();
-        }
-
-        if (!mIsResponseSent && !savedInstanceState.getBoolean(PENDING)) {
-            // If this is in the foreground and no response has been sent to the card,
-            // this must not be registered as pending activity by the previous instance.
-            // No need to renew nor clear pending activity in this case.
-        } else {
-            // Renew the instance of the pending activity.
-            setPendingState(true);
-        }
-    }
-
-    private void setPendingState(boolean on) {
-        if (mIsPending != on) {
-            appService.getStkContext(mSlotId).setPendingActivityInstance(on ? this : null);
-            mIsPending = on;
         }
     }
 
@@ -476,8 +424,7 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
     }
 
     private void configInputDisplay() {
-        TextView numOfCharsView = (TextView) findViewById(R.id.num_of_chars);
-        TextView inTypeView = (TextView) findViewById(R.id.input_type);
+        TextInputLayout textInput = (TextInputLayout) findViewById(R.id.text_input_layout);
 
         int inTypeId = R.string.alphabet;
 
@@ -489,11 +436,16 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         }
 
         // Set input type (alphabet/digit) info close to the InText form.
+        boolean hideHelper = false;
         if (mStkInput.digitOnly) {
             mTextIn.setKeyListener(StkDigitsKeyListener.getInstance());
             inTypeId = R.string.digits;
+            hideHelper = StkAppService.getBooleanCarrierConfig(this,
+                    CarrierConfigManager.KEY_HIDE_DIGITS_HELPER_TEXT_ON_STK_INPUT_SCREEN_BOOL,
+                    mSlotId);
         }
-        inTypeView.setText(inTypeId);
+        textInput.setHelperText(getResources().getString(inTypeId));
+        textInput.setHelperTextEnabled(!hideHelper);
 
         setTitle(R.string.app_name);
 
@@ -506,17 +458,10 @@ public class StkInputActivity extends Activity implements View.OnClickListener,
         // Handle specific global and text attributes.
         switch (mState) {
         case STATE_TEXT:
-            int maxLen = mStkInput.maxLen;
-            int minLen = mStkInput.minLen;
-            mTextIn.setFilters(new InputFilter[] {new InputFilter.LengthFilter(
-                    maxLen)});
+            mTextIn.setFilters(new InputFilter[] {new InputFilter.LengthFilter(mStkInput.maxLen)});
 
-            // Set number of chars info.
-            String lengthLimit = String.valueOf(minLen);
-            if (maxLen != minLen) {
-                lengthLimit = minLen + " - " + maxLen;
-            }
-            numOfCharsView.setText(lengthLimit);
+            textInput.setCounterMaxLength(mStkInput.maxLen);
+            textInput.setCounterEnabled(true);
 
             if (!mStkInput.echo) {
                 mTextIn.setTransformationMethod(PasswordTransformationMethod

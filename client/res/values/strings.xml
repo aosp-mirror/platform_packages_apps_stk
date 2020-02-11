@@ -14,12 +14,7 @@
      limitations under the License.
 -->
 
-
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        package="com.android.stk.lib">
-
-    <application>
-        <library android:name="com.android.stk.lib" />
-    </application>
-
-</manifest>
+<resources>
+    <!-- Default Application label used on home screen with an icon -->
+    <string name="app_name">SIM Toolkit</string>
+</resources>

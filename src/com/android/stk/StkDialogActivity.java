@@ -22,7 +22,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.telephony.SubscriptionManager;
@@ -34,6 +33,7 @@ import android.widget.TextView;
 
 import com.android.internal.telephony.cat.CatLog;
 import com.android.internal.telephony.cat.TextMessage;
+import com.android.internal.telephony.util.TelephonyUtils;
 
 /**
  * AlertDialog used for DISPLAY TEXT commands.
@@ -41,15 +41,13 @@ import com.android.internal.telephony.cat.TextMessage;
  */
 public class StkDialogActivity extends Activity {
     // members
-    private static final String className = new Object(){}.getClass().getEnclosingClass().getName();
-    private static final String LOG_TAG = className.substring(className.lastIndexOf('.') + 1);
+    private static final String LOG_TAG =
+            new Object(){}.getClass().getEnclosingClass().getSimpleName();
     TextMessage mTextMsg = null;
     private int mSlotId = -1;
     private StkAppService appService = StkAppService.getInstance();
     // Determines whether Terminal Response (TR) has been sent
     private boolean mIsResponseSent = false;
-    // Determines whether this is in the pending state.
-    private boolean mIsPending = false;
     // Utilize AlarmManager for real-time countdown
     private static final String DIALOG_ALARM_TAG = LOG_TAG;
     private static final long NO_DIALOG_ALARM = -1;
@@ -60,7 +58,6 @@ public class StkDialogActivity extends Activity {
     private static final String ALARM_TIME_KEY = "alarm_time";
     private static final String RESPONSE_SENT_KEY = "response_sent";
     private static final String SLOT_ID_KEY = "slotid";
-    private static final String PENDING = "pending";
 
 
     private AlertDialog mAlertDialog;
@@ -124,6 +121,8 @@ public class StkDialogActivity extends Activity {
             // command with an immediate response object should disappear when the terminal receives
             // a subsequent proactive command containing display data.
             appService.getStkContext(mSlotId).setImmediateDialogInstance(this);
+        } else {
+            appService.getStkContext(mSlotId).setPendingDialogInstance(this);
         }
 
         alertDialogBuilder.setTitle(mTextMsg.title);
@@ -158,9 +157,6 @@ public class StkDialogActivity extends Activity {
         super.onResume();
         CatLog.d(LOG_TAG, "onResume - mIsResponseSent[" + mIsResponseSent +
                 "], sim id: " + mSlotId);
-        // The pending dialog is unregistered if this instance was registered as it before.
-        setPendingState(false);
-
         /*
          * If the userClear flag is set and dialogduration is set to 0, the display Text
          * should be displayed to user forever until some high priority event occurs
@@ -215,14 +211,6 @@ public class StkDialogActivity extends Activity {
         super.onStop();
         CatLog.d(LOG_TAG, "onStop - before Send CONFIRM false mIsResponseSent[" +
                 mIsResponseSent + "], sim id: " + mSlotId);
-
-        // Nothing should be done here if this activity is being finished or restarted now.
-        if (isFinishing() || isChangingConfigurations()) {
-            return;
-        }
-
-        // This is registered as the pending dialog as this was sent to the background.
-        setPendingState(true);
     }
 
     @Override
@@ -260,7 +248,6 @@ public class StkDialogActivity extends Activity {
         outState.putBoolean(RESPONSE_SENT_KEY, mIsResponseSent);
         outState.putLong(ALARM_TIME_KEY, mAlarmTime);
         outState.putInt(SLOT_ID_KEY, mSlotId);
-        outState.putBoolean(PENDING, mIsPending);
     }
 
     @Override
@@ -273,11 +260,6 @@ public class StkDialogActivity extends Activity {
         mIsResponseSent = savedInstanceState.getBoolean(RESPONSE_SENT_KEY);
         mAlarmTime = savedInstanceState.getLong(ALARM_TIME_KEY, NO_DIALOG_ALARM);
         mSlotId = savedInstanceState.getInt(SLOT_ID_KEY);
-
-        // The pending dialog must be replaced if the previous instance was in the pending state.
-        if (savedInstanceState.getBoolean(PENDING)) {
-            setPendingState(true);
-        }
 
         if (mAlarmTime != NO_DIALOG_ALARM) {
             startTimeOut();
@@ -299,15 +281,6 @@ public class StkDialogActivity extends Activity {
         if ((appService != null) && (mTextMsg != null) && !mTextMsg.responseNeeded) {
             if (SubscriptionManager.isValidSlotIndex(mSlotId)) {
                 appService.getStkContext(mSlotId).setImmediateDialogInstance(null);
-            }
-        }
-    }
-
-    private void setPendingState(boolean on) {
-        if (mTextMsg.responseNeeded) {
-            if (mIsPending != on) {
-                appService.getStkContext(mSlotId).setPendingDialogInstance(on ? this : null);
-                mIsPending = on;
             }
         }
     }
@@ -355,7 +328,7 @@ public class StkDialogActivity extends Activity {
             finish();
         }
 
-        CatLog.d(LOG_TAG, "initFromIntent - [" + (Build.IS_DEBUGGABLE ? mTextMsg : "********")
+        CatLog.d(LOG_TAG, "initFromIntent - [" + (TelephonyUtils.IS_DEBUGGABLE ? mTextMsg : "********")
                 + "], slot id: " + mSlotId);
     }
 

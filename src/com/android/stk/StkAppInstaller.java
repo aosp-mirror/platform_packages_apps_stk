@@ -32,7 +32,8 @@ import android.os.SystemProperties;
  */
 abstract class StkAppInstaller {
     private static final String STK_MAIN_ACTIVITY = "com.android.stk.StkMain";
-    private static final String LOG_TAG = "StkAppInstaller";
+    private static final String LOG_TAG =
+            new Object(){}.getClass().getEnclosingClass().getSimpleName();
 
     private StkAppInstaller() {
         CatLog.d(LOG_TAG, "init");

@@ -20,7 +20,6 @@ import android.content.Context;
 import android.content.res.XmlResourceParser;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
@@ -28,7 +27,8 @@ import android.text.TextUtils;
 
 import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.cat.CatLog;
-import com.android.internal.util.XmlUtils;
+import com.android.internal.telephony.util.TelephonyUtils;
+import com.android.internal.telephony.util.XmlUtils;
 
 import java.util.ArrayList;
 
@@ -37,8 +37,9 @@ import java.util.ArrayList;
  * conbination of the inserted SIM card for Multi-SIM model.
  */
 public class StkMenuConfig {
-    private static final String LOG_TAG = "StkMenuConfig";
-    private static final boolean DBG = Build.IS_DEBUGGABLE;
+    private static final String LOG_TAG =
+            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final boolean DBG = TelephonyUtils.IS_DEBUGGABLE;
 
     private static final String XML_OPERATORS_TAG = "operators";
     private static final String XML_OPERATOR_TAG = "operator";
@@ -152,7 +153,7 @@ public class StkMenuConfig {
     private void initialize(Context context) {
         mContext = context;
         mArray = new ArrayList<Config>();
-        mConfigs = new Config[TelephonyManager.from(mContext).getSimCount()];
+        mConfigs = new Config[TelephonyManager.from(mContext).getSupportedModemCount()];
 
         XmlResourceParser parser = mContext.getResources().getXml(R.xml.menu_conf);
 

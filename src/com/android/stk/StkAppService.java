@@ -40,7 +40,6 @@ import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -55,7 +54,6 @@ import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.provider.Settings;
-import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.CarrierConfigManager;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
@@ -72,6 +70,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.content.IntentFilter;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.android.internal.telephony.PhoneConfigurationManager;
 import com.android.internal.telephony.cat.AppInterface;
 import com.android.internal.telephony.cat.Input;
 import com.android.internal.telephony.cat.LaunchBrowserMode;
@@ -143,29 +144,29 @@ public class StkAppService extends Service implements Runnable {
         // Determins whether the current session was initiated by user operation.
         protected boolean mIsSessionFromUser = false;
         final synchronized void setPendingActivityInstance(Activity act) {
-            CatLog.d(this, "setPendingActivityInstance act : " + mSlotId + ", " + act);
+            CatLog.d(LOG_TAG, "setPendingActivityInstance act : " + mSlotId + ", " + act);
             callSetActivityInstMsg(OP_SET_ACT_INST, mSlotId, act);
         }
         final synchronized Activity getPendingActivityInstance() {
-            CatLog.d(this, "getPendingActivityInstance act : " + mSlotId + ", " +
+            CatLog.d(LOG_TAG, "getPendingActivityInstance act : " + mSlotId + ", " +
                     mActivityInstance);
             return mActivityInstance;
         }
         final synchronized void setPendingDialogInstance(Activity act) {
-            CatLog.d(this, "setPendingDialogInstance act : " + mSlotId + ", " + act);
+            CatLog.d(LOG_TAG, "setPendingDialogInstance act : " + mSlotId + ", " + act);
             callSetActivityInstMsg(OP_SET_DAL_INST, mSlotId, act);
         }
         final synchronized Activity getPendingDialogInstance() {
-            CatLog.d(this, "getPendingDialogInstance act : " + mSlotId + ", " +
+            CatLog.d(LOG_TAG, "getPendingDialogInstance act : " + mSlotId + ", " +
                     mDialogInstance);
             return mDialogInstance;
         }
         final synchronized void setImmediateDialogInstance(Activity act) {
-            CatLog.d(this, "setImmediateDialogInstance act : " + mSlotId + ", " + act);
+            CatLog.d(LOG_TAG, "setImmediateDialogInstance act : " + mSlotId + ", " + act);
             callSetActivityInstMsg(OP_SET_IMMED_DAL_INST, mSlotId, act);
         }
         final synchronized Activity getImmediateDialogInstance() {
-            CatLog.d(this, "getImmediateDialogInstance act : " + mSlotId + ", " +
+            CatLog.d(LOG_TAG, "getImmediateDialogInstance act : " + mSlotId + ", " +
                     mImmediateDialogInstance);
             return mImmediateDialogInstance;
         }
@@ -228,6 +229,7 @@ public class StkAppService extends Service implements Runnable {
     static final int OP_ALPHA_NOTIFY = 11;
     static final int OP_IDLE_SCREEN = 12;
     static final int OP_SET_IMMED_DAL_INST = 13;
+    static final int OP_HOME_KEY_PRESSED = 14;
 
     //Invalid SetupEvent
     static final int INVALID_SETUP_EVENT = 0xFF;
@@ -238,11 +240,11 @@ public class StkAppService extends Service implements Runnable {
     // Message id to signal stop tone on user keyback.
     static final int OP_STOP_TONE_USER = 17;
 
-    // Message id to remove stop tone message from queue.
-    private static final int STOP_TONE_WHAT = 100;
-
     // Message id to send user activity event to card.
     private static final int OP_USER_ACTIVITY = 20;
+
+    // Message id that multi-SIM config has changed (ss <-> ds).
+    private static final int EVENT_MULTI_SIM_CONFIG_CHANGED = 21;
 
     // Response ids
     static final int RES_ID_MENU_SELECTION = 11;
@@ -264,6 +266,9 @@ public class StkAppService extends Service implements Runnable {
     static final int STATE_NOT_EXIST = 0;
     static final int STATE_EXIST = 1;
 
+    private static final Integer PLAY_TONE_ONLY = 0;
+    private static final Integer PLAY_TONE_WITH_DIALOG = 1;
+
     private static final String PACKAGE_NAME = "com.android.stk";
     private static final String STK_MENU_ACTIVITY_NAME = PACKAGE_NAME + ".StkMenuActivity";
     private static final String STK_INPUT_ACTIVITY_NAME = PACKAGE_NAME + ".StkInputActivity";
@@ -273,7 +278,8 @@ public class StkAppService extends Service implements Runnable {
     // Notification channel containing all mobile service messages notifications.
     private static final String STK_NOTIFICATION_CHANNEL_ID = "mobileServiceMessages";
 
-    private static final String LOG_TAG = new Object(){}.getClass().getEnclosingClass().getName();
+    private static final String LOG_TAG =
+            new Object(){}.getClass().getEnclosingClass().getSimpleName();
 
     static final String SESSION_ENDED = "session_ended";
 
@@ -299,16 +305,22 @@ public class StkAppService extends Service implements Runnable {
     private static final long[] VIBRATION_PATTERN = new long[] { 0, 350, 250, 350 };
     private BroadcastReceiver mUserPresentReceiver = null;
 
+    // The reason based on Intent.ACTION_CLOSE_SYSTEM_DIALOGS.
+    private static final String SYSTEM_DIALOG_REASON_KEY = "reason";
+    private static final String SYSTEM_DIALOG_REASON_HOME_KEY = "homekey";
+    private BroadcastReceiver mHomeKeyEventReceiver = null;
+
     @Override
     public void onCreate() {
         CatLog.d(LOG_TAG, "onCreate()+");
         // Initialize members
         int i = 0;
         mContext = getBaseContext();
-        mSimCount = TelephonyManager.from(mContext).getSimCount();
+        mSimCount = TelephonyManager.from(mContext).getActiveModemCount();
+        int maxSimCount = TelephonyManager.from(mContext).getSupportedModemCount();
         CatLog.d(LOG_TAG, "simCount: " + mSimCount);
-        mStkService = new AppInterface[mSimCount];
-        mStkContext = new StkContext[mSimCount];
+        mStkService = new AppInterface[maxSimCount];
+        mStkContext = new StkContext[maxSimCount];
 
         for (i = 0; i < mSimCount; i++) {
             CatLog.d(LOG_TAG, "slotId: " + i);
@@ -352,7 +364,7 @@ public class StkAppService extends Service implements Runnable {
                 mStkContext[slotId].mStkServiceState = STATE_NOT_EXIST;
                 //Check other StkService state.
                 //If all StkServices are not available, stop itself and uninstall apk.
-                for (i = PhoneConstants.SIM_ID_1; i < mSimCount; i++) {
+                for (i = 0; i < mSimCount; i++) {
                     if (i != slotId
                             && (mStkService[i] != null)
                             && (mStkContext[i].mStkServiceState == STATE_UNKNOWN
@@ -372,10 +384,8 @@ public class StkAppService extends Service implements Runnable {
 
         waitForLooper();
 
-        Message msg = mServiceHandler.obtainMessage();
-        msg.arg1 = op;
-        msg.arg2 = slotId;
-        switch(msg.arg1) {
+        Message msg = mServiceHandler.obtainMessage(op, 0, slotId);
+        switch (op) {
         case OP_CMD:
             msg.obj = args.getParcelable(CMD_MSG);
             break;
@@ -384,15 +394,12 @@ public class StkAppService extends Service implements Runnable {
         case OP_LOCALE_CHANGED:
         case OP_ALPHA_NOTIFY:
         case OP_IDLE_SCREEN:
+        case OP_STOP_TONE_USER:
             msg.obj = args;
             /* falls through */
         case OP_LAUNCH_APP:
         case OP_END_SESSION:
         case OP_BOOT_COMPLETED:
-            break;
-        case OP_STOP_TONE_USER:
-            msg.obj = args;
-            msg.what = STOP_TONE_WHAT;
             break;
         default:
             return;
@@ -406,8 +413,10 @@ public class StkAppService extends Service implements Runnable {
         unregisterUserActivityReceiver();
         unregisterProcessObserver();
         unregisterLocaleChangeReceiver();
+        unregisterHomeKeyEventReceiver();
         sInstance = null;
         waitForLooper();
+        PhoneConfigurationManager.unregisterForMultiSimConfigChange(mServiceHandler);
         mServiceLooper.quit();
     }
 
@@ -422,13 +431,16 @@ public class StkAppService extends Service implements Runnable {
         mServiceLooper = Looper.myLooper();
         mServiceHandler = new ServiceHandler();
 
+        PhoneConfigurationManager.registerForMultiSimConfigChange(mServiceHandler,
+                EVENT_MULTI_SIM_CONFIG_CHANGED, null);
+
         Looper.loop();
     }
 
     /*
      * Package api used by StkMenuActivity to indicate if its on the foreground.
      */
-    void indicateMenuVisibility(boolean visibility, int slotId) {
+    synchronized void indicateMenuVisibility(boolean visibility, int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             mStkContext[slotId].mMenuIsVisible = visibility;
         }
@@ -437,13 +449,13 @@ public class StkAppService extends Service implements Runnable {
     /*
      * Package api used by StkDialogActivity to indicate if its on the foreground.
      */
-    void setDisplayTextDlgVisibility(boolean visibility, int slotId) {
+    synchronized void setDisplayTextDlgVisibility(boolean visibility, int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             mStkContext[slotId].mDisplayTextDlgIsVisibile = visibility;
         }
     }
 
-    boolean isInputPending(int slotId) {
+    synchronized boolean isInputPending(int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             CatLog.d(LOG_TAG, "isInputFinishBySrv: " + mStkContext[slotId].mIsInputPending);
             return mStkContext[slotId].mIsInputPending;
@@ -451,7 +463,7 @@ public class StkAppService extends Service implements Runnable {
         return false;
     }
 
-    boolean isMenuPending(int slotId) {
+    synchronized boolean isMenuPending(int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             CatLog.d(LOG_TAG, "isMenuPending: " + mStkContext[slotId].mIsMenuPending);
             return mStkContext[slotId].mIsMenuPending;
@@ -459,7 +471,7 @@ public class StkAppService extends Service implements Runnable {
         return false;
     }
 
-    boolean isDialogPending(int slotId) {
+    synchronized boolean isDialogPending(int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             CatLog.d(LOG_TAG, "isDialogPending: " + mStkContext[slotId].mIsDialogPending);
             return mStkContext[slotId].mIsDialogPending;
@@ -467,7 +479,7 @@ public class StkAppService extends Service implements Runnable {
         return false;
     }
 
-    boolean isMainMenuAvailable(int slotId) {
+    synchronized boolean isMainMenuAvailable(int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             // The main menu can handle the next user operation if the previous session finished.
             return (mStkContext[slotId].lastSelectedItem == null) ? true : false;
@@ -478,7 +490,7 @@ public class StkAppService extends Service implements Runnable {
     /*
      * Package api used by StkMenuActivity to get its Menu parameter.
      */
-    Menu getMenu(int slotId) {
+    synchronized Menu getMenu(int slotId) {
         CatLog.d(LOG_TAG, "StkAppService, getMenu, sim id: " + slotId);
         if (slotId >=0 && slotId < mSimCount) {
             return mStkContext[slotId].mCurrentMenu;
@@ -490,7 +502,7 @@ public class StkAppService extends Service implements Runnable {
     /*
      * Package api used by StkMenuActivity to get its Main Menu parameter.
      */
-    Menu getMainMenu(int slotId) {
+    synchronized Menu getMainMenu(int slotId) {
         CatLog.d(LOG_TAG, "StkAppService, getMainMenu, sim id: " + slotId);
         if (slotId >=0 && slotId < mSimCount && (mStkContext[slotId].mMainCmd != null)) {
             Menu menu = mStkContext[slotId].mMainCmd.getMenu();
@@ -546,7 +558,7 @@ public class StkAppService extends Service implements Runnable {
                 CatLog.d(LOG_TAG, "ServiceHandler handleMessage msg is null");
                 return;
             }
-            int opcode = msg.arg1;
+            int opcode = msg.what;
             int slotId = msg.arg2;
 
             CatLog.d(LOG_TAG, "handleMessage opcode[" + opcode + "], sim id[" + slotId + "]");
@@ -554,6 +566,11 @@ public class StkAppService extends Service implements Runnable {
                     ((CatCmdMessage)msg.obj).getCmdType()!= null) {
                 CatLog.d(LOG_TAG, "cmdName[" + ((CatCmdMessage)msg.obj).getCmdType().name() + "]");
             }
+            if (slotId >= mStkContext.length || mStkContext[slotId] == null) {
+                CatLog.d(LOG_TAG, "invalid slotId " + slotId);
+                return;
+            }
+
             mStkContext[slotId].mOpCode = opcode;
             switch (opcode) {
             case OP_LAUNCH_APP:
@@ -619,7 +636,7 @@ public class StkAppService extends Service implements Runnable {
             case OP_BOOT_COMPLETED:
                 CatLog.d(LOG_TAG, " OP_BOOT_COMPLETED");
                 int i = 0;
-                for (i = PhoneConstants.SIM_ID_1; i < mSimCount; i++) {
+                for (i = 0; i < mSimCount; i++) {
                     if (mStkContext[i].mMainCmd != null) {
                         break;
                     }
@@ -648,18 +665,12 @@ public class StkAppService extends Service implements Runnable {
                         CatLog.d(LOG_TAG, "Finish the previous pending activity - " + previous);
                         previous.finish();
                     }
-                    // Pending activity is registered in the following 2 scnarios;
-                    // A. TERMINAL RESPONSE was sent to the card.
-                    // B. Activity was moved to the background before TR is sent to the card.
-                    // No need to observe idle screen for the pending activity in the scenario A.
-                    if (act != null && mStkContext[slotId].mCmdInProgress) {
-                        startToObserveIdleScreen(slotId);
-                    } else {
-                        if (mStkContext[slotId].mCurrentCmd != null) {
-                            unregisterProcessObserver(
-                                    mStkContext[slotId].mCurrentCmd.getCmdType(), slotId);
-                        }
-                    }
+                }
+                // Clear pending dialog instance if it has not been cleared yet.
+                Activity dialog = mStkContext[slotId].getPendingDialogInstance();
+                if (dialog != null && (dialog.isDestroyed() || dialog.isFinishing())) {
+                    CatLog.d(LOG_TAG, "Clear pending dialog instance - " + dialog);
+                    mStkContext[slotId].mDialogInstance = null;
                 }
                 break;
             case OP_SET_DAL_INST:
@@ -667,14 +678,6 @@ public class StkAppService extends Service implements Runnable {
                 if (mStkContext[slotId].mDialogInstance != dal) {
                     CatLog.d(LOG_TAG, "Set pending dialog instance - " + dal);
                     mStkContext[slotId].mDialogInstance = dal;
-                    if (dal != null) {
-                        startToObserveIdleScreen(slotId);
-                    } else {
-                        if (mStkContext[slotId].mCurrentCmd != null) {
-                            unregisterProcessObserver(
-                                    mStkContext[slotId].mCurrentCmd.getCmdType(), slotId);
-                        }
-                    }
                 }
                 break;
             case OP_SET_IMMED_DAL_INST:
@@ -683,8 +686,8 @@ public class StkAppService extends Service implements Runnable {
                 mStkContext[slotId].mImmediateDialogInstance = immedDal;
                 break;
             case OP_LOCALE_CHANGED:
-                CatLog.d(this, "Locale Changed");
-                for (int slot = PhoneConstants.SIM_ID_1; slot < mSimCount; slot++) {
+                CatLog.d(LOG_TAG, "Locale Changed");
+                for (int slot = 0; slot < mSimCount; slot++) {
                     checkForSetupEvent(LANGUAGE_SELECTION_EVENT, (Bundle) msg.obj, slot);
                 }
                 // rename all registered notification channels on locale change
@@ -702,12 +705,23 @@ public class StkAppService extends Service implements Runnable {
                 break;
             case OP_STOP_TONE_USER:
             case OP_STOP_TONE:
-                CatLog.d(this, "Stop tone");
+                CatLog.d(LOG_TAG, "Stop tone");
                 handleStopTone(msg, slotId);
                 break;
             case OP_USER_ACTIVITY:
-                for (int slot = PhoneConstants.SIM_ID_1; slot < mSimCount; slot++) {
+                for (int slot = 0; slot < mSimCount; slot++) {
                     checkForSetupEvent(USER_ACTIVITY_EVENT, null, slot);
+                }
+                break;
+            case EVENT_MULTI_SIM_CONFIG_CHANGED:
+                handleMultiSimConfigChanged();
+                break;
+            case OP_HOME_KEY_PRESSED:
+                CatLog.d(LOG_TAG, "Process the home key pressed event");
+                for (int slot = 0; slot < mSimCount; slot++) {
+                    if (mStkContext[slot] != null) {
+                        handleHomeKeyPressed(slot);
+                    }
                 }
                 break;
             }
@@ -724,6 +738,12 @@ public class StkAppService extends Service implements Runnable {
                 mStkContext[slotId].mCurrentMenu = null;
                 mStkContext[slotId].mMainCmd = null;
                 mStkService[slotId] = null;
+                // Stop the tone currently being played if the relevant SIM is removed or disabled.
+                if (mStkContext[slotId].mCurrentCmd != null
+                        && mStkContext[slotId].mCurrentCmd.getCmdType().value()
+                        == AppInterface.CommandType.PLAY_TONE.value()) {
+                    terminateTone(slotId);
+                }
                 if (isAllOtherCardsAbsent(slotId)) {
                     CatLog.d(LOG_TAG, "All CARDs are ABSENT");
                     StkAppInstaller.unInstall(mContext);
@@ -742,6 +762,28 @@ public class StkAppService extends Service implements Runnable {
             }
         }
     }
+
+    private synchronized void handleMultiSimConfigChanged() {
+        int oldSimCount = mSimCount;
+        mSimCount = TelephonyManager.from(mContext).getActiveModemCount();
+        for (int i = oldSimCount; i < mSimCount; i++) {
+            CatLog.d(LOG_TAG, "slotId: " + i);
+            mStkService[i] = CatService.getInstance(i);
+            mStkContext[i] = new StkContext();
+            mStkContext[i].mSlotId = i;
+            mStkContext[i].mCmdsQ = new LinkedList<DelayedCmd>();
+        }
+
+        for (int i = mSimCount; i < oldSimCount; i++) {
+            CatLog.d(LOG_TAG, "slotId: " + i);
+            if (mStkService[i] != null) {
+                mStkService[i].dispose();
+                mStkService[i] = null;
+            }
+            mStkContext[i] = null;
+        }
+    }
+
     /*
      * Check if all SIMs are absent except the id of slot equals "slotId".
      */
@@ -789,39 +831,57 @@ public class StkAppService extends Service implements Runnable {
         return false;
     }
 
-    private void startToObserveIdleScreen(int slotId) {
-        if (!mStkContext[slotId].mIsSessionFromUser) {
-            if (!isScreenIdle()) {
-                synchronized (this) {
-                    if (mProcessObserver == null && !mServiceHandler.hasMessages(OP_IDLE_SCREEN)) {
-                        registerProcessObserver();
-                    }
+    private synchronized void startToObserveHomeKeyEvent(int slotId) {
+        if (mStkContext[slotId].mIsSessionFromUser || mHomeKeyEventReceiver != null) {
+            return;
+        }
+        mHomeKeyEventReceiver = new BroadcastReceiver() {
+            @Override public void onReceive(Context context, Intent intent) {
+                if (SYSTEM_DIALOG_REASON_HOME_KEY.equals(
+                        intent.getStringExtra(SYSTEM_DIALOG_REASON_KEY))) {
+                    Message message = mServiceHandler.obtainMessage();
+                    message.arg1 = OP_HOME_KEY_PRESSED;
+                    mServiceHandler.sendMessage(message);
                 }
-            } else {
-                handleIdleScreen(slotId);
+            }
+        };
+        CatLog.d(LOG_TAG, "Started to observe home key event");
+        registerReceiver(mHomeKeyEventReceiver,
+                new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+    }
+
+    private synchronized void unregisterHomeKeyEventReceiver() {
+        if (mHomeKeyEventReceiver != null) {
+            CatLog.d(LOG_TAG, "Stopped to observe home key event");
+            unregisterReceiver(mHomeKeyEventReceiver);
+            mHomeKeyEventReceiver = null;
+        }
+        if (mServiceHandler != null) {
+            mServiceHandler.removeMessages(OP_HOME_KEY_PRESSED);
+        }
+    }
+
+    private void handleHomeKeyPressed(int slotId) {
+        // It might be hard for user to recognize that the dialog or screens belong to SIM Toolkit
+        // application if the current session was not initiated by user but by the SIM card,
+        // so it is recommended to send TERMINAL RESPONSE if user press the home key.
+        if (!mStkContext[slotId].mIsSessionFromUser) {
+            Activity dialog = mStkContext[slotId].getPendingDialogInstance();
+            Activity activity = mStkContext[slotId].getPendingActivityInstance();
+            if (dialog != null) {
+                dialog.finish();
+                mStkContext[slotId].mDialogInstance = null;
+            } else if (activity != null) {
+                activity.finish();
+                mStkContext[slotId].mActivityInstance = null;
             }
         }
     }
 
     private void handleIdleScreen(int slotId) {
-        // It might be hard for user to recognize that the dialog or screens belong to SIM Toolkit
-        // application if the current session was not initiated by user but by the SIM card,
-        // so it is recommended to send TERMINAL RESPONSE if user goes to the idle screen.
-        if (!mStkContext[slotId].mIsSessionFromUser) {
-            Activity dialog = mStkContext[slotId].getPendingDialogInstance();
-            if (dialog != null) {
-                dialog.finish();
-                mStkContext[slotId].mDialogInstance = null;
-            }
-            Activity activity = mStkContext[slotId].getPendingActivityInstance();
-            if (activity != null) {
-                activity.finish();
-                mStkContext[slotId].mActivityInstance = null;
-            }
-        }
         // If the idle screen event is present in the list need to send the
         // response to SIM.
-        CatLog.d(this, "Need to send IDLE SCREEN Available event to SIM");
+        CatLog.d(LOG_TAG, "Need to send IDLE SCREEN Available event to SIM");
         checkForSetupEvent(IDLE_SCREEN_AVAILABLE_EVENT, null, slotId);
 
         if (mStkContext[slotId].mIdleModeTextCmd != null
@@ -835,7 +895,7 @@ public class StkAppService extends Service implements Runnable {
             return;
         }
         CatResponseMessage resMsg = new CatResponseMessage(mStkContext[slotId].mCurrentCmd);
-        CatLog.d(this, "SCREEN_BUSY");
+        CatLog.d(LOG_TAG, "SCREEN_BUSY");
         resMsg.setResultCode(ResultCode.TERMINAL_CRNTLY_UNABLE_TO_PROCESS);
         mStkService[slotId].onCmdResponse(resMsg);
         if (mStkContext[slotId].mCmdsQ.size() != 0) {
@@ -852,22 +912,23 @@ public class StkAppService extends Service implements Runnable {
      * @param slotId slot identifier
      */
     public void sendResponse(Bundle args, int slotId) {
-        Message msg = mServiceHandler.obtainMessage();
-        msg.arg1 = OP_RESPONSE;
-        msg.arg2 = slotId;
-        msg.obj = args;
+        Message msg = mServiceHandler.obtainMessage(OP_RESPONSE, 0, slotId, args);
         mServiceHandler.sendMessage(msg);
     }
 
     private void sendResponse(int resId, int slotId, boolean confirm) {
-        Message msg = mServiceHandler.obtainMessage();
-        msg.arg1 = OP_RESPONSE;
-        msg.arg2 = slotId;
         Bundle args = new Bundle();
         args.putInt(StkAppService.RES_ID, resId);
         args.putBoolean(StkAppService.CONFIRMATION, confirm);
-        msg.obj = args;
-        mServiceHandler.sendMessage(msg);
+        sendResponse(args, slotId);
+    }
+
+    private void terminateTone(int slotId) {
+        Message msg = new Message();
+        msg.what = OP_STOP_TONE;
+        msg.obj = mServiceHandler.hasMessages(OP_STOP_TONE, PLAY_TONE_WITH_DIALOG)
+                ? PLAY_TONE_WITH_DIALOG : PLAY_TONE_ONLY;
+        handleStopTone(msg, slotId);
     }
 
     private boolean isCmdInteractive(CatCmdMessage cmd) {
@@ -911,17 +972,12 @@ public class StkAppService extends Service implements Runnable {
     }
 
     private void callDelayedMsg(int slotId) {
-        Message msg = mServiceHandler.obtainMessage();
-        msg.arg1 = OP_DELAYED_MSG;
-        msg.arg2 = slotId;
+        Message msg = mServiceHandler.obtainMessage(OP_DELAYED_MSG, 0, slotId);
         mServiceHandler.sendMessage(msg);
     }
 
-    private void callSetActivityInstMsg(int inst_type, int slotId, Object obj) {
-        Message msg = mServiceHandler.obtainMessage();
-        msg.obj = obj;
-        msg.arg1 = inst_type;
-        msg.arg2 = slotId;
+    private void callSetActivityInstMsg(int opcode, int slotId, Object obj) {
+        Message msg = mServiceHandler.obtainMessage(opcode, 0, slotId, obj);
         mServiceHandler.sendMessage(msg);
     }
 
@@ -992,13 +1048,15 @@ public class StkAppService extends Service implements Runnable {
     /**
      * Get the boolean config from carrier config manager.
      *
+     * @param context the context to get carrier service
      * @param key config key defined in CarrierConfigManager
      * @param slotId slot ID.
      * @return boolean value of corresponding key.
      */
-    private boolean getBooleanCarrierConfig(String key, int slotId) {
-        CarrierConfigManager ccm = (CarrierConfigManager) getSystemService(CARRIER_CONFIG_SERVICE);
-        SubscriptionManager sm = (SubscriptionManager) getSystemService(
+    /* package */ static boolean getBooleanCarrierConfig(Context context, String key, int slotId) {
+        CarrierConfigManager ccm = (CarrierConfigManager) context.getSystemService(
+                Context.CARRIER_CONFIG_SERVICE);
+        SubscriptionManager sm = (SubscriptionManager) context.getSystemService(
                 Context.TELEPHONY_SUBSCRIPTION_SERVICE);
         PersistableBundle b = null;
         if (ccm != null && sm != null) {
@@ -1012,6 +1070,10 @@ public class StkAppService extends Service implements Runnable {
         }
         // Return static default defined in CarrierConfigManager.
         return CarrierConfigManager.getDefaultConfig().getBoolean(key);
+    }
+
+    private boolean getBooleanCarrierConfig(String key, int slotId) {
+        return getBooleanCarrierConfig(this, key, slotId);
     }
 
     private void handleCmd(CatCmdMessage cmdMsg, int slotId) {
@@ -1076,7 +1138,7 @@ public class StkAppService extends Service implements Runnable {
                 mStkContext[slotId].mCurrentMenu = null;
                 mStkContext[slotId].mMainCmd = null;
                 //Check other setup menu state. If all setup menu are removed, uninstall apk.
-                for (i = PhoneConstants.SIM_ID_1; i < mSimCount; i++) {
+                for (i = 0; i < mSimCount; i++) {
                     if (i != slotId && mStkContext[i].mSetupMenuState != STATE_NOT_EXIST) {
                         CatLog.d(LOG_TAG, "Not Uninstall App:" + i + ","
                                 + mStkContext[i].mSetupMenuState);
@@ -1108,7 +1170,7 @@ public class StkAppService extends Service implements Runnable {
             mStkContext[slotId].mCurrentCmd = mStkContext[slotId].mMainCmd;
             if (mStkContext[slotId].mIdleModeTextCmd != null) {
                 if (mStkContext[slotId].mIdleModeTextVisible || isScreenIdle()) {
-                    CatLog.d(this, "set up idle mode");
+                    CatLog.d(LOG_TAG, "set up idle mode");
                     launchIdleText(slotId);
                 } else {
                     registerProcessObserver();
@@ -1129,7 +1191,7 @@ public class StkAppService extends Service implements Runnable {
             // The device setup process should not be interrupted by launching browser.
             if (Settings.Global.getInt(mContext.getContentResolver(),
                     Settings.Global.DEVICE_PROVISIONED, 0) == 0) {
-                CatLog.d(this, "The command is not performed if the setup has not been completed.");
+                CatLog.d(LOG_TAG, "Not perform if the setup process has not been completed.");
                 sendScreenBusyResponse(slotId);
                 break;
             }
@@ -1137,7 +1199,7 @@ public class StkAppService extends Service implements Runnable {
             /* Check if Carrier would not want to launch browser */
             if (getBooleanCarrierConfig(CarrierConfigManager.KEY_STK_DISABLE_LAUNCH_BROWSER_BOOL,
                     slotId)) {
-                CatLog.d(this, "Browser is not launched as per carrier.");
+                CatLog.d(LOG_TAG, "Browser is not launched as per carrier.");
                 sendResponse(RES_ID_DONE, slotId, true);
                 break;
             }
@@ -1145,14 +1207,14 @@ public class StkAppService extends Service implements Runnable {
             mStkContext[slotId].mBrowserSettings =
                     mStkContext[slotId].mCurrentCmd.getBrowserSettings();
             if (!isUrlAvailableToLaunchBrowser(mStkContext[slotId].mBrowserSettings)) {
-                CatLog.d(this, "Browser url property is not set - send error");
+                CatLog.d(LOG_TAG, "Browser url property is not set - send error");
                 sendResponse(RES_ID_ERROR, slotId, true);
             } else {
                 TextMessage alphaId = mStkContext[slotId].mCurrentCmd.geTextMessage();
                 if ((alphaId == null) || TextUtils.isEmpty(alphaId.text)) {
                     // don't need user confirmation in this case
                     // just launch the browser or spawn a new tab
-                    CatLog.d(this, "user confirmation is not currently needed.\n" +
+                    CatLog.d(LOG_TAG, "user confirmation is not currently needed.\n" +
                             "supressing confirmation dialogue and confirming silently...");
                     mStkContext[slotId].launchBrowser = true;
                     sendResponse(RES_ID_CONFIRM, slotId, true);
@@ -1166,7 +1228,7 @@ public class StkAppService extends Service implements Runnable {
             if((mesg != null) && (mesg.text == null || mesg.text.length() == 0)) {
                 mesg.text = getResources().getString(R.string.default_setup_call_msg);
             }
-            CatLog.d(this, "SET_UP_CALL mesg.text " + mesg.text);
+            CatLog.d(LOG_TAG, "SET_UP_CALL mesg.text " + mesg.text);
             launchConfirmationDialog(mesg, slotId);
             break;
         case PLAY_TONE:
@@ -1201,7 +1263,7 @@ public class StkAppService extends Service implements Runnable {
         case SET_UP_EVENT_LIST:
             replaceEventList(slotId);
             if (isScreenIdle()) {
-                CatLog.d(this," Check if IDLE_SCREEN_AVAILABLE_EVENT is present in List");
+                CatLog.d(LOG_TAG," Check if IDLE_SCREEN_AVAILABLE_EVENT is present in List");
                 checkForSetupEvent(IDLE_SCREEN_AVAILABLE_EVENT, null, slotId);
             }
             break;
@@ -1219,6 +1281,7 @@ public class StkAppService extends Service implements Runnable {
     @SuppressWarnings("FallThrough")
     private void handleCmdResponse(Bundle args, int slotId) {
         CatLog.d(LOG_TAG, "handleCmdResponse, sim id: " + slotId);
+        unregisterHomeKeyEventReceiver();
         if (mStkContext[slotId].mCurrentCmd == null) {
             return;
         }
@@ -1226,10 +1289,11 @@ public class StkAppService extends Service implements Runnable {
         if (mStkService[slotId] == null) {
             mStkService[slotId] = CatService.getInstance(slotId);
             if (mStkService[slotId] == null) {
-                // This should never happen (we should be responding only to a message
-                // that arrived from StkService). It has to exist by this time
-                CatLog.d(LOG_TAG, "Exception! mStkService is null when we need to send response.");
-                throw new RuntimeException("mStkService is null when we need to send response");
+                // CatService is disposed when the relevant SIM is removed or disabled.
+                // StkAppService can also be stopped when the absent state is notified,
+                // so this situation can happen.
+                CatLog.d(LOG_TAG, "No response is sent back to the missing CatService.");
+                return;
             }
         }
 
@@ -1279,7 +1343,7 @@ public class StkAppService extends Service implements Runnable {
             }
             break;
         case RES_ID_CONFIRM:
-            CatLog.d(this, "RES_ID_CONFIRM");
+            CatLog.d(LOG_TAG, "RES_ID_CONFIRM");
             confirmed = args.getBoolean(CONFIRMATION);
             switch (mStkContext[slotId].mCurrentCmd.getCmdType()) {
             case DISPLAY_TEXT:
@@ -1336,7 +1400,7 @@ public class StkAppService extends Service implements Runnable {
             break;
         case RES_ID_CHOICE:
             int choice = args.getInt(CHOICE);
-            CatLog.d(this, "User Choice=" + choice);
+            CatLog.d(LOG_TAG, "User Choice=" + choice);
             switch (choice) {
                 case YES:
                     resMsg.setResultCode(ResultCode.OK);
@@ -1525,6 +1589,9 @@ public class StkAppService extends Service implements Runnable {
             newIntent.putExtra("STATE", StkMenuActivity.STATE_SECONDARY);
             mStkContext[slotId].mMenuState = StkMenuActivity.STATE_SECONDARY;
         }
+        if (mStkContext[slotId].mMenuState == StkMenuActivity.STATE_SECONDARY) {
+            startToObserveHomeKeyEvent(slotId);
+        }
         newIntent.putExtra(SLOT_ID, slotId);
         newIntent.setData(uriData);
         newIntent.setFlags(intentFlags);
@@ -1551,6 +1618,7 @@ public class StkAppService extends Service implements Runnable {
             notifyUserIfNecessary(slotId, input.text);
         }
         startActivity(newIntent);
+        startToObserveHomeKeyEvent(slotId);
     }
 
     private void launchTextDialog(int slotId) {
@@ -1565,7 +1633,6 @@ public class StkAppService extends Service implements Runnable {
 
         newIntent.setClassName(PACKAGE_NAME, targetActivity);
         newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
                 | getFlagActivityNoUserAction(InitiatedByUserAction.unknown, slotId));
         newIntent.setData(uriData);
         newIntent.putExtra("TEXT", textMessage);
@@ -1580,6 +1647,8 @@ public class StkAppService extends Service implements Runnable {
         // the immediate response tlv.
         if (!mStkContext[slotId].mCurrentCmd.geTextMessage().responseNeeded) {
             sendResponse(RES_ID_CONFIRM, slotId, true);
+        } else {
+            startToObserveHomeKeyEvent(slotId);
         }
     }
 
@@ -1600,22 +1669,6 @@ public class StkAppService extends Service implements Runnable {
             // if user cannot see the message from the card right now because of it.
             // The notification can be dismissed if user removed the keyguard screen.
             launchNotificationOnKeyguard(slotId, message);
-        } else if (!(pm.isInteractive() && isTopOfStack())) {
-            // User might be doing something but it is not related to the SIM Toolkit.
-            // Play the tone and do vibration in order to attract user's attention.
-            // User will see the input screen or the dialog soon in this case.
-            NotificationChannel channel = mNotificationManager
-                    .getNotificationChannel(STK_NOTIFICATION_CHANNEL_ID);
-            Uri uri = channel.getSound();
-            if (uri != null && !Uri.EMPTY.equals(uri)
-                    && (NotificationManager.IMPORTANCE_LOW) < channel.getImportance()) {
-                RingtoneManager.getRingtone(getApplicationContext(), uri).play();
-            }
-            long[] pattern = channel.getVibrationPattern();
-            if (pattern != null && channel.shouldVibrate()) {
-                ((Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE))
-                        .vibrate(pattern, -1);
-            }
         }
 
         // Turn on the screen.
@@ -1673,7 +1726,7 @@ public class StkAppService extends Service implements Runnable {
 
     private synchronized void unregisterUserPresentReceiver(int slotId) {
         if (mUserPresentReceiver != null) {
-            for (int slot = PhoneConstants.SIM_ID_1; slot < mSimCount; slot++) {
+            for (int slot = 0; slot < mSimCount; slot++) {
                 if (slot != slotId) {
                     if (mStkContext[slot].mNotificationOnKeyguard) {
                         // The broadcast receiver is still necessary for other SIM card.
@@ -1688,25 +1741,6 @@ public class StkAppService extends Service implements Runnable {
 
     private int getNotificationId(int notificationType, int slotId) {
         return getNotificationId(slotId) + (notificationType * mSimCount);
-    }
-
-    /**
-     * Checks whether the dialog exists as the top activity of this task.
-     *
-     * @return true if the top activity of this task is the dialog.
-     */
-    public boolean isStkDialogActivated() {
-        ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        ComponentName componentName = am.getAppTasks().get(0).getTaskInfo().topActivity;
-        if (componentName != null) {
-            String[] split = componentName.getClassName().split(Pattern.quote("."));
-            String topActivity = split[split.length - 1];
-            CatLog.d(LOG_TAG, "Top activity: " + topActivity);
-            if (TextUtils.equals(topActivity, StkDialogActivity.class.getSimpleName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void replaceEventList(int slotId) {
@@ -1737,7 +1771,7 @@ public class StkAppService extends Service implements Runnable {
     }
 
     private void unregisterEvent(int event, int slotId) {
-        for (int slot = PhoneConstants.SIM_ID_1; slot < mSimCount; slot++) {
+        for (int slot = 0; slot < mSimCount; slot++) {
             if (slot != slotId) {
                 if (mStkContext[slot].mSetupEventListSettings != null) {
                     if (findEvent(event, mStkContext[slot].mSetupEventListSettings.eventList)) {
@@ -1791,8 +1825,7 @@ public class StkAppService extends Service implements Runnable {
                 @Override public void onReceive(Context context, Intent intent) {
                     if (WindowManagerPolicyConstants.ACTION_USER_ACTIVITY_NOTIFICATION.equals(
                             intent.getAction())) {
-                        Message message = mServiceHandler.obtainMessage();
-                        message.arg1 = OP_USER_ACTIVITY;
+                        Message message = mServiceHandler.obtainMessage(OP_USER_ACTIVITY);
                         mServiceHandler.sendMessage(message);
                         unregisterUserActivityReceiver();
                     }
@@ -1805,7 +1838,7 @@ public class StkAppService extends Service implements Runnable {
                         ServiceManager.getService(Context.WINDOW_SERVICE));
                 wm.requestUserActivityNotification();
             } catch (RemoteException e) {
-                CatLog.e(this, "failed to init WindowManager:" + e);
+                CatLog.e(LOG_TAG, "failed to init WindowManager:" + e);
             }
         }
     }
@@ -1824,8 +1857,7 @@ public class StkAppService extends Service implements Runnable {
                     @Override
                     public void onForegroundActivitiesChanged(int pid, int uid, boolean fg) {
                         if (isScreenIdle()) {
-                            Message message = mServiceHandler.obtainMessage();
-                            message.arg1 = OP_IDLE_SCREEN;
+                            Message message = mServiceHandler.obtainMessage(OP_IDLE_SCREEN);
                             mServiceHandler.sendMessage(message);
                             unregisterProcessObserver();
                         }
@@ -1840,10 +1872,10 @@ public class StkAppService extends Service implements Runnable {
                     }
                 };
                 ActivityManagerNative.getDefault().registerProcessObserver(observer);
-                CatLog.d(this, "Started to observe the foreground activity");
+                CatLog.d(LOG_TAG, "Started to observe the foreground activity");
                 mProcessObserver = observer;
             } catch (RemoteException e) {
-                CatLog.d(this, "Failed to register the process observer");
+                CatLog.e(LOG_TAG, "Failed to register the process observer");
             }
         }
     }
@@ -1851,7 +1883,7 @@ public class StkAppService extends Service implements Runnable {
     private void unregisterProcessObserver(AppInterface.CommandType command, int slotId) {
         // Check if there is any pending command which still needs the process observer
         // except for the current command and slot.
-        for (int slot = PhoneConstants.SIM_ID_1; slot < mSimCount; slot++) {
+        for (int slot = 0; slot < mSimCount; slot++) {
             if (command != AppInterface.CommandType.SET_UP_IDLE_MODE_TEXT || slot != slotId) {
                 if (mStkContext[slot].mIdleModeTextCmd != null
                         && !mStkContext[slot].mIdleModeTextVisible) {
@@ -1878,10 +1910,10 @@ public class StkAppService extends Service implements Runnable {
         if (mProcessObserver != null) {
             try {
                 ActivityManagerNative.getDefault().unregisterProcessObserver(mProcessObserver);
-                CatLog.d(this, "Stopped to observe the foreground activity");
+                CatLog.d(LOG_TAG, "Stopped to observe the foreground activity");
                 mProcessObserver = null;
             } catch (RemoteException e) {
-                CatLog.d(this, "Failed to unregister the process observer");
+                CatLog.d(LOG_TAG, "Failed to unregister the process observer");
             }
         }
     }
@@ -1891,8 +1923,7 @@ public class StkAppService extends Service implements Runnable {
             mLocaleChangeReceiver = new BroadcastReceiver() {
                 @Override public void onReceive(Context context, Intent intent) {
                     if (Intent.ACTION_LOCALE_CHANGED.equals(intent.getAction())) {
-                        Message message = mServiceHandler.obtainMessage();
-                        message.arg1 = OP_LOCALE_CHANGED;
+                        Message message = mServiceHandler.obtainMessage(OP_LOCALE_CHANGED);
                         mServiceHandler.sendMessage(message);
                     }
                 }
@@ -1909,10 +1940,10 @@ public class StkAppService extends Service implements Runnable {
     }
 
     private void sendSetUpEventResponse(int event, byte[] addedInfo, int slotId) {
-        CatLog.d(this, "sendSetUpEventResponse: event : " + event + "slotId = " + slotId);
+        CatLog.d(LOG_TAG, "sendSetUpEventResponse: event : " + event + "slotId = " + slotId);
 
         if (mStkContext[slotId].mCurrentSetupEventCmd == null){
-            CatLog.e(this, "mCurrentSetupEventCmd is null");
+            CatLog.e(LOG_TAG, "mCurrentSetupEventCmd is null");
             return;
         }
 
@@ -1927,7 +1958,7 @@ public class StkAppService extends Service implements Runnable {
     private void checkForSetupEvent(int event, Bundle args, int slotId) {
         boolean eventPresent = false;
         byte[] addedInfo = null;
-        CatLog.d(this, "Event :" + event);
+        CatLog.d(LOG_TAG, "Event :" + event);
 
         if (mStkContext[slotId].mSetupEventListSettings != null) {
             /* Checks if the event is present in the EventList updated by last
@@ -1941,7 +1972,7 @@ public class StkAppService extends Service implements Runnable {
 
             /* If Event is present send the response to ICC */
             if (eventPresent == true) {
-                CatLog.d(this, " Event " + event + "exists in the EventList");
+                CatLog.d(LOG_TAG, " Event " + event + "exists in the EventList");
 
                 switch (event) {
                     case USER_ACTIVITY_EVENT:
@@ -1952,7 +1983,7 @@ public class StkAppService extends Service implements Runnable {
                     case LANGUAGE_SELECTION_EVENT:
                         String language =  mContext
                                 .getResources().getConfiguration().locale.getLanguage();
-                        CatLog.d(this, "language: " + language);
+                        CatLog.d(LOG_TAG, "language: " + language);
                         // Each language code is a pair of alpha-numeric characters.
                         // Each alpha-numeric character shall be coded on one byte
                         // using the SMS default 7-bit coded alphabet
@@ -1963,15 +1994,15 @@ public class StkAppService extends Service implements Runnable {
                         break;
                 }
             } else {
-                CatLog.e(this, " Event does not exist in the EventList");
+                CatLog.e(LOG_TAG, " Event does not exist in the EventList");
             }
         } else {
-            CatLog.e(this, "SetupEventList is not received. Ignoring the event: " + event);
+            CatLog.e(LOG_TAG, "SetupEventList is not received. Ignoring the event: " + event);
         }
     }
 
     private void removeSetUpEvent(int event, int slotId) {
-        CatLog.d(this, "Remove Event :" + event);
+        CatLog.d(LOG_TAG, "Remove Event :" + event);
 
         if (mStkContext[slotId].mSetupEventListSettings != null) {
             /*
@@ -2070,22 +2101,22 @@ public class StkAppService extends Service implements Runnable {
         if (settings.url == null) {
             // if the command did not contain a URL,
             // launch the browser to the default homepage.
-            CatLog.d(this, "no url data provided by proactive command." +
+            CatLog.d(LOG_TAG, "no url data provided by proactive command." +
                        " launching browser with stk default URL ... ");
             url = SystemProperties.get(STK_BROWSER_DEFAULT_URL_SYSPROP,
                     "http://www.google.com");
         } else {
-            CatLog.d(this, "launch browser command has attached url = " + settings.url);
+            CatLog.d(LOG_TAG, "launch browser command has attached url = " + settings.url);
             url = settings.url;
         }
 
         if (url.startsWith("http://") || url.startsWith("https://")) {
             data = Uri.parse(url);
-            CatLog.d(this, "launching browser with url = " + url);
+            CatLog.d(LOG_TAG, "launching browser with url = " + url);
         } else {
             String modifiedUrl = "http://" + url;
             data = Uri.parse(modifiedUrl);
-            CatLog.d(this, "launching browser with modified url = " + modifiedUrl);
+            CatLog.d(LOG_TAG, "launching browser with modified url = " + modifiedUrl);
         }
 
         Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -2220,23 +2251,23 @@ public class StkAppService extends Service implements Runnable {
         // without showing user any information.
         // Alpha Id is Present, but the text data is null.
         if ((toneMsg.text != null ) && (toneMsg.text.equals(""))) {
-            CatLog.d(this, "Alpha identifier data is null, play only tone");
+            CatLog.d(LOG_TAG, "Alpha identifier data is null, play only tone");
             showUser = false;
         }
         // Alpha Id is not present AND we need to show info to the user.
         if (toneMsg.text == null && displayDialog) {
-            CatLog.d(this, "toneMsg.text " + toneMsg.text
+            CatLog.d(LOG_TAG, "toneMsg.text " + toneMsg.text
                     + " Starting ToneDialog activity with default message.");
             toneMsg.text = getResources().getString(R.string.default_tone_dialog_msg);
             showUser = true;
         }
         // Dont show user info, if config setting is true.
         if (toneMsg.text == null && !displayDialog) {
-            CatLog.d(this, "config value stkNoAlphaUsrCnf is true");
+            CatLog.d(LOG_TAG, "config value stkNoAlphaUsrCnf is true");
             showUser = false;
         }
 
-        CatLog.d(this, "toneMsg.text: " + toneMsg.text + "showUser: " +showUser +
+        CatLog.d(LOG_TAG, "toneMsg.text: " + toneMsg.text + "showUser: " +showUser +
                 "displayDialog: " +displayDialog);
         playTone(showUser, slotId);
     }
@@ -2245,7 +2276,7 @@ public class StkAppService extends Service implements Runnable {
         // Start playing tone and vibration
         ToneSettings settings = mStkContext[slotId].mCurrentCmd.getToneSettings();
         if (null == settings) {
-            CatLog.d(this, "null settings, not playing tone.");
+            CatLog.d(LOG_TAG, "null settings, not playing tone.");
             return;
         }
 
@@ -2257,11 +2288,8 @@ public class StkAppService extends Service implements Runnable {
             timeout = StkApp.TONE_DEFAULT_TIMEOUT;
         }
 
-        Message msg = mServiceHandler.obtainMessage();
-        msg.arg1 = OP_STOP_TONE;
-        msg.arg2 = slotId;
-        msg.obj = (Integer)(showUserInfo ? 1 : 0);
-        msg.what = STOP_TONE_WHAT;
+        Message msg = mServiceHandler.obtainMessage(OP_STOP_TONE, 0, slotId,
+                (showUserInfo ? PLAY_TONE_WITH_DIALOG : PLAY_TONE_ONLY));
         mServiceHandler.sendMessageDelayed(msg, timeout);
         if (settings.vibrate) {
             mVibrator.vibrate(timeout);
@@ -2273,9 +2301,7 @@ public class StkAppService extends Service implements Runnable {
             String uriString = STK_TONE_URI + slotId;
             Uri uriData = Uri.parse(uriString);
             newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                    | Intent.FLAG_ACTIVITY_NO_HISTORY
                     | Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
                     | getFlagActivityNoUserAction(InitiatedByUserAction.unknown, slotId));
             newIntent.putExtra("TEXT", mStkContext[slotId].mCurrentCmd.geTextMessage());
             newIntent.putExtra(SLOT_ID, slotId);
@@ -2295,18 +2321,20 @@ public class StkAppService extends Service implements Runnable {
         // Stop the play tone in following cases:
         // 1.OP_STOP_TONE: play tone timer expires.
         // 2.STOP_TONE_USER: user pressed the back key.
-        if (msg.arg1 == OP_STOP_TONE) {
+        if (msg.what == OP_STOP_TONE) {
             resId = RES_ID_DONE;
             // Dismiss Tone dialog, after finishing off playing the tone.
-            int finishActivity = (Integer) msg.obj;
-            if (finishActivity == 1) finishToneDialogActivity();
-        } else if (msg.arg1 == OP_STOP_TONE_USER) {
+            if (PLAY_TONE_WITH_DIALOG.equals((Integer) msg.obj)) finishToneDialogActivity();
+        } else if (msg.what == OP_STOP_TONE_USER) {
             resId = RES_ID_END_SESSION;
         }
 
         sendResponse(resId, slotId, true);
-        mServiceHandler.removeMessages(STOP_TONE_WHAT);
-        if (mTonePlayer != null)  {
+
+        mServiceHandler.removeMessages(OP_STOP_TONE);
+        mServiceHandler.removeMessages(OP_STOP_TONE_USER);
+
+        if (mTonePlayer != null) {
             mTonePlayer.stop();
             mTonePlayer.release();
             mTonePlayer = null;
@@ -2340,11 +2368,7 @@ public class StkAppService extends Service implements Runnable {
                             Bundle args = new Bundle();
                             args.putInt(RES_ID, RES_ID_CHOICE);
                             args.putInt(CHOICE, YES);
-                            Message message = mServiceHandler.obtainMessage();
-                            message.arg1 = OP_RESPONSE;
-                            message.arg2 = slotId;
-                            message.obj = args;
-                            mServiceHandler.sendMessage(message);
+                            sendResponse(args, slotId);
                         }
                     })
                     .setNegativeButton(getResources().getString(R.string.stk_dialog_reject),
@@ -2353,11 +2377,7 @@ public class StkAppService extends Service implements Runnable {
                             Bundle args = new Bundle();
                             args.putInt(RES_ID, RES_ID_CHOICE);
                             args.putInt(CHOICE, NO);
-                            Message message = mServiceHandler.obtainMessage();
-                            message.arg1 = OP_RESPONSE;
-                            message.arg2 = slotId;
-                            message.obj = args;
-                            mServiceHandler.sendMessage(message);
+                            sendResponse(args, slotId);
                         }
                     })
                     .create();
@@ -2441,7 +2461,7 @@ public class StkAppService extends Service implements Runnable {
         return false;
     }
 
-    StkContext getStkContext(int slotId) {
+    synchronized StkContext getStkContext(int slotId) {
         if (slotId >= 0 && slotId < mSimCount) {
             return mStkContext[slotId];
         } else {
@@ -2453,7 +2473,7 @@ public class StkAppService extends Service implements Runnable {
     private void handleAlphaNotify(Bundle args) {
         String alphaString = args.getString(AppInterface.ALPHA_STRING);
 
-        CatLog.d(this, "Alpha string received from card: " + alphaString);
+        CatLog.d(LOG_TAG, "Alpha string received from card: " + alphaString);
         Toast toast = Toast.makeText(sInstance, alphaString, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.TOP, 0, 0);
         toast.show();
