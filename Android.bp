@@ -1,21 +1,10 @@
 // Copyright 2007-2008 The Android Open Source Project
 
 android_app {
-    name: "StkLib",
+    name: "Stk",
     libs: ["telephony-common"],
     static_libs: ["com.google.android.material_material"],
     srcs: ["**/*.java"],
     platform_apis: true,
     certificate: "platform",
-    aaptflags: [
-        "--shared-lib",
-        "--extra-packages com.android.stk",
-    ],
-    export_package_resources: true,
-    optimize: {
-        proguard_flags_files: [
-            "proguard.proguard",
-        ],
-    },
-    apex_available: [ "com.android.telephony" ],
 }
