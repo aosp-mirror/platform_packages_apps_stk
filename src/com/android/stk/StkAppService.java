@@ -19,6 +19,7 @@ package com.android.stk;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningTaskInfo;
 import android.app.AlertDialog;
+import android.app.HomeVisibilityObserver;
 import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -26,7 +27,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.Activity;
-import android.app.ActivityManagerNative;
 import android.app.IProcessObserver;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -70,8 +70,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.content.IntentFilter;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import com.android.internal.telephony.PhoneConfigurationManager;
 import com.android.internal.telephony.cat.AppInterface;
 import com.android.internal.telephony.cat.Input;
@@ -102,6 +100,8 @@ import static com.android.internal.telephony.cat.CatCmdMessage.
                    SetupEventListConstants.LANGUAGE_SELECTION_EVENT;
 import static com.android.internal.telephony.cat.CatCmdMessage.
                    SetupEventListConstants.USER_ACTIVITY_EVENT;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 /**
  * SIM toolkit application level service. Interacts with Telephopny messages,
@@ -180,7 +180,7 @@ public class StkAppService extends Service implements Runnable {
     private AppInterface[] mStkService = null;
     private StkContext[] mStkContext = null;
     private int mSimCount = 0;
-    private IProcessObserver.Stub mProcessObserver = null;
+    private HomeVisibilityObserver mHomeVisibilityObserver = null;
     private BroadcastReceiver mLocaleChangeReceiver = null;
     private TonePlayer mTonePlayer = null;
     private Vibrator mVibrator = null;
@@ -334,8 +334,6 @@ public class StkAppService extends Service implements Runnable {
         serviceThread.start();
         mNotificationManager = (NotificationManager) mContext
                 .getSystemService(Context.NOTIFICATION_SERVICE);
-        PhoneConfigurationManager.registerForMultiSimConfigChange(mServiceHandler,
-                EVENT_MULTI_SIM_CONFIG_CHANGED, null);
         sInstance = this;
     }
 
@@ -413,11 +411,12 @@ public class StkAppService extends Service implements Runnable {
     public void onDestroy() {
         CatLog.d(LOG_TAG, "onDestroy()");
         unregisterUserActivityReceiver();
-        unregisterProcessObserver();
+        unregisterHomeVisibilityObserver();
         unregisterLocaleChangeReceiver();
         unregisterHomeKeyEventReceiver();
         sInstance = null;
         waitForLooper();
+        PhoneConfigurationManager.unregisterForMultiSimConfigChange(mServiceHandler);
         mServiceLooper.quit();
     }
 
@@ -431,6 +430,9 @@ public class StkAppService extends Service implements Runnable {
 
         mServiceLooper = Looper.myLooper();
         mServiceHandler = new ServiceHandler();
+
+        PhoneConfigurationManager.registerForMultiSimConfigChange(mServiceHandler,
+                EVENT_MULTI_SIM_CONFIG_CHANGED, null);
 
         Looper.loop();
     }
@@ -1171,7 +1173,7 @@ public class StkAppService extends Service implements Runnable {
                     CatLog.d(LOG_TAG, "set up idle mode");
                     launchIdleText(slotId);
                 } else {
-                    registerProcessObserver();
+                    registerHomeVisibilityObserver();
                 }
             }
             break;
@@ -1786,7 +1788,7 @@ public class StkAppService extends Service implements Runnable {
                 unregisterUserActivityReceiver();
                 break;
             case IDLE_SCREEN_AVAILABLE_EVENT:
-                unregisterProcessObserver(AppInterface.CommandType.SET_UP_EVENT_LIST, slotId);
+                unregisterHomeVisibilityObserver(AppInterface.CommandType.SET_UP_EVENT_LIST, slotId);
                 break;
             case LANGUAGE_SELECTION_EVENT:
                 unregisterLocaleChangeReceiver();
@@ -1806,7 +1808,7 @@ public class StkAppService extends Service implements Runnable {
                     registerUserActivityReceiver();
                     break;
                 case IDLE_SCREEN_AVAILABLE_EVENT:
-                    registerProcessObserver();
+                    registerHomeVisibilityObserver();
                     break;
                 case LANGUAGE_SELECTION_EVENT:
                     registerLocaleChangeReceiver();
@@ -1848,37 +1850,25 @@ public class StkAppService extends Service implements Runnable {
         }
     }
 
-    private synchronized void registerProcessObserver() {
-        if (mProcessObserver == null) {
-            try {
-                IProcessObserver.Stub observer = new IProcessObserver.Stub() {
-                    @Override
-                    public void onForegroundActivitiesChanged(int pid, int uid, boolean fg) {
-                        if (isScreenIdle()) {
-                            Message message = mServiceHandler.obtainMessage(OP_IDLE_SCREEN);
-                            mServiceHandler.sendMessage(message);
-                            unregisterProcessObserver();
-                        }
+    private synchronized void registerHomeVisibilityObserver() {
+        if (mHomeVisibilityObserver == null) {
+            mHomeVisibilityObserver = new HomeVisibilityObserver() {
+                @Override
+                public void onHomeVisibilityChanged(boolean isHomeActivityVisible) {
+                    if (isHomeActivityVisible) {
+                        Message message = mServiceHandler.obtainMessage(OP_IDLE_SCREEN);
+                        mServiceHandler.sendMessage(message);
+                        unregisterHomeVisibilityObserver();
                     }
-
-                    @Override
-                    public void onForegroundServicesChanged(int pid, int uid, int fgServiceTypes) {
-                    }
-
-                    @Override
-                    public void onProcessDied(int pid, int uid) {
-                    }
-                };
-                ActivityManagerNative.getDefault().registerProcessObserver(observer);
-                CatLog.d(LOG_TAG, "Started to observe the foreground activity");
-                mProcessObserver = observer;
-            } catch (RemoteException e) {
-                CatLog.e(LOG_TAG, "Failed to register the process observer");
-            }
+                }
+            };
+            ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+            am.registerHomeVisibilityObserver(mHomeVisibilityObserver);
+            CatLog.d(LOG_TAG, "Started to observe the foreground activity");
         }
     }
 
-    private void unregisterProcessObserver(AppInterface.CommandType command, int slotId) {
+    private void unregisterHomeVisibilityObserver(AppInterface.CommandType command, int slotId) {
         // Check if there is any pending command which still needs the process observer
         // except for the current command and slot.
         for (int slot = 0; slot < mSimCount; slot++) {
@@ -1901,18 +1891,15 @@ public class StkAppService extends Service implements Runnable {
                 }
             }
         }
-        unregisterProcessObserver();
+        unregisterHomeVisibilityObserver();
     }
 
-    private synchronized void unregisterProcessObserver() {
-        if (mProcessObserver != null) {
-            try {
-                ActivityManagerNative.getDefault().unregisterProcessObserver(mProcessObserver);
-                CatLog.d(LOG_TAG, "Stopped to observe the foreground activity");
-                mProcessObserver = null;
-            } catch (RemoteException e) {
-                CatLog.d(LOG_TAG, "Failed to unregister the process observer");
-            }
+    private synchronized void unregisterHomeVisibilityObserver() {
+        if (mHomeVisibilityObserver != null) {
+            ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+            am.unregisterHomeVisibilityObserver(mHomeVisibilityObserver);
+            CatLog.d(LOG_TAG, "Stopped to observe the foreground activity");
+            mHomeVisibilityObserver = null;
         }
     }
 
@@ -2019,7 +2006,7 @@ public class StkAppService extends Service implements Runnable {
                         case IDLE_SCREEN_AVAILABLE_EVENT:
                             // The process observer can be unregistered
                             // as the idle screen has already been available.
-                            unregisterProcessObserver();
+                            unregisterHomeVisibilityObserver();
                             break;
                         default:
                             break;
@@ -2142,7 +2129,7 @@ public class StkAppService extends Service implements Runnable {
     }
 
     private void cancelIdleText(int slotId) {
-        unregisterProcessObserver(AppInterface.CommandType.SET_UP_IDLE_MODE_TEXT, slotId);
+        unregisterHomeVisibilityObserver(AppInterface.CommandType.SET_UP_IDLE_MODE_TEXT, slotId);
         mNotificationManager.cancel(getNotificationId(slotId));
         mStkContext[slotId].mIdleModeTextCmd = null;
         mStkContext[slotId].mIdleModeTextVisible = false;

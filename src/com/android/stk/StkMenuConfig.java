@@ -28,7 +28,7 @@ import android.text.TextUtils;
 import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.cat.CatLog;
 import com.android.internal.telephony.util.TelephonyUtils;
-import com.android.internal.util.XmlUtils;
+import com.android.internal.telephony.util.XmlUtils;
 
 import java.util.ArrayList;
 
@@ -153,7 +153,7 @@ public class StkMenuConfig {
     private void initialize(Context context) {
         mContext = context;
         mArray = new ArrayList<Config>();
-        mConfigs = new Config[TelephonyManager.from(mContext).getSimCount()];
+        mConfigs = new Config[TelephonyManager.from(mContext).getSupportedModemCount()];
 
         XmlResourceParser parser = mContext.getResources().getXml(R.xml.menu_conf);
 
