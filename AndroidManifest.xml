@@ -23,7 +23,6 @@
     <original-package android:name="com.android.stk" />
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.GET_TASKS"/>
     <uses-permission android:name="android.permission.RECEIVE_STK_COMMANDS" />
     <uses-permission android:name="android.permission.SET_ACTIVITY_WATCHER" />
     <uses-permission android:name="android.permission.START_ACTIVITIES_FROM_BACKGROUND" />
