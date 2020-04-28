@@ -31,8 +31,6 @@ import com.android.internal.telephony.cat.AppInterface;
  *
  */
 public class StkCmdReceiver extends BroadcastReceiver {
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -80,7 +78,7 @@ public class StkCmdReceiver extends BroadcastReceiver {
             args.putString(AppInterface.ALPHA_STRING, alphaString);
         }
 
-        CatLog.d(LOG_TAG, "handleAction, op: " + op +
+        CatLog.d("StkCmdReceiver", "handleAction, op: " + op +
                 "args: " + args + ", slot id: " + slot_id);
         Intent toService = new Intent(context, StkAppService.class);
         toService.putExtras(args);
