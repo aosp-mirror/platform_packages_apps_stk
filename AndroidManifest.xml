@@ -108,7 +108,8 @@
             android:taskAffinity="android.task.stk.StkLauncherActivity">
         </activity>
 
-        <receiver android:name="com.android.stk.StkCmdReceiver">
+        <receiver android:name="com.android.stk.StkCmdReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name= "com.android.internal.stk.command" />
                 <action android:name= "com.android.internal.stk.session_end" />
@@ -117,7 +118,8 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name="com.android.stk.BootCompletedReceiver">
+        <receiver android:name="com.android.stk.BootCompletedReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.USER_INITIALIZE" />
