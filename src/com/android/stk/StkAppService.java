@@ -1094,13 +1094,6 @@ public class StkAppService extends Service implements Runnable {
         case DISPLAY_TEXT:
             TextMessage msg = cmdMsg.geTextMessage();
             waitForUsersResponse = msg.responseNeeded;
-            if (mStkContext[slotId].lastSelectedItem != null) {
-                msg.title = mStkContext[slotId].lastSelectedItem;
-            } else if (mStkContext[slotId].mMainCmd != null){
-                if (!getResources().getBoolean(R.bool.show_menu_title_only_on_menu)) {
-                    msg.title = mStkContext[slotId].mMainCmd.getMenu().title;
-                }
-            }
             //If we receive a low priority Display Text and the device is
             // not displaying any STK related activity and the screen is not idle
             // ( that is, device is in an interactive state), then send a screen busy
@@ -2328,6 +2321,10 @@ public class StkAppService extends Service implements Runnable {
             mVibrator.cancel();
             mVibrator = null;
         }
+    }
+
+    boolean isNoTonePlaying() {
+        return mTonePlayer == null ? true : false;
     }
 
     private void launchOpenChannelDialog(final int slotId) {
