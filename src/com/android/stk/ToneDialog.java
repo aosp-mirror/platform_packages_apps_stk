@@ -92,6 +92,12 @@ public class ToneDialog extends Activity {
 
         mAlertDialog = alertDialogBuilder.create();
         mAlertDialog.show();
+
+        StkAppService appService = StkAppService.getInstance();
+        // Finish the activity if the specified duration is too short and timed-out already.
+        if (appService != null && (appService.isNoTonePlaying())) {
+            finish();
+        }
     }
 
     @Override
