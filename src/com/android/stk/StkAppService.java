@@ -1667,17 +1667,10 @@ public class StkAppService extends Service implements Runnable {
 
     private void launchNotificationOnKeyguard(int slotId, String message) {
         Notification.Builder builder = new Notification.Builder(this, STK_NOTIFICATION_CHANNEL_ID);
+        setNotificationTitle(slotId, builder);
 
         builder.setStyle(new Notification.BigTextStyle(builder).bigText(message));
         builder.setContentText(message);
-
-        Menu menu = getMainMenu(slotId);
-        if (menu == null || TextUtils.isEmpty(menu.title)) {
-            builder.setContentTitle("");
-        } else {
-            builder.setContentTitle(menu.title);
-        }
-
         builder.setSmallIcon(R.drawable.stat_notify_sim_toolkit);
         builder.setOngoing(true);
         builder.setOnlyAlertOnce(true);
@@ -2138,12 +2131,7 @@ public class StkAppService extends Service implements Runnable {
             createAllChannels();
             final Notification.Builder notificationBuilder = new Notification.Builder(
                     StkAppService.this, STK_NOTIFICATION_CHANNEL_ID);
-            if (mStkContext[slotId].mMainCmd != null &&
-                    mStkContext[slotId].mMainCmd.getMenu() != null) {
-                notificationBuilder.setContentTitle(mStkContext[slotId].mMainCmd.getMenu().title);
-            } else {
-                notificationBuilder.setContentTitle("");
-            }
+            setNotificationTitle(slotId, notificationBuilder);
             notificationBuilder
                     .setSmallIcon(R.drawable.stat_notify_sim_toolkit);
             notificationBuilder.setContentIntent(pendingIntent);
@@ -2169,6 +2157,30 @@ public class StkAppService extends Service implements Runnable {
                     com.android.internal.R.color.system_notification_accent_color));
             mNotificationManager.notify(getNotificationId(slotId), notificationBuilder.build());
             mStkContext[slotId].mIdleModeTextVisible = true;
+        }
+    }
+
+    private void setNotificationTitle(int slotId, Notification.Builder builder) {
+        Menu menu = getMainMenu(slotId);
+        if (menu == null || TextUtils.isEmpty(menu.title)
+                || TextUtils.equals(menu.title, getResources().getString(R.string.app_name))) {
+            // No need to set a content title in the content area if no title (alpha identifier
+            // of SET-UP MENU command) is available for the specified slot or the title is same
+            // as the application label.
+            return;
+        }
+
+        for (int index = 0; index < mSimCount; index++) {
+            if (index != slotId) {
+                Menu otherMenu = getMainMenu(index);
+                if (otherMenu != null && !TextUtils.equals(menu.title, otherMenu.title)) {
+                    // Set the title (alpha identifier of SET-UP MENU command) as the content title
+                    // to differentiate it from other main menu with different alpha identifier
+                    // (including null) is available.
+                    builder.setContentTitle(menu.title);
+                    return;
+                }
+            }
         }
     }
 
