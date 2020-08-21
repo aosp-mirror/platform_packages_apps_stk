@@ -834,8 +834,7 @@ public class StkAppService extends Service implements Runnable {
                 // "home" so we accept both here
                 if (SYSTEM_DIALOG_REASON_HOME_KEY.equals(reason)
                     || SYSTEM_DIALOG_REASON_RECENTAPPS_KEY.equals(reason)) {
-                    Message message = mServiceHandler.obtainMessage();
-                    message.arg1 = OP_HOME_KEY_PRESSED;
+                    Message message = mServiceHandler.obtainMessage(OP_HOME_KEY_PRESSED);
                     mServiceHandler.sendMessage(message);
                 }
             }
