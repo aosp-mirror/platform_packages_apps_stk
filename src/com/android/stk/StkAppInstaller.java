@@ -18,7 +18,6 @@ package com.android.stk;
 
 import com.android.internal.telephony.cat.CatLog;
 import com.android.internal.telephony.PhoneConstants;
-import com.android.internal.telephony.TelephonyProperties;
 
 import android.content.ComponentName;
 import android.content.Context;
