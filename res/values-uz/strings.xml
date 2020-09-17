@@ -32,7 +32,7 @@
     <string name="default_setup_call_msg" msgid="6126904475461162162">"Qo‘ng‘iroq sozlanmoqda"</string>
     <string name="stk_app_state" msgid="18582277302584082">"Ilova holati"</string>
     <string name="enable_app" msgid="3701224550936728203">"Yoniq"</string>
-    <string name="disable_app" msgid="6725081975611415214">"O‘chiq"</string>
+    <string name="disable_app" msgid="6725081975611415214">"Yoqilmagan"</string>
     <string name="stk_dialog_title" msgid="6954825385456886726">"SIM menyusi"</string>
     <string name="default_tone_dialog_msg" msgid="4595366992944391641">"Signal ijrosi"</string>
     <string name="default_open_channel_msg" msgid="2216070254100295924">"Kanal ochilsinmi?"</string>
