@@ -16,6 +16,11 @@
 
 package com.android.stk;
 
+import static com.android.internal.telephony.cat.CatCmdMessage.SetupEventListConstants.IDLE_SCREEN_AVAILABLE_EVENT;
+import static com.android.internal.telephony.cat.CatCmdMessage.SetupEventListConstants.LANGUAGE_SELECTION_EVENT;
+import static com.android.internal.telephony.cat.CatCmdMessage.SetupEventListConstants.USER_ACTIVITY_EVENT;
+
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningTaskInfo;
 import android.app.AlertDialog;
@@ -26,16 +31,13 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.app.Activity;
-import android.app.IProcessObserver;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
@@ -50,58 +52,47 @@ import android.os.Parcel;
 import android.os.PersistableBundle;
 import android.os.PowerManager;
 import android.os.RemoteException;
-import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.telephony.CarrierConfigManager;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
+import android.telephony.TelephonyFrameworkInitializer;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.view.Gravity;
-import android.view.IWindowManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.WindowManagerPolicyConstants;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.content.IntentFilter;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.android.internal.telephony.GsmAlphabet;
+import com.android.internal.telephony.ITelephony;
 import com.android.internal.telephony.PhoneConfigurationManager;
+import com.android.internal.telephony.PhoneConstants;
+import com.android.internal.telephony.TelephonyIntents;
 import com.android.internal.telephony.cat.AppInterface;
-import com.android.internal.telephony.cat.Input;
-import com.android.internal.telephony.cat.LaunchBrowserMode;
-import com.android.internal.telephony.cat.Menu;
-import com.android.internal.telephony.cat.Item;
-import com.android.internal.telephony.cat.ResultCode;
 import com.android.internal.telephony.cat.CatCmdMessage;
 import com.android.internal.telephony.cat.CatCmdMessage.BrowserSettings;
 import com.android.internal.telephony.cat.CatCmdMessage.SetupEventListSettings;
 import com.android.internal.telephony.cat.CatLog;
 import com.android.internal.telephony.cat.CatResponseMessage;
+import com.android.internal.telephony.cat.CatService;
+import com.android.internal.telephony.cat.Input;
+import com.android.internal.telephony.cat.Item;
+import com.android.internal.telephony.cat.Menu;
+import com.android.internal.telephony.cat.ResultCode;
 import com.android.internal.telephony.cat.TextMessage;
 import com.android.internal.telephony.cat.ToneSettings;
 import com.android.internal.telephony.uicc.IccRefreshResponse;
-import com.android.internal.telephony.PhoneConstants;
-import com.android.internal.telephony.GsmAlphabet;
-import com.android.internal.telephony.cat.CatService;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Pattern;
-
-import static com.android.internal.telephony.cat.CatCmdMessage.
-                   SetupEventListConstants.IDLE_SCREEN_AVAILABLE_EVENT;
-import static com.android.internal.telephony.cat.CatCmdMessage.
-                   SetupEventListConstants.LANGUAGE_SELECTION_EVENT;
-import static com.android.internal.telephony.cat.CatCmdMessage.
-                   SetupEventListConstants.USER_ACTIVITY_EVENT;
-
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 /**
  * SIM toolkit application level service. Interacts with Telephopny messages,
@@ -308,6 +299,7 @@ public class StkAppService extends Service implements Runnable {
     // The reason based on Intent.ACTION_CLOSE_SYSTEM_DIALOGS.
     private static final String SYSTEM_DIALOG_REASON_KEY = "reason";
     private static final String SYSTEM_DIALOG_REASON_HOME_KEY = "homekey";
+    private static final String SYSTEM_DIALOG_REASON_RECENTAPPS_KEY = "recentapps";
     private BroadcastReceiver mHomeKeyEventReceiver = null;
 
     @Override
@@ -837,10 +829,12 @@ public class StkAppService extends Service implements Runnable {
         }
         mHomeKeyEventReceiver = new BroadcastReceiver() {
             @Override public void onReceive(Context context, Intent intent) {
-                if (SYSTEM_DIALOG_REASON_HOME_KEY.equals(
-                        intent.getStringExtra(SYSTEM_DIALOG_REASON_KEY))) {
-                    Message message = mServiceHandler.obtainMessage();
-                    message.arg1 = OP_HOME_KEY_PRESSED;
+                final String reason = intent.getStringExtra(SYSTEM_DIALOG_REASON_KEY);
+                // gesture-based launchers may interpret swipe-up as "recent apps" instead of
+                // "home" so we accept both here
+                if (SYSTEM_DIALOG_REASON_HOME_KEY.equals(reason)
+                    || SYSTEM_DIALOG_REASON_RECENTAPPS_KEY.equals(reason)) {
+                    Message message = mServiceHandler.obtainMessage(OP_HOME_KEY_PRESSED);
                     mServiceHandler.sendMessage(message);
                 }
             }
@@ -1684,7 +1678,7 @@ public class StkAppService extends Service implements Runnable {
             builder.setContentTitle(menu.title);
         }
 
-        builder.setSmallIcon(com.android.internal.R.drawable.stat_notify_sim_toolkit);
+        builder.setSmallIcon(R.drawable.stat_notify_sim_toolkit);
         builder.setOngoing(true);
         builder.setOnlyAlertOnce(true);
         builder.setColor(getResources().getColor(
@@ -1816,7 +1810,7 @@ public class StkAppService extends Service implements Runnable {
         if (mUserActivityReceiver == null) {
             mUserActivityReceiver = new BroadcastReceiver() {
                 @Override public void onReceive(Context context, Intent intent) {
-                    if (WindowManagerPolicyConstants.ACTION_USER_ACTIVITY_NOTIFICATION.equals(
+                    if (TelephonyIntents.ACTION_USER_ACTIVITY_NOTIFICATION.equals(
                             intent.getAction())) {
                         Message message = mServiceHandler.obtainMessage(OP_USER_ACTIVITY);
                         mServiceHandler.sendMessage(message);
@@ -1825,11 +1819,14 @@ public class StkAppService extends Service implements Runnable {
                 }
             };
             registerReceiver(mUserActivityReceiver, new IntentFilter(
-                    WindowManagerPolicyConstants.ACTION_USER_ACTIVITY_NOTIFICATION));
+                    TelephonyIntents.ACTION_USER_ACTIVITY_NOTIFICATION));
             try {
-                IWindowManager wm = IWindowManager.Stub.asInterface(
-                        ServiceManager.getService(Context.WINDOW_SERVICE));
-                wm.requestUserActivityNotification();
+                ITelephony telephony = ITelephony.Stub.asInterface(
+                        TelephonyFrameworkInitializer
+                                .getTelephonyServiceManager()
+                                .getTelephonyServiceRegisterer()
+                                .get());
+                telephony.requestUserActivityNotification();
             } catch (RemoteException e) {
                 CatLog.e(LOG_TAG, "failed to init WindowManager:" + e);
             }
@@ -2148,7 +2145,7 @@ public class StkAppService extends Service implements Runnable {
                 notificationBuilder.setContentTitle("");
             }
             notificationBuilder
-                    .setSmallIcon(com.android.internal.R.drawable.stat_notify_sim_toolkit);
+                    .setSmallIcon(R.drawable.stat_notify_sim_toolkit);
             notificationBuilder.setContentIntent(pendingIntent);
             notificationBuilder.setOngoing(true);
             notificationBuilder.setOnlyAlertOnce(true);
@@ -2165,7 +2162,7 @@ public class StkAppService extends Service implements Runnable {
             } else {
                 Bitmap bitmapIcon = BitmapFactory.decodeResource(StkAppService.this
                     .getResources().getSystem(),
-                    com.android.internal.R.drawable.stat_notify_sim_toolkit);
+                    R.drawable.stat_notify_sim_toolkit);
                 notificationBuilder.setLargeIcon(bitmapIcon);
             }
             notificationBuilder.setColor(mContext.getResources().getColor(
@@ -2216,7 +2213,7 @@ public class StkAppService extends Service implements Runnable {
         Resources resource = Resources.getSystem();
         try {
             displayDialog = !resource.getBoolean(
-                    com.android.internal.R.bool.config_stkNoAlphaUsrCnf);
+                    R.bool.config_stkNoAlphaUsrCnf);
         } catch (NotFoundException e) {
             displayDialog = true;
         }
@@ -2366,7 +2363,7 @@ public class StkAppService extends Service implements Runnable {
 
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         if (!mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_sf_slowBlur)) {
+                R.bool.config_sf_slowBlur)) {
             dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
         }
 
@@ -2395,8 +2392,7 @@ public class StkAppService extends Service implements Runnable {
                     .create();
 
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-        if (!mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_sf_slowBlur)) {
+        if (!mContext.getResources().getBoolean(R.bool.config_sf_slowBlur)) {
             dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
         }
 
