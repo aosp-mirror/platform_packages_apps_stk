@@ -299,6 +299,7 @@ public class StkAppService extends Service implements Runnable {
     // The reason based on Intent.ACTION_CLOSE_SYSTEM_DIALOGS.
     private static final String SYSTEM_DIALOG_REASON_KEY = "reason";
     private static final String SYSTEM_DIALOG_REASON_HOME_KEY = "homekey";
+    private static final String SYSTEM_DIALOG_REASON_RECENTAPPS_KEY = "recentapps";
     private BroadcastReceiver mHomeKeyEventReceiver = null;
 
     @Override
@@ -828,8 +829,11 @@ public class StkAppService extends Service implements Runnable {
         }
         mHomeKeyEventReceiver = new BroadcastReceiver() {
             @Override public void onReceive(Context context, Intent intent) {
-                if (SYSTEM_DIALOG_REASON_HOME_KEY.equals(
-                        intent.getStringExtra(SYSTEM_DIALOG_REASON_KEY))) {
+                final String reason = intent.getStringExtra(SYSTEM_DIALOG_REASON_KEY);
+                // gesture-based launchers may interpret swipe-up as "recent apps" instead of
+                // "home" so we accept both here
+                if (SYSTEM_DIALOG_REASON_HOME_KEY.equals(reason)
+                    || SYSTEM_DIALOG_REASON_RECENTAPPS_KEY.equals(reason)) {
                     Message message = mServiceHandler.obtainMessage();
                     message.arg1 = OP_HOME_KEY_PRESSED;
                     mServiceHandler.sendMessage(message);
