@@ -1673,7 +1673,7 @@ public class StkAppService extends Service implements Runnable {
 
         Menu menu = getMainMenu(slotId);
         if (menu == null || TextUtils.isEmpty(menu.title)) {
-            builder.setContentTitle(getResources().getString(R.string.app_name));
+            builder.setContentTitle("");
         } else {
             builder.setContentTitle(menu.title);
         }
