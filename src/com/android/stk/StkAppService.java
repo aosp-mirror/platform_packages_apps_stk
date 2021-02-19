@@ -2134,7 +2134,7 @@ public class StkAppService extends Service implements Runnable {
                     + "] icon[" + msg.icon + "], sim id: " + slotId);
             CatLog.d(LOG_TAG, "Add IdleMode text");
             PendingIntent pendingIntent = PendingIntent.getService(mContext, 0,
-                    new Intent(mContext, StkAppService.class), 0);
+                    new Intent(mContext, StkAppService.class), PendingIntent.FLAG_IMMUTABLE);
             createAllChannels();
             final Notification.Builder notificationBuilder = new Notification.Builder(
                     StkAppService.this, STK_NOTIFICATION_CHANNEL_ID);
