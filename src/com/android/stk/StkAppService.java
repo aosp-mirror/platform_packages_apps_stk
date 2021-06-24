@@ -119,7 +119,6 @@ public class StkAppService extends Service implements Runnable {
         protected LinkedList<DelayedCmd> mCmdsQ = null;
         protected boolean mCmdInProgress = false;
         protected int mStkServiceState = STATE_UNKNOWN;
-        protected int mSetupMenuState = STATE_NOT_EXIST;
         protected int mMenuState = StkMenuActivity.STATE_INIT;
         protected int mOpCode = -1;
         private Activity mActivityInstance = null;
@@ -369,7 +368,7 @@ public class StkAppService extends Service implements Runnable {
             }
             if (i == mSimCount) {
                 stopSelf();
-                StkAppInstaller.unInstall(mContext);
+                StkAppInstaller.uninstall(this);
                 return;
             }
         }
@@ -498,7 +497,7 @@ public class StkAppService extends Service implements Runnable {
         CatLog.d(LOG_TAG, "StkAppService, getMainMenu, sim id: " + slotId);
         if (slotId >=0 && slotId < mSimCount && (mStkContext[slotId].mMainCmd != null)) {
             Menu menu = mStkContext[slotId].mMainCmd.getMenu();
-            if (menu != null && mSimCount > PhoneConstants.MAX_PHONE_COUNT_SINGLE_SIM) {
+            if (menu != null) {
                 // If alpha identifier or icon identifier with the self-explanatory qualifier is
                 // specified in SET-UP MENU command, it should be more prioritized than preset ones.
                 if (menu.title == null
@@ -627,15 +626,7 @@ public class StkAppService extends Service implements Runnable {
                 break;
             case OP_BOOT_COMPLETED:
                 CatLog.d(LOG_TAG, " OP_BOOT_COMPLETED");
-                int i = 0;
-                for (i = 0; i < mSimCount; i++) {
-                    if (mStkContext[i].mMainCmd != null) {
-                        break;
-                    }
-                }
-                if (i == mSimCount) {
-                    StkAppInstaller.unInstall(mContext);
-                }
+                uninstallIfUnnecessary();
                 break;
             case OP_DELAYED_MSG:
                 handleDelayedCmd(slotId);
@@ -736,9 +727,11 @@ public class StkAppService extends Service implements Runnable {
                         == AppInterface.CommandType.PLAY_TONE.value()) {
                     terminateTone(slotId);
                 }
+                if (!uninstallIfUnnecessary()) {
+                    addToMenuSystemOrUpdateLabel();
+                }
                 if (isAllOtherCardsAbsent(slotId)) {
                     CatLog.d(LOG_TAG, "All CARDs are ABSENT");
-                    StkAppInstaller.unInstall(mContext);
                     stopSelf();
                 }
             } else {
@@ -1120,24 +1113,14 @@ public class StkAppService extends Service implements Runnable {
             CatLog.d(LOG_TAG, "SET_UP_MENU [" + removeMenu(slotId) + "]");
 
             if (removeMenu(slotId)) {
-                int i = 0;
-                CatLog.d(LOG_TAG, "removeMenu() - Uninstall App");
                 mStkContext[slotId].mCurrentMenu = null;
                 mStkContext[slotId].mMainCmd = null;
                 //Check other setup menu state. If all setup menu are removed, uninstall apk.
-                for (i = 0; i < mSimCount; i++) {
-                    if (i != slotId && mStkContext[i].mSetupMenuState != STATE_NOT_EXIST) {
-                        CatLog.d(LOG_TAG, "Not Uninstall App:" + i + ","
-                                + mStkContext[i].mSetupMenuState);
-                        break;
-                    }
-                }
-                if (i == mSimCount) {
-                    StkAppInstaller.unInstall(mContext);
+                if (!uninstallIfUnnecessary()) {
+                    addToMenuSystemOrUpdateLabel();
                 }
             } else {
-                CatLog.d(LOG_TAG, "install App");
-                StkAppInstaller.install(mContext);
+                addToMenuSystemOrUpdateLabel();
             }
             if (mStkContext[slotId].mMenuIsVisible) {
                 launchMenuActivity(null, slotId);
@@ -1263,6 +1246,32 @@ public class StkAppService extends Service implements Runnable {
                 mStkContext[slotId].mCmdInProgress = false;
             }
         }
+    }
+
+    private void addToMenuSystemOrUpdateLabel() {
+        String candidateLabel = null;
+
+        for (int slotId = 0; slotId < mSimCount; slotId++) {
+            Menu menu = getMainMenu(slotId);
+            if (menu != null) {
+                if (!TextUtils.isEmpty(candidateLabel)) {
+                    if (!TextUtils.equals(menu.title, candidateLabel)) {
+                        // We should not display the alpha identifier of SET-UP MENU command
+                        // as the application label on the application launcher
+                        // if different alpha identifiers are provided by multiple SIMs.
+                        candidateLabel = null;
+                        break;
+                    }
+                } else {
+                    if (TextUtils.isEmpty(menu.title)) {
+                        break;
+                    }
+                    candidateLabel = menu.title;
+                }
+            }
+        }
+
+        StkAppInstaller.installOrUpdate(this, candidateLabel);
     }
 
     @SuppressWarnings("FallThrough")
@@ -2427,16 +2436,24 @@ public class StkAppService extends Service implements Runnable {
         try {
             if (mStkContext[slotId].mCurrentMenu.items.size() == 1 &&
                 mStkContext[slotId].mCurrentMenu.items.get(0) == null) {
-                mStkContext[slotId].mSetupMenuState = STATE_NOT_EXIST;
                 return true;
             }
         } catch (NullPointerException e) {
             CatLog.d(LOG_TAG, "Unable to get Menu's items size");
-            mStkContext[slotId].mSetupMenuState = STATE_NOT_EXIST;
             return true;
         }
-        mStkContext[slotId].mSetupMenuState = STATE_EXIST;
         return false;
+    }
+
+    private boolean uninstallIfUnnecessary() {
+        for (int slot = 0; slot < mSimCount; slot++) {
+            if (mStkContext[slot].mMainCmd != null) {
+                return false;
+            }
+        }
+        CatLog.d(LOG_TAG, "Uninstall App");
+        StkAppInstaller.uninstall(this);
+        return true;
     }
 
     synchronized StkContext getStkContext(int slotId) {
