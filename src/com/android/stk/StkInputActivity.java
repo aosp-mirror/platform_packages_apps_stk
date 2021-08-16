@@ -452,7 +452,9 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         }
         textInput.setHelperText(getResources().getString(inTypeId));
         textInput.setHelperTextEnabled(!hideHelper);
-
+        CatLog.d(LOG_TAG,
+                String.format("configInputDisplay: digitOnly=%s, hideHelper=%s",
+                        mStkInput.digitOnly, hideHelper));
         setTitle(R.string.app_name);
 
         if (mStkInput.icon != null) {
