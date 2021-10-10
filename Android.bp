@@ -20,7 +20,10 @@ license {
 android_app {
     name: "Stk",
     libs: ["telephony-common"],
-    static_libs: ["com.google.android.material_material"],
+    static_libs: [
+        "com.google.android.material_material",
+        "androidx.legacy_legacy-support-core-utils",
+    ],
     srcs: ["**/*.java"],
     platform_apis: true,
     certificate: "platform",
