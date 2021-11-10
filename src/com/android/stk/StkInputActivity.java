@@ -467,7 +467,8 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
             mTextIn.setFilters(new InputFilter[] {new InputFilter.LengthFilter(mStkInput.maxLen)});
 
             textInput.setCounterMaxLength(mStkInput.maxLen);
-            textInput.setCounterEnabled(true);
+            //do not show the length helper for the text input
+            textInput.setCounterEnabled(false);
 
             if (!mStkInput.echo) {
                 mTextIn.setTransformationMethod(PasswordTransformationMethod
