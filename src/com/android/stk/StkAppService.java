@@ -834,7 +834,7 @@ public class StkAppService extends Service implements Runnable {
         };
         CatLog.d(LOG_TAG, "Started to observe home key event");
         registerReceiver(mHomeKeyEventReceiver,
-                new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+                new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS), Context.RECEIVER_EXPORTED);
     }
 
     private synchronized void unregisterHomeKeyEventReceiver() {
