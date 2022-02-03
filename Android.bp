@@ -1,20 +1,8 @@
 // Copyright 2007-2008 The Android Open Source Project
 
 package {
-    default_applicable_licenses: ["packages_apps_Stk_license"],
-}
-
-// Added automatically by a large-scale-change
-// http://go/android-license-faq
-license {
-    name: "packages_apps_Stk_license",
-    visibility: [":__subpackages__"],
-    license_kinds: [
-        "SPDX-license-identifier-Apache-2.0",
-    ],
-    license_text: [
-        "NOTICE",
-    ],
+    // http://go/android-license-faq
+    default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
 android_app {
