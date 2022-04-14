@@ -37,8 +37,7 @@ import java.util.ArrayList;
  * conbination of the inserted SIM card for Multi-SIM model.
  */
 public class StkMenuConfig {
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkMenuConfig.class.getSimpleName();
     private static final boolean DBG = TelephonyUtils.IS_DEBUGGABLE;
 
     private static final String XML_OPERATORS_TAG = "operators";

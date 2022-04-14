@@ -46,8 +46,7 @@ import java.util.ArrayList;
 public class StkLauncherActivity extends ListActivity {
     private TextView mTitleTextView = null;
     private ImageView mTitleIconView = null;
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkLauncherActivity.class.getSimpleName();
     private ArrayList<Item> mStkMenuList = null;
     private int mSingleSimId = -1;
     private Context mContext = null;
