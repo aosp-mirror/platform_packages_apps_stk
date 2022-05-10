@@ -16,66 +16,75 @@
 
 package com.android.stk;
 
-import com.android.internal.telephony.cat.CatLog;
 import com.android.internal.telephony.PhoneConstants;
+import com.android.internal.telephony.cat.CatLog;
+import com.android.internal.telephony.util.TelephonyUtils;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.IPackageManager;
 import android.content.pm.PackageManager;
-import android.telephony.TelephonyManager;
-import android.os.SystemProperties;
+import android.os.Build;
+import android.os.RemoteException;
+import android.os.ServiceManager;
 
 /**
  * Application installer for SIM Toolkit.
  *
  */
-abstract class StkAppInstaller {
-    private static final String STK_MAIN_ACTIVITY = "com.android.stk.StkMain";
+final class StkAppInstaller {
+    private static final boolean DBG = TelephonyUtils.IS_DEBUGGABLE;
     private static final String LOG_TAG =
             new Object(){}.getClass().getEnclosingClass().getSimpleName();
 
     private StkAppInstaller() {
-        CatLog.d(LOG_TAG, "init");
     }
 
-    public static void install(Context context) {
-        setAppState(context, true);
-    }
-
-    public static void unInstall(Context context) {
-        setAppState(context, false);
-    }
-
-    private static void setAppState(Context context, boolean install) {
-        CatLog.d(LOG_TAG, "[setAppState]+");
-        if (context == null) {
-            CatLog.d(LOG_TAG, "[setAppState]- no context, just return.");
-            return;
-        }
-        PackageManager pm = context.getPackageManager();
-        if (pm == null) {
-            CatLog.d(LOG_TAG, "[setAppState]- no package manager, just return.");
-            return;
-        }
-        ComponentName cName = new ComponentName("com.android.stk", STK_MAIN_ACTIVITY);
-        int state = install ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-                : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-
-        if (((PackageManager.COMPONENT_ENABLED_STATE_ENABLED == state) &&
-                (PackageManager.COMPONENT_ENABLED_STATE_ENABLED ==
-                pm.getComponentEnabledSetting(cName))) ||
-                ((PackageManager.COMPONENT_ENABLED_STATE_DISABLED == state) &&
-                (PackageManager.COMPONENT_ENABLED_STATE_DISABLED ==
-                pm.getComponentEnabledSetting(cName)))) {
-            CatLog.d(LOG_TAG, "Need not change app state!!");
-        } else {
-            CatLog.d(LOG_TAG, "Change app state[" + install + "]");
+    static void installOrUpdate(Context context, String label) {
+        IPackageManager pm = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
+        if (pm != null) {
+            ComponentName component = new ComponentName(context, StkMain.class);
+            int userId = context.getUserId();
+            int icon = R.drawable.ic_launcher_sim_toolkit;
             try {
-                pm.setComponentEnabledSetting(cName, state, PackageManager.DONT_KILL_APP);
-            } catch (Exception e) {
-                CatLog.d(LOG_TAG, "Could not change STK app state");
+                try {
+                    if (label != null) {
+                        pm.overrideLabelAndIcon(component, label, icon, userId);
+                    } else {
+                        pm.restoreLabelAndIcon(component, userId);
+                    }
+                    if (DBG) CatLog.d(LOG_TAG, "Set the label to " + label);
+                } catch (SecurityException e) {
+                    CatLog.e(LOG_TAG, "Failed to set the label to " + label);
+                }
+                setAppState(pm, component, userId, true);
+            } catch (RemoteException e) {
+                CatLog.e(LOG_TAG, "Failed to enable SIM Toolkit");
             }
         }
-        CatLog.d(LOG_TAG, "[setAppState]-");
+    }
+
+    static void uninstall(Context context) {
+        IPackageManager pm = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
+        if (pm != null) {
+            ComponentName component = new ComponentName(context, StkMain.class);
+            try {
+                setAppState(pm, component, context.getUserId(), false);
+            } catch (RemoteException e) {
+                CatLog.e(LOG_TAG, "Failed to disable SIM Toolkit");
+            }
+        }
+    }
+
+    static void setAppState(IPackageManager pm, ComponentName component, int userId, boolean enable)
+            throws RemoteException {
+        int current = pm.getComponentEnabledSetting(component, userId);
+        int expected = enable ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        if (current != expected) {
+            pm.setComponentEnabledSetting(component, expected, PackageManager.DONT_KILL_APP,
+                    userId);
+            if (DBG) CatLog.d(LOG_TAG, "SIM Toolkit is " + (enable ? "enabled" : "disabled"));
+        }
     }
 }
