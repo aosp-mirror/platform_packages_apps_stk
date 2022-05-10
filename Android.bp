@@ -1,9 +1,17 @@
 // Copyright 2007-2008 The Android Open Source Project
 
+package {
+    // http://go/android-license-faq
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
 android_app {
     name: "Stk",
     libs: ["telephony-common"],
-    static_libs: ["com.google.android.material_material"],
+    static_libs: [
+        "com.google.android.material_material",
+        "androidx.legacy_legacy-support-core-utils",
+    ],
     srcs: ["**/*.java"],
     platform_apis: true,
     certificate: "platform",
