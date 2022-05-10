@@ -452,7 +452,9 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         }
         textInput.setHelperText(getResources().getString(inTypeId));
         textInput.setHelperTextEnabled(!hideHelper);
-
+        CatLog.d(LOG_TAG,
+                String.format("configInputDisplay: digitOnly=%s, hideHelper=%s",
+                        mStkInput.digitOnly, hideHelper));
         setTitle(R.string.app_name);
 
         if (mStkInput.icon != null) {
@@ -467,7 +469,8 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
             mTextIn.setFilters(new InputFilter[] {new InputFilter.LengthFilter(mStkInput.maxLen)});
 
             textInput.setCounterMaxLength(mStkInput.maxLen);
-            textInput.setCounterEnabled(true);
+            //do not show the length helper for the text input
+            textInput.setCounterEnabled(false);
 
             if (!mStkInput.echo) {
                 mTextIn.setTransformationMethod(PasswordTransformationMethod
