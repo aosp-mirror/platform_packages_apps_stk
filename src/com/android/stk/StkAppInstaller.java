@@ -34,8 +34,7 @@ import android.os.ServiceManager;
  */
 final class StkAppInstaller {
     private static final boolean DBG = TelephonyUtils.IS_DEBUGGABLE;
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkAppInstaller.class.getSimpleName();
 
     private StkAppInstaller() {
     }
