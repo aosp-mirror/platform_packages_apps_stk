@@ -43,8 +43,7 @@ public class ToneDialog extends Activity {
     int mSlotId = -1;
     private AlertDialog mAlertDialog;
 
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = ToneDialog.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle icicle) {

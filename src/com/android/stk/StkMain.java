@@ -36,8 +36,7 @@ import android.widget.Toast;
  *
  */
  public class StkMain extends Activity {
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkMain.class.getSimpleName();
     private int mSingleSimId = -1;
     private Context mContext = null;
     private TelephonyManager mTm = null;
