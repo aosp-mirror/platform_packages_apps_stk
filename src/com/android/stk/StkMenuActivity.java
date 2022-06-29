@@ -60,8 +60,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     private ImageView mTitleIconView = null;
     private ProgressBar mProgressView = null;
 
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkMenuActivity.class.getSimpleName();
 
     private StkAppService appService = StkAppService.getInstance();
 
