@@ -23,7 +23,7 @@
     <string name="service_name" msgid="6767598098497885828">"Nume serviciu"</string>
     <string name="stk_no_service" msgid="1905632157498220090">"Niciun serviciu disponibil"</string>
     <string name="button_ok" msgid="7914432227722142434">"OK"</string>
-    <string name="button_cancel" msgid="137404731092374681">"Anulați"</string>
+    <string name="button_cancel" msgid="137404731092374681">"Anulează"</string>
     <string name="button_yes" msgid="755426085739326674">"Da"</string>
     <string name="button_no" msgid="564962410861983724">"Nu"</string>
     <string name="alphabet" msgid="9068318253752197929">"Alfabete"</string>
@@ -35,12 +35,12 @@
     <string name="disable_app" msgid="2298201833946002357">"Dezactivat"</string>
     <string name="stk_dialog_title" msgid="1047336800509270520">"SIM Toolkit"</string>
     <string name="default_tone_dialog_msg" msgid="8354658178971283852">"Ton de redare"</string>
-    <string name="default_open_channel_msg" msgid="2043011408855389673">"Deschideți canalul?"</string>
+    <string name="default_open_channel_msg" msgid="2043011408855389673">"Deschizi canalul?"</string>
     <string name="default_send_data_msg" msgid="6602200147341683792">"Se trimit date"</string>
     <string name="default_receive_data_msg" msgid="5545535916402887726">"Se primesc date"</string>
     <string name="default_close_channel_msg" msgid="6320648502339362951">"Canal închis"</string>
     <string name="stk_dialog_accept" msgid="2899431442032305374">"DA"</string>
     <string name="stk_dialog_reject" msgid="1455086565615694879">"NU"</string>
-    <string name="no_sim_card_inserted" msgid="3177955793136053581">"Introduceți cardul SIM ca să lansați setul de instrumente pentru SIM."</string>
+    <string name="no_sim_card_inserted" msgid="3177955793136053581">"Introdu cardul SIM ca să lansezi setul de instrumente pentru SIM."</string>
     <string name="stk_channel_name" msgid="3945765236566954372">"Mesaje privind serviciul mobil"</string>
 </resources>
