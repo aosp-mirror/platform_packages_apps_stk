@@ -18,7 +18,7 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name" msgid="3369897473091780760">"SIM  टुलकिट"</string>
     <string name="menu_end_session" msgid="9087134977926181033">"सत्रको अन्त्य गर्नुहोस्"</string>
-    <string name="help" msgid="1290449694178547017">"मद्दत गर्नुहोस्"</string>
+    <string name="help" msgid="1290449694178547017">"मद्दत"</string>
     <string name="menu_back" msgid="7136697148453089659">"पछाडि जानुहोस्"</string>
     <string name="service_name" msgid="6767598098497885828">"सेवा नाम"</string>
     <string name="stk_no_service" msgid="1905632157498220090">"सेवा उपलब्ध छैन"</string>
