@@ -54,7 +54,7 @@ public class ToneDialog extends Activity {
         // Register receiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(StkAppService.FINISH_TONE_ACTIVITY_ACTION);
-        registerReceiver(mFinishActivityReceiver, filter);
+        registerReceiver(mFinishActivityReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
