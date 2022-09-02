@@ -36,6 +36,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -67,8 +68,7 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
     private View mNormalLayout = null;
 
     // Constants
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkInputActivity.class.getSimpleName();
 
     private Input mStkInput = null;
     // Constants
@@ -216,6 +216,10 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         CatLog.d(LOG_TAG, "onPause - mIsResponseSent[" + mIsResponseSent + "]");
         if (mPopupMenu != null) {
             mPopupMenu.dismiss();
+        }
+        if (mTextIn != null) {
+            InputMethodManager imm = getSystemService(InputMethodManager.class);
+            imm.hideSoftInputFromWindow(mTextIn.getWindowToken(), 0);
         }
     }
 
