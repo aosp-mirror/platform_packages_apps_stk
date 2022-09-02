@@ -268,8 +268,7 @@ public class StkAppService extends Service implements Runnable {
     // Notification channel containing all mobile service messages notifications.
     private static final String STK_NOTIFICATION_CHANNEL_ID = "mobileServiceMessages";
 
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkAppService.class.getSimpleName();
 
     static final String SESSION_ENDED = "session_ended";
 
@@ -834,7 +833,7 @@ public class StkAppService extends Service implements Runnable {
         };
         CatLog.d(LOG_TAG, "Started to observe home key event");
         registerReceiver(mHomeKeyEventReceiver,
-                new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+                new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS), Context.RECEIVER_EXPORTED);
     }
 
     private synchronized void unregisterHomeKeyEventReceiver() {
