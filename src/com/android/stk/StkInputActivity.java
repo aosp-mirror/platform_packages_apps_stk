@@ -356,6 +356,7 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         return false;
     }
 
+    @SuppressWarnings("MissingSuperCall") // TODO: Fix me
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         CatLog.d(LOG_TAG, "onSaveInstanceState: " + mSlotId);
