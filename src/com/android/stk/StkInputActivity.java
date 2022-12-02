@@ -27,6 +27,7 @@ import android.os.SystemClock;
 import android.telephony.CarrierConfigManager;
 import android.text.Editable;
 import android.text.InputFilter;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
@@ -357,6 +358,7 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         return false;
     }
 
+    @SuppressWarnings("MissingSuperCall") // TODO: Fix me
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         CatLog.d(LOG_TAG, "onSaveInstanceState: " + mSlotId);
@@ -449,6 +451,7 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         boolean hideHelper = false;
         if (mStkInput.digitOnly) {
             mTextIn.setKeyListener(StkDigitsKeyListener.getInstance());
+            mTextIn.setInputType(InputType.TYPE_CLASS_NUMBER);
             inTypeId = R.string.digits;
             hideHelper = StkAppService.getBooleanCarrierConfig(this,
                     CarrierConfigManager.KEY_HIDE_DIGITS_HELPER_TEXT_ON_STK_INPUT_SCREEN_BOOL,
