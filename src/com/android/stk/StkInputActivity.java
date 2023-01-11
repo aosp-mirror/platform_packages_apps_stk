@@ -450,7 +450,7 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         boolean hideHelper = false;
         if (mStkInput.digitOnly) {
             mTextIn.setKeyListener(StkDigitsKeyListener.getInstance());
-            mTextIn.setInputType(InputType.TYPE_CLASS_NUMBER);
+            mTextIn.setInputType(InputType.TYPE_CLASS_PHONE);
             inTypeId = R.string.digits;
             hideHelper = StkAppService.getBooleanCarrierConfig(this,
                     CarrierConfigManager.KEY_HIDE_DIGITS_HELPER_TEXT_ON_STK_INPUT_SCREEN_BOOL,
