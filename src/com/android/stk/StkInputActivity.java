@@ -16,8 +16,6 @@
 
 package com.android.stk;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.content.Context;
 import android.content.Intent;
@@ -151,7 +149,8 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        getWindow().addSystemFlags(
+                WindowManager.LayoutParams.SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS);
         CatLog.d(LOG_TAG, "onCreate - mIsResponseSent[" + mIsResponseSent + "]");
 
         // appService can be null if this activity is automatically recreated by the system
@@ -451,7 +450,7 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         boolean hideHelper = false;
         if (mStkInput.digitOnly) {
             mTextIn.setKeyListener(StkDigitsKeyListener.getInstance());
-            mTextIn.setInputType(InputType.TYPE_CLASS_NUMBER);
+            mTextIn.setInputType(InputType.TYPE_CLASS_PHONE);
             inTypeId = R.string.digits;
             hideHelper = StkAppService.getBooleanCarrierConfig(this,
                     CarrierConfigManager.KEY_HIDE_DIGITS_HELPER_TEXT_ON_STK_INPUT_SCREEN_BOOL,
