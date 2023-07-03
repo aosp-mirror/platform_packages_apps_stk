@@ -30,8 +30,7 @@ import com.android.internal.telephony.cat.CatLog;
  *
  */
 public class BootCompletedReceiver extends BroadcastReceiver {
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = BootCompletedReceiver.class.getSimpleName();
 
     @Override
     public void onReceive(Context context, Intent intent) {

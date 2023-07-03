@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.KeyEvent;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -32,7 +33,6 @@ import android.graphics.BitmapFactory;
 import com.android.internal.telephony.cat.Item;
 import com.android.internal.telephony.cat.Menu;
 import com.android.internal.telephony.cat.CatLog;
-import com.android.internal.telephony.PhoneConstants;
 
 import android.telephony.TelephonyManager;
 
@@ -46,8 +46,7 @@ import java.util.ArrayList;
 public class StkLauncherActivity extends ListActivity {
     private TextView mTitleTextView = null;
     private ImageView mTitleIconView = null;
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkLauncherActivity.class.getSimpleName();
     private ArrayList<Item> mStkMenuList = null;
     private int mSingleSimId = -1;
     private Context mContext = null;
@@ -58,6 +57,8 @@ public class StkLauncherActivity extends ListActivity {
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
+        getWindow().addSystemFlags(
+                WindowManager.LayoutParams.SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS);
         CatLog.d(LOG_TAG, "onCreate+");
         mContext = getBaseContext();
         mTm = (TelephonyManager) mContext.getSystemService(
