@@ -16,31 +16,31 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="8396461461738434341">"Bộ công cụ SIM"</string>
-    <string name="menu_end_session" msgid="7368541737750982217">"Kết thúc phiên"</string>
-    <string name="help" msgid="9209980881219397319">"Trợ giúp"</string>
-    <string name="menu_back" msgid="301227740977453364">"Quay lại"</string>
-    <string name="service_name" msgid="6860303747999592491">"Tên dịch vụ"</string>
-    <string name="stk_no_service" msgid="5427773116839809131">"Không có dịch vụ nào"</string>
-    <string name="button_ok" msgid="5760722312558549555">"OK"</string>
-    <string name="button_cancel" msgid="1997847915560800261">"Hủy"</string>
-    <string name="button_yes" msgid="624420260648337203">"Có"</string>
-    <string name="button_no" msgid="1824959157582605627">"Không"</string>
-    <string name="alphabet" msgid="1583185545938805861">"Bảng chữ cái"</string>
-    <string name="digits" msgid="1746796679021682388">"Chữ số (0-9, *, #, +)"</string>
-    <string name="default_call_setup_msg" msgid="7960194995759849940">"Cuộc gọi đang diễn ra…"</string>
-    <string name="default_setup_call_msg" msgid="6126904475461162162">"Cuộc gọi đang được thiết lập"</string>
-    <string name="stk_app_state" msgid="18582277302584082">"Trạng thái ứng dụng"</string>
-    <string name="enable_app" msgid="3701224550936728203">"Đã bật"</string>
-    <string name="disable_app" msgid="6725081975611415214">"Đã vô hiệu hóa"</string>
-    <string name="stk_dialog_title" msgid="6954825385456886726">"Bộ công cụ SIM"</string>
-    <string name="default_tone_dialog_msg" msgid="4595366992944391641">"Phát âm thanh"</string>
-    <string name="default_open_channel_msg" msgid="2216070254100295924">"Mở kênh?"</string>
-    <string name="default_send_data_msg" msgid="6011219698689931272">"Đang gửi dữ liệu"</string>
-    <string name="default_receive_data_msg" msgid="618096941772010682">"Đang nhận dữ liệu"</string>
-    <string name="default_close_channel_msg" msgid="765364262263839824">"Đã đóng kênh"</string>
-    <string name="stk_dialog_accept" msgid="8498901537508923727">"CÓ"</string>
-    <string name="stk_dialog_reject" msgid="921848059485746796">"KHÔNG"</string>
-    <string name="no_sim_card_inserted" msgid="5316620398365235988">"Vui lòng lắp SIM để chạy Bộ công cụ SIM."</string>
-    <string name="stk_channel_name" msgid="8828587788561382056">"Thông báo dịch vụ di động"</string>
+    <string name="app_name" msgid="3369897473091780760">"Bộ công cụ SIM"</string>
+    <string name="menu_end_session" msgid="9087134977926181033">"Kết thúc phiên"</string>
+    <string name="help" msgid="1290449694178547017">"Trợ giúp"</string>
+    <string name="menu_back" msgid="7136697148453089659">"Quay lại"</string>
+    <string name="service_name" msgid="6767598098497885828">"Tên dịch vụ"</string>
+    <string name="stk_no_service" msgid="1905632157498220090">"Không có dịch vụ nào"</string>
+    <string name="button_ok" msgid="7914432227722142434">"OK"</string>
+    <string name="button_cancel" msgid="137404731092374681">"Hủy"</string>
+    <string name="button_yes" msgid="755426085739326674">"Có"</string>
+    <string name="button_no" msgid="564962410861983724">"Không"</string>
+    <string name="alphabet" msgid="9068318253752197929">"Bảng chữ cái"</string>
+    <string name="digits" msgid="7391551783961486324">"Chữ số (0-9, *, #, +)"</string>
+    <string name="default_call_setup_msg" msgid="6490156065165946828">"Cuộc gọi đang diễn ra…"</string>
+    <string name="default_setup_call_msg" msgid="5819132588246209714">"Cuộc gọi đang được thiết lập"</string>
+    <string name="stk_app_state" msgid="6274976677198791616">"Trạng thái ứng dụng"</string>
+    <string name="enable_app" msgid="1980493713217690903">"Đã bật"</string>
+    <string name="disable_app" msgid="2298201833946002357">"Đã vô hiệu hóa"</string>
+    <string name="stk_dialog_title" msgid="1047336800509270520">"Bộ công cụ SIM"</string>
+    <string name="default_tone_dialog_msg" msgid="8354658178971283852">"Phát âm thanh"</string>
+    <string name="default_open_channel_msg" msgid="2043011408855389673">"Mở kênh?"</string>
+    <string name="default_send_data_msg" msgid="6602200147341683792">"Đang gửi dữ liệu"</string>
+    <string name="default_receive_data_msg" msgid="5545535916402887726">"Đang nhận dữ liệu"</string>
+    <string name="default_close_channel_msg" msgid="6320648502339362951">"Đã đóng kênh"</string>
+    <string name="stk_dialog_accept" msgid="2899431442032305374">"CÓ"</string>
+    <string name="stk_dialog_reject" msgid="1455086565615694879">"KHÔNG"</string>
+    <string name="no_sim_card_inserted" msgid="3177955793136053581">"Vui lòng lắp SIM để chạy Bộ công cụ SIM."</string>
+    <string name="stk_channel_name" msgid="3945765236566954372">"Thông báo dịch vụ di động"</string>
 </resources>

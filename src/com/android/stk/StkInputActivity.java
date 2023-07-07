@@ -16,8 +16,6 @@
 
 package com.android.stk;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.content.Context;
 import android.content.Intent;
@@ -27,6 +25,7 @@ import android.os.SystemClock;
 import android.telephony.CarrierConfigManager;
 import android.text.Editable;
 import android.text.InputFilter;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
@@ -36,6 +35,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -67,8 +67,7 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
     private View mNormalLayout = null;
 
     // Constants
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkInputActivity.class.getSimpleName();
 
     private Input mStkInput = null;
     // Constants
@@ -150,7 +149,8 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        getWindow().addSystemFlags(
+                WindowManager.LayoutParams.SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS);
         CatLog.d(LOG_TAG, "onCreate - mIsResponseSent[" + mIsResponseSent + "]");
 
         // appService can be null if this activity is automatically recreated by the system
@@ -216,6 +216,10 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         CatLog.d(LOG_TAG, "onPause - mIsResponseSent[" + mIsResponseSent + "]");
         if (mPopupMenu != null) {
             mPopupMenu.dismiss();
+        }
+        if (mTextIn != null) {
+            InputMethodManager imm = getSystemService(InputMethodManager.class);
+            imm.hideSoftInputFromWindow(mTextIn.getWindowToken(), 0);
         }
     }
 
@@ -353,6 +357,7 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         return false;
     }
 
+    @SuppressWarnings("MissingSuperCall") // TODO: Fix me
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         CatLog.d(LOG_TAG, "onSaveInstanceState: " + mSlotId);
@@ -445,6 +450,7 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
         boolean hideHelper = false;
         if (mStkInput.digitOnly) {
             mTextIn.setKeyListener(StkDigitsKeyListener.getInstance());
+            mTextIn.setInputType(InputType.TYPE_CLASS_PHONE);
             inTypeId = R.string.digits;
             hideHelper = StkAppService.getBooleanCarrierConfig(this,
                     CarrierConfigManager.KEY_HIDE_DIGITS_HELPER_TEXT_ON_STK_INPUT_SCREEN_BOOL,
