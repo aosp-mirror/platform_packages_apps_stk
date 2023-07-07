@@ -16,31 +16,31 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="8396461461738434341">"SIM-verkfæri"</string>
-    <string name="menu_end_session" msgid="7368541737750982217">"Ljúka lotu"</string>
-    <string name="help" msgid="9209980881219397319">"Hjálp"</string>
-    <string name="menu_back" msgid="301227740977453364">"Til baka"</string>
-    <string name="service_name" msgid="6860303747999592491">"Heiti þjónustu"</string>
-    <string name="stk_no_service" msgid="5427773116839809131">"Engin þjónusta í boði"</string>
-    <string name="button_ok" msgid="5760722312558549555">"Í lagi"</string>
-    <string name="button_cancel" msgid="1997847915560800261">"Hætta við"</string>
-    <string name="button_yes" msgid="624420260648337203">"Já"</string>
-    <string name="button_no" msgid="1824959157582605627">"Nei"</string>
-    <string name="alphabet" msgid="1583185545938805861">"Stafróf"</string>
-    <string name="digits" msgid="1746796679021682388">"Tölustafir (0–9, *, #, +)"</string>
-    <string name="default_call_setup_msg" msgid="7960194995759849940">"Símtal í gangi…"</string>
-    <string name="default_setup_call_msg" msgid="6126904475461162162">"Verið er að setja upp símtal"</string>
-    <string name="stk_app_state" msgid="18582277302584082">"Staða forrits"</string>
-    <string name="enable_app" msgid="3701224550936728203">"Virkt"</string>
-    <string name="disable_app" msgid="6725081975611415214">"Óvirkt"</string>
-    <string name="stk_dialog_title" msgid="6954825385456886726">"SIM-verkfæri"</string>
-    <string name="default_tone_dialog_msg" msgid="4595366992944391641">"Spilar tón"</string>
-    <string name="default_open_channel_msg" msgid="2216070254100295924">"Opna rás?"</string>
-    <string name="default_send_data_msg" msgid="6011219698689931272">"Sendir gögn"</string>
-    <string name="default_receive_data_msg" msgid="618096941772010682">"Tekur á móti gögnum"</string>
-    <string name="default_close_channel_msg" msgid="765364262263839824">"Rás lokað"</string>
-    <string name="stk_dialog_accept" msgid="8498901537508923727">"JÁ"</string>
-    <string name="stk_dialog_reject" msgid="921848059485746796">"NEI"</string>
-    <string name="no_sim_card_inserted" msgid="5316620398365235988">"Settu SIM-kort í til að ræsa SIM-verkfæri."</string>
-    <string name="stk_channel_name" msgid="8828587788561382056">"Skilaboð farsímaþjónustu"</string>
+    <string name="app_name" msgid="3369897473091780760">"SIM-verkfæri"</string>
+    <string name="menu_end_session" msgid="9087134977926181033">"Ljúka lotu"</string>
+    <string name="help" msgid="1290449694178547017">"Hjálp"</string>
+    <string name="menu_back" msgid="7136697148453089659">"Til baka"</string>
+    <string name="service_name" msgid="6767598098497885828">"Heiti þjónustu"</string>
+    <string name="stk_no_service" msgid="1905632157498220090">"Engin þjónusta í boði"</string>
+    <string name="button_ok" msgid="7914432227722142434">"Í lagi"</string>
+    <string name="button_cancel" msgid="137404731092374681">"Hætta við"</string>
+    <string name="button_yes" msgid="755426085739326674">"Já"</string>
+    <string name="button_no" msgid="564962410861983724">"Nei"</string>
+    <string name="alphabet" msgid="9068318253752197929">"Stafróf"</string>
+    <string name="digits" msgid="7391551783961486324">"Tölustafir (0–9, *, #, +)"</string>
+    <string name="default_call_setup_msg" msgid="6490156065165946828">"Símtal í gangi…"</string>
+    <string name="default_setup_call_msg" msgid="5819132588246209714">"Verið er að setja upp símtal"</string>
+    <string name="stk_app_state" msgid="6274976677198791616">"Staða forrits"</string>
+    <string name="enable_app" msgid="1980493713217690903">"Virkt"</string>
+    <string name="disable_app" msgid="2298201833946002357">"Óvirkt"</string>
+    <string name="stk_dialog_title" msgid="1047336800509270520">"SIM-verkfæri"</string>
+    <string name="default_tone_dialog_msg" msgid="8354658178971283852">"Spilar tón"</string>
+    <string name="default_open_channel_msg" msgid="2043011408855389673">"Opna rás?"</string>
+    <string name="default_send_data_msg" msgid="6602200147341683792">"Sendir gögn"</string>
+    <string name="default_receive_data_msg" msgid="5545535916402887726">"Tekur á móti gögnum"</string>
+    <string name="default_close_channel_msg" msgid="6320648502339362951">"Rás lokað"</string>
+    <string name="stk_dialog_accept" msgid="2899431442032305374">"JÁ"</string>
+    <string name="stk_dialog_reject" msgid="1455086565615694879">"NEI"</string>
+    <string name="no_sim_card_inserted" msgid="3177955793136053581">"Settu SIM-kort í til að ræsa SIM-verkfæri."</string>
+    <string name="stk_channel_name" msgid="3945765236566954372">"Skilaboð farsímaþjónustu"</string>
 </resources>
