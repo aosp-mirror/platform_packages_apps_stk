@@ -31,6 +31,7 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -60,8 +61,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     private ImageView mTitleIconView = null;
     private ProgressBar mProgressView = null;
 
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkMenuActivity.class.getSimpleName();
 
     private StkAppService appService = StkAppService.getInstance();
 
@@ -85,7 +85,8 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        getWindow().addSystemFlags(
+                WindowManager.LayoutParams.SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS);
         CatLog.d(LOG_TAG, "onCreate");
 
         ActionBar actionBar = getActionBar();
