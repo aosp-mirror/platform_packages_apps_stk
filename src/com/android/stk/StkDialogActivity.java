@@ -41,8 +41,7 @@ import com.android.internal.telephony.util.TelephonyUtils;
  */
 public class StkDialogActivity extends Activity {
     // members
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkDialogActivity.class.getSimpleName();
     TextMessage mTextMsg = null;
     private int mSlotId = -1;
     private StkAppService appService = StkAppService.getInstance();

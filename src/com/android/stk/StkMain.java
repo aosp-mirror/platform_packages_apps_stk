@@ -20,14 +20,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 
 import com.android.internal.telephony.cat.CatLog;
-import com.android.internal.telephony.PhoneConstants;
 
 import android.telephony.TelephonyManager;
 
 import android.view.Gravity;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 /**
@@ -36,8 +35,7 @@ import android.widget.Toast;
  *
  */
  public class StkMain extends Activity {
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkMain.class.getSimpleName();
     private int mSingleSimId = -1;
     private Context mContext = null;
     private TelephonyManager mTm = null;
@@ -47,6 +45,8 @@ import android.widget.Toast;
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
+        getWindow().addSystemFlags(
+                WindowManager.LayoutParams.SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS);
         CatLog.d(LOG_TAG, "onCreate+");
         mContext = getBaseContext();
         mTm = (TelephonyManager) mContext.getSystemService(
