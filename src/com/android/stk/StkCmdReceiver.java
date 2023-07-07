@@ -31,8 +31,7 @@ import com.android.internal.telephony.cat.AppInterface;
  *
  */
 public class StkCmdReceiver extends BroadcastReceiver {
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkCmdReceiver.class.getSimpleName();
 
     @Override
     public void onReceive(Context context, Intent intent) {
