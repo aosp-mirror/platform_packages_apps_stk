@@ -175,6 +175,7 @@ public class StkAppService extends Service implements Runnable {
     private TonePlayer mTonePlayer = null;
     private Vibrator mVibrator = null;
     private BroadcastReceiver mUserActivityReceiver = null;
+    private AlertDialog mAlertDialog = null;
 
     // Used for setting FLAG_ACTIVITY_NO_USER_ACTION when
     // creating an intent.
@@ -268,8 +269,7 @@ public class StkAppService extends Service implements Runnable {
     // Notification channel containing all mobile service messages notifications.
     private static final String STK_NOTIFICATION_CHANNEL_ID = "mobileServiceMessages";
 
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkAppService.class.getSimpleName();
 
     static final String SESSION_ENDED = "session_ended";
 
@@ -405,6 +405,11 @@ public class StkAppService extends Service implements Runnable {
         unregisterHomeVisibilityObserver();
         unregisterLocaleChangeReceiver();
         unregisterHomeKeyEventReceiver();
+        // close the AlertDialog if any is showing upon sim remove etc cases
+        if (mAlertDialog != null && mAlertDialog.isShowing()) {
+            mAlertDialog.dismiss();
+            mAlertDialog = null;
+        }
         sInstance = null;
         waitForLooper();
         PhoneConfigurationManager.unregisterForMultiSimConfigChange(mServiceHandler);
@@ -2357,7 +2362,7 @@ public class StkAppService extends Service implements Runnable {
             msg.text = getResources().getString(R.string.default_open_channel_msg);
         }
 
-        final AlertDialog dialog = new AlertDialog.Builder(mContext)
+        mAlertDialog = new AlertDialog.Builder(mContext)
                     .setIconAttribute(android.R.attr.alertDialogIcon)
                     .setTitle(msg.title)
                     .setMessage(msg.text)
@@ -2382,13 +2387,13 @@ public class StkAppService extends Service implements Runnable {
                     })
                     .create();
 
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        mAlertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         if (!mContext.getResources().getBoolean(
                 R.bool.config_sf_slowBlur)) {
-            dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+            mAlertDialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
         }
 
-        dialog.show();
+        mAlertDialog.show();
     }
 
     private void launchTransientEventMessage(int slotId) {
