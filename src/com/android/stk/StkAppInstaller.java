@@ -34,8 +34,7 @@ import android.os.ServiceManager;
  */
 final class StkAppInstaller {
     private static final boolean DBG = TelephonyUtils.IS_DEBUGGABLE;
-    private static final String LOG_TAG =
-            new Object(){}.getClass().getEnclosingClass().getSimpleName();
+    private static final String LOG_TAG = StkAppInstaller.class.getSimpleName();
 
     private StkAppInstaller() {
     }
@@ -83,7 +82,7 @@ final class StkAppInstaller {
                 : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
         if (current != expected) {
             pm.setComponentEnabledSetting(component, expected, PackageManager.DONT_KILL_APP,
-                    userId);
+                    userId, "StkAppInstaller");
             if (DBG) CatLog.d(LOG_TAG, "SIM Toolkit is " + (enable ? "enabled" : "disabled"));
         }
     }
