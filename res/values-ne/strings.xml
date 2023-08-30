@@ -42,5 +42,5 @@
     <string name="stk_dialog_accept" msgid="2899431442032305374">"हो"</string>
     <string name="stk_dialog_reject" msgid="1455086565615694879">"होइन"</string>
     <string name="no_sim_card_inserted" msgid="3177955793136053581">"SIM टुलकिट लञ्च गर्न कृपया SIM घुसाउनुहोस्।"</string>
-    <string name="stk_channel_name" msgid="3945765236566954372">"मोबाइल सेवाका सन्देशहरू"</string>
+    <string name="stk_channel_name" msgid="3945765236566954372">"मोबाइल सेवाका म्यासेजहरू"</string>
 </resources>
