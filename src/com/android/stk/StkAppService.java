@@ -74,7 +74,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.android.internal.telephony.GsmAlphabet;
 import com.android.internal.telephony.ITelephony;
 import com.android.internal.telephony.PhoneConfigurationManager;
-import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.TelephonyIntents;
 import com.android.internal.telephony.cat.AppInterface;
 import com.android.internal.telephony.cat.CatCmdMessage;
@@ -300,6 +299,7 @@ public class StkAppService extends Service implements Runnable {
     private static final String SYSTEM_DIALOG_REASON_HOME_KEY = "homekey";
     private static final String SYSTEM_DIALOG_REASON_RECENTAPPS_KEY = "recentapps";
     private BroadcastReceiver mHomeKeyEventReceiver = null;
+    private static final int NOTIFICATION_PENDING_INTENT_REQUEST_CODE = 0;
 
     @Override
     public void onCreate() {
@@ -1690,47 +1690,26 @@ public class StkAppService extends Service implements Runnable {
         builder.setOnlyAlertOnce(true);
         builder.setColor(getResources().getColor(
                 com.android.internal.R.color.system_notification_accent_color));
-
-        registerUserPresentReceiver();
+        Intent userPresentIntent = new Intent(mContext, UserPresentReceiver.class);
+        userPresentIntent.setAction(Intent.ACTION_USER_PRESENT);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext,
+                NOTIFICATION_PENDING_INTENT_REQUEST_CODE, userPresentIntent,
+                PendingIntent.FLAG_IMMUTABLE);
+        builder.setContentIntent(pendingIntent);
         mNotificationManager.notify(getNotificationId(NOTIFICATION_ON_KEYGUARD, slotId),
                 builder.build());
         mStkContext[slotId].mNotificationOnKeyguard = true;
     }
 
+    public void cancelNotificationOnKeyguard() {
+        for (int slot = 0; slot < mSimCount; slot++) {
+            cancelNotificationOnKeyguard(slot);
+        }
+    }
+
     private void cancelNotificationOnKeyguard(int slotId) {
         mNotificationManager.cancel(getNotificationId(NOTIFICATION_ON_KEYGUARD, slotId));
         mStkContext[slotId].mNotificationOnKeyguard = false;
-        unregisterUserPresentReceiver(slotId);
-    }
-
-    private synchronized void registerUserPresentReceiver() {
-        if (mUserPresentReceiver == null) {
-            mUserPresentReceiver = new BroadcastReceiver() {
-                @Override public void onReceive(Context context, Intent intent) {
-                    if (Intent.ACTION_USER_PRESENT.equals(intent.getAction())) {
-                        for (int slot = 0; slot < mSimCount; slot++) {
-                            cancelNotificationOnKeyguard(slot);
-                        }
-                    }
-                }
-            };
-            registerReceiver(mUserPresentReceiver, new IntentFilter(Intent.ACTION_USER_PRESENT));
-        }
-    }
-
-    private synchronized void unregisterUserPresentReceiver(int slotId) {
-        if (mUserPresentReceiver != null) {
-            for (int slot = 0; slot < mSimCount; slot++) {
-                if (slot != slotId) {
-                    if (mStkContext[slot].mNotificationOnKeyguard) {
-                        // The broadcast receiver is still necessary for other SIM card.
-                        return;
-                    }
-                }
-            }
-            unregisterReceiver(mUserPresentReceiver);
-            mUserPresentReceiver = null;
-        }
     }
 
     private int getNotificationId(int notificationType, int slotId) {
