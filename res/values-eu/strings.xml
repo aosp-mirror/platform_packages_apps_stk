@@ -41,6 +41,6 @@
     <string name="default_close_channel_msg" msgid="6320648502339362951">"Kanala itxita dago"</string>
     <string name="stk_dialog_accept" msgid="2899431442032305374">"BAI"</string>
     <string name="stk_dialog_reject" msgid="1455086565615694879">"EZ"</string>
-    <string name="no_sim_card_inserted" msgid="3177955793136053581">"Sartu SIMa SIM tresnak abiarazteko."</string>
+    <string name="no_sim_card_inserted" msgid="3177955793136053581">"Sartu SIMa SIM tresnak exekutatzeko."</string>
     <string name="stk_channel_name" msgid="3945765236566954372">"Zerbitzu mugikorraren mezuak"</string>
 </resources>
