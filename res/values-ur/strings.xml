@@ -16,31 +16,31 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="8396461461738434341">"‏SIM ٹول کٹ"</string>
-    <string name="menu_end_session" msgid="7368541737750982217">"سیشن ختم کریں"</string>
-    <string name="help" msgid="9209980881219397319">"مدد"</string>
-    <string name="menu_back" msgid="301227740977453364">"پیچھے جائیں"</string>
-    <string name="service_name" msgid="6860303747999592491">"سروس کا نام"</string>
-    <string name="stk_no_service" msgid="5427773116839809131">"کوئی سروس دستیاب نہیں ہے"</string>
-    <string name="button_ok" msgid="5760722312558549555">"ٹھیک ہے"</string>
-    <string name="button_cancel" msgid="1997847915560800261">"منسوخ کریں"</string>
-    <string name="button_yes" msgid="624420260648337203">"ہاں"</string>
-    <string name="button_no" msgid="1824959157582605627">"نہیں"</string>
-    <string name="alphabet" msgid="1583185545938805861">"حروف"</string>
-    <string name="digits" msgid="1746796679021682388">"‏ہندسے (‎0-9, *, #, +‎)"</string>
-    <string name="default_call_setup_msg" msgid="7960194995759849940">"کال کی جا رہی ہے…"</string>
-    <string name="default_setup_call_msg" msgid="6126904475461162162">"کال ترتیب دی جا رہی ہے"</string>
-    <string name="stk_app_state" msgid="18582277302584082">"ایپلیکیشن کی حیثیت"</string>
-    <string name="enable_app" msgid="3701224550936728203">"فعال"</string>
-    <string name="disable_app" msgid="6725081975611415214">"غیر فعال"</string>
-    <string name="stk_dialog_title" msgid="6954825385456886726">"‏SIM ٹول کٹ"</string>
-    <string name="default_tone_dialog_msg" msgid="4595366992944391641">"ٹون چل رہی ہے"</string>
-    <string name="default_open_channel_msg" msgid="2216070254100295924">"چینل کھولیں؟"</string>
-    <string name="default_send_data_msg" msgid="6011219698689931272">"ڈیٹا بھیج رہا ہے"</string>
-    <string name="default_receive_data_msg" msgid="618096941772010682">"ڈیٹا موصول کر رہا ہے"</string>
-    <string name="default_close_channel_msg" msgid="765364262263839824">"چینل بند ہو گیا"</string>
-    <string name="stk_dialog_accept" msgid="8498901537508923727">"ہاں"</string>
-    <string name="stk_dialog_reject" msgid="921848059485746796">"نہیں"</string>
-    <string name="no_sim_card_inserted" msgid="5316620398365235988">"‏براہ کرم SIM ٹول کٹ لانچ کرنے کیلئے SIM داخل کریں۔"</string>
-    <string name="stk_channel_name" msgid="8828587788561382056">"موبائل سروس کے پیغامات"</string>
+    <string name="app_name" msgid="3369897473091780760">"‏SIM ٹول کٹ"</string>
+    <string name="menu_end_session" msgid="9087134977926181033">"سیشن ختم کریں"</string>
+    <string name="help" msgid="1290449694178547017">"مدد"</string>
+    <string name="menu_back" msgid="7136697148453089659">"پیچھے جائیں"</string>
+    <string name="service_name" msgid="6767598098497885828">"سروس کا نام"</string>
+    <string name="stk_no_service" msgid="1905632157498220090">"کوئی سروس دستیاب نہیں ہے"</string>
+    <string name="button_ok" msgid="7914432227722142434">"ٹھیک ہے"</string>
+    <string name="button_cancel" msgid="137404731092374681">"منسوخ کریں"</string>
+    <string name="button_yes" msgid="755426085739326674">"ہاں"</string>
+    <string name="button_no" msgid="564962410861983724">"نہیں"</string>
+    <string name="alphabet" msgid="9068318253752197929">"حروف"</string>
+    <string name="digits" msgid="7391551783961486324">"‏ہندسے (‎0-9, *, #, +‎)"</string>
+    <string name="default_call_setup_msg" msgid="6490156065165946828">"کال کی جا رہی ہے…"</string>
+    <string name="default_setup_call_msg" msgid="5819132588246209714">"کال ترتیب دی جا رہی ہے"</string>
+    <string name="stk_app_state" msgid="6274976677198791616">"ایپلیکیشن کی حیثیت"</string>
+    <string name="enable_app" msgid="1980493713217690903">"فعال"</string>
+    <string name="disable_app" msgid="2298201833946002357">"غیر فعال"</string>
+    <string name="stk_dialog_title" msgid="1047336800509270520">"‏SIM ٹول کٹ"</string>
+    <string name="default_tone_dialog_msg" msgid="8354658178971283852">"ٹون چل رہی ہے"</string>
+    <string name="default_open_channel_msg" msgid="2043011408855389673">"چینل کھولیں؟"</string>
+    <string name="default_send_data_msg" msgid="6602200147341683792">"ڈیٹا بھیج رہا ہے"</string>
+    <string name="default_receive_data_msg" msgid="5545535916402887726">"ڈیٹا موصول کر رہا ہے"</string>
+    <string name="default_close_channel_msg" msgid="6320648502339362951">"چینل بند ہو گیا"</string>
+    <string name="stk_dialog_accept" msgid="2899431442032305374">"ہاں"</string>
+    <string name="stk_dialog_reject" msgid="1455086565615694879">"نہیں"</string>
+    <string name="no_sim_card_inserted" msgid="3177955793136053581">"‏براہ کرم SIM ٹول کٹ لانچ کرنے کیلئے SIM داخل کریں۔"</string>
+    <string name="stk_channel_name" msgid="3945765236566954372">"موبائل سروس کے پیغامات"</string>
 </resources>
