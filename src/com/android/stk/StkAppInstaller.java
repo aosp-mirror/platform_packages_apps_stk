@@ -82,7 +82,7 @@ final class StkAppInstaller {
                 : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
         if (current != expected) {
             pm.setComponentEnabledSetting(component, expected, PackageManager.DONT_KILL_APP,
-                    userId);
+                    userId, "StkAppInstaller");
             if (DBG) CatLog.d(LOG_TAG, "SIM Toolkit is " + (enable ? "enabled" : "disabled"));
         }
     }
