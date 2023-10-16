@@ -16,31 +16,31 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="8396461461738434341">"SIM တူးလ်ကစ်"</string>
-    <string name="menu_end_session" msgid="7368541737750982217">"သတ်မှတ်ကဏ္ဏကို ပြီးဆုံးမည်"</string>
-    <string name="help" msgid="9209980881219397319">"အကူအညီ"</string>
-    <string name="menu_back" msgid="301227740977453364">"နောက်သို့"</string>
-    <string name="service_name" msgid="6860303747999592491">"ဝန်ဆောင်မှုအမည်"</string>
-    <string name="stk_no_service" msgid="5427773116839809131">"ဆက်သွယ်ချိတ်ဆက်ရန် ဝန်ဆောင်မှု တစ်ခုမှမရှိပါ"</string>
-    <string name="button_ok" msgid="5760722312558549555">"OK"</string>
-    <string name="button_cancel" msgid="1997847915560800261">"မလုပ်တော့"</string>
-    <string name="button_yes" msgid="624420260648337203">"Yes"</string>
-    <string name="button_no" msgid="1824959157582605627">"No"</string>
-    <string name="alphabet" msgid="1583185545938805861">"အက္ခရာများ"</string>
-    <string name="digits" msgid="1746796679021682388">"ဂဏန်းများ (0-9, *, #, +)"</string>
-    <string name="default_call_setup_msg" msgid="7960194995759849940">"ခေါ်ဆိုနေပါသည်"</string>
-    <string name="default_setup_call_msg" msgid="6126904475461162162">"ခေါ်ဆိုရန် သတ်မှတ်ပြင်ဆင်ပြီး"</string>
-    <string name="stk_app_state" msgid="18582277302584082">"အပလီကေးရှင်းအနေအထား"</string>
-    <string name="enable_app" msgid="3701224550936728203">"ဖွင့်ထားသည်"</string>
-    <string name="disable_app" msgid="6725081975611415214">"သုံးမရအောင် ပိတ်ထားခြင်း"</string>
-    <string name="stk_dialog_title" msgid="6954825385456886726">"SIM တူးလ်ကစ်"</string>
-    <string name="default_tone_dialog_msg" msgid="4595366992944391641">"ဖွင့်ထားသည့် အသံ"</string>
-    <string name="default_open_channel_msg" msgid="2216070254100295924">"လှိုင်း ဖွင့်မည်လား?"</string>
-    <string name="default_send_data_msg" msgid="6011219698689931272">"ဒေတာ ပို့နေပြီ"</string>
-    <string name="default_receive_data_msg" msgid="618096941772010682">"ဒေတာ ရယူနေသည်"</string>
-    <string name="default_close_channel_msg" msgid="765364262263839824">"လှိုင်းပိတ်ထားသည်"</string>
-    <string name="stk_dialog_accept" msgid="8498901537508923727">"YES"</string>
-    <string name="stk_dialog_reject" msgid="921848059485746796">"NO"</string>
-    <string name="no_sim_card_inserted" msgid="5316620398365235988">"SIM တူးလ်ကစ်အား စတင်ရန် SIM ကိုကျေးဇူးပြု၍ ထည့်သွင်းပါ။"</string>
-    <string name="stk_channel_name" msgid="8828587788561382056">"မိုဘိုင်းဝန်ဆောင်မှု မက်ဆေ့ဂျ်များ"</string>
+    <string name="app_name" msgid="3369897473091780760">"SIM တူးလ်ကစ်"</string>
+    <string name="menu_end_session" msgid="9087134977926181033">"သတ်မှတ်ကဏ္ဏကို ပြီးဆုံးမည်"</string>
+    <string name="help" msgid="1290449694178547017">"အကူအညီ"</string>
+    <string name="menu_back" msgid="7136697148453089659">"နောက်သို့"</string>
+    <string name="service_name" msgid="6767598098497885828">"ဝန်ဆောင်မှုအမည်"</string>
+    <string name="stk_no_service" msgid="1905632157498220090">"ဆက်သွယ်ချိတ်ဆက်ရန် ဝန်ဆောင်မှု တစ်ခုမှမရှိပါ"</string>
+    <string name="button_ok" msgid="7914432227722142434">"OK"</string>
+    <string name="button_cancel" msgid="137404731092374681">"မလုပ်တော့"</string>
+    <string name="button_yes" msgid="755426085739326674">"Yes"</string>
+    <string name="button_no" msgid="564962410861983724">"No"</string>
+    <string name="alphabet" msgid="9068318253752197929">"အက္ခရာများ"</string>
+    <string name="digits" msgid="7391551783961486324">"ဂဏန်းများ (0-9, *, #, +)"</string>
+    <string name="default_call_setup_msg" msgid="6490156065165946828">"ခေါ်ဆိုနေပါသည်"</string>
+    <string name="default_setup_call_msg" msgid="5819132588246209714">"ခေါ်ဆိုရန် သတ်မှတ်ပြင်ဆင်ပြီး"</string>
+    <string name="stk_app_state" msgid="6274976677198791616">"အပလီကေးရှင်းအနေအထား"</string>
+    <string name="enable_app" msgid="1980493713217690903">"ဖွင့်ထားသည်"</string>
+    <string name="disable_app" msgid="2298201833946002357">"သုံးမရအောင် ပိတ်ထားခြင်း"</string>
+    <string name="stk_dialog_title" msgid="1047336800509270520">"SIM တူးလ်ကစ်"</string>
+    <string name="default_tone_dialog_msg" msgid="8354658178971283852">"ဖွင့်ထားသည့် အသံ"</string>
+    <string name="default_open_channel_msg" msgid="2043011408855389673">"လှိုင်း ဖွင့်မည်လား?"</string>
+    <string name="default_send_data_msg" msgid="6602200147341683792">"ဒေတာ ပို့နေပြီ"</string>
+    <string name="default_receive_data_msg" msgid="5545535916402887726">"ဒေတာ ရယူနေသည်"</string>
+    <string name="default_close_channel_msg" msgid="6320648502339362951">"လှိုင်းပိတ်ထားသည်"</string>
+    <string name="stk_dialog_accept" msgid="2899431442032305374">"YES"</string>
+    <string name="stk_dialog_reject" msgid="1455086565615694879">"NO"</string>
+    <string name="no_sim_card_inserted" msgid="3177955793136053581">"SIM တူးလ်ကစ်အား စတင်ရန် SIM ကိုကျေးဇူးပြု၍ ထည့်သွင်းပါ။"</string>
+    <string name="stk_channel_name" msgid="3945765236566954372">"မိုဘိုင်းဝန်ဆောင်မှု မက်ဆေ့ဂျ်များ"</string>
 </resources>
