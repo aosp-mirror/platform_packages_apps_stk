@@ -130,6 +130,12 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name="com.android.stk.UserPresentReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.USER_PRESENT" />
+            </intent-filter>
+        </receiver>
         <service android:name="StkAppService" />
 
     </application>
