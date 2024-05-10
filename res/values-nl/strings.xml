@@ -16,31 +16,31 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="8396461461738434341">"SIM-toolkit"</string>
-    <string name="menu_end_session" msgid="7368541737750982217">"Sessie beëindigen"</string>
-    <string name="help" msgid="9209980881219397319">"Hulp"</string>
-    <string name="menu_back" msgid="301227740977453364">"Terug"</string>
-    <string name="service_name" msgid="6860303747999592491">"Servicenaam"</string>
-    <string name="stk_no_service" msgid="5427773116839809131">"Geen service beschikbaar"</string>
-    <string name="button_ok" msgid="5760722312558549555">"OK"</string>
-    <string name="button_cancel" msgid="1997847915560800261">"Annuleren"</string>
-    <string name="button_yes" msgid="624420260648337203">"Ja"</string>
-    <string name="button_no" msgid="1824959157582605627">"Nee"</string>
-    <string name="alphabet" msgid="1583185545938805861">"Alfabetten"</string>
-    <string name="digits" msgid="1746796679021682388">"Symbolen (0-9, *, #, +)"</string>
-    <string name="default_call_setup_msg" msgid="7960194995759849940">"Actief gesprek..."</string>
-    <string name="default_setup_call_msg" msgid="6126904475461162162">"Aanroep wordt ingesteld"</string>
-    <string name="stk_app_state" msgid="18582277302584082">"Toepassingsstatus"</string>
-    <string name="enable_app" msgid="3701224550936728203">"Ingeschakeld"</string>
-    <string name="disable_app" msgid="6725081975611415214">"Uitgeschakeld"</string>
-    <string name="stk_dialog_title" msgid="6954825385456886726">"SIM-toolkit"</string>
-    <string name="default_tone_dialog_msg" msgid="4595366992944391641">"Toon afspelen"</string>
-    <string name="default_open_channel_msg" msgid="2216070254100295924">"Kanaal openen?"</string>
-    <string name="default_send_data_msg" msgid="6011219698689931272">"Gegevens verzenden"</string>
-    <string name="default_receive_data_msg" msgid="618096941772010682">"Gegevens ontvangen"</string>
-    <string name="default_close_channel_msg" msgid="765364262263839824">"Kanaal gesloten"</string>
-    <string name="stk_dialog_accept" msgid="8498901537508923727">"JA"</string>
-    <string name="stk_dialog_reject" msgid="921848059485746796">"NEE"</string>
-    <string name="no_sim_card_inserted" msgid="5316620398365235988">"Plaats een simkaart om de SIM Toolkit te starten."</string>
-    <string name="stk_channel_name" msgid="8828587788561382056">"Mobiele serviceberichten"</string>
+    <string name="app_name" msgid="3369897473091780760">"SIM-toolkit"</string>
+    <string name="menu_end_session" msgid="9087134977926181033">"Sessie beëindigen"</string>
+    <string name="help" msgid="1290449694178547017">"Hulp"</string>
+    <string name="menu_back" msgid="7136697148453089659">"Terug"</string>
+    <string name="service_name" msgid="6767598098497885828">"Servicenaam"</string>
+    <string name="stk_no_service" msgid="1905632157498220090">"Geen service beschikbaar"</string>
+    <string name="button_ok" msgid="7914432227722142434">"OK"</string>
+    <string name="button_cancel" msgid="137404731092374681">"Annuleren"</string>
+    <string name="button_yes" msgid="755426085739326674">"Ja"</string>
+    <string name="button_no" msgid="564962410861983724">"Nee"</string>
+    <string name="alphabet" msgid="9068318253752197929">"Alfabetten"</string>
+    <string name="digits" msgid="7391551783961486324">"Symbolen (0-9, *, #, +)"</string>
+    <string name="default_call_setup_msg" msgid="6490156065165946828">"Actief gesprek..."</string>
+    <string name="default_setup_call_msg" msgid="5819132588246209714">"Aanroep wordt ingesteld"</string>
+    <string name="stk_app_state" msgid="6274976677198791616">"Toepassingsstatus"</string>
+    <string name="enable_app" msgid="1980493713217690903">"Aangezet"</string>
+    <string name="disable_app" msgid="2298201833946002357">"Uitgezet"</string>
+    <string name="stk_dialog_title" msgid="1047336800509270520">"SIM-toolkit"</string>
+    <string name="default_tone_dialog_msg" msgid="8354658178971283852">"Toon afspelen"</string>
+    <string name="default_open_channel_msg" msgid="2043011408855389673">"Kanaal openen?"</string>
+    <string name="default_send_data_msg" msgid="6602200147341683792">"Gegevens verzenden"</string>
+    <string name="default_receive_data_msg" msgid="5545535916402887726">"Gegevens ontvangen"</string>
+    <string name="default_close_channel_msg" msgid="6320648502339362951">"Kanaal gesloten"</string>
+    <string name="stk_dialog_accept" msgid="2899431442032305374">"JA"</string>
+    <string name="stk_dialog_reject" msgid="1455086565615694879">"NEE"</string>
+    <string name="no_sim_card_inserted" msgid="3177955793136053581">"Plaats een simkaart om de SIM Toolkit te starten."</string>
+    <string name="stk_channel_name" msgid="3945765236566954372">"Mobiele serviceberichten"</string>
 </resources>
