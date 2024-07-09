@@ -30,7 +30,7 @@
     <string name="digits" msgid="7391551783961486324">"Chiffres (0-9, *, #, +)"</string>
     <string name="default_call_setup_msg" msgid="6490156065165946828">"Appel en cours"</string>
     <string name="default_setup_call_msg" msgid="5819132588246209714">"Appel en cours de configuration"</string>
-    <string name="stk_app_state" msgid="6274976677198791616">"État de l\'application"</string>
+    <string name="stk_app_state" msgid="6274976677198791616">"État de l\'appli"</string>
     <string name="enable_app" msgid="1980493713217690903">"Activé"</string>
     <string name="disable_app" msgid="2298201833946002357">"Désactivé"</string>
     <string name="stk_dialog_title" msgid="1047336800509270520">"Boîte à outils SIM"</string>
