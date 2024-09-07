@@ -42,5 +42,5 @@
     <string name="stk_dialog_accept" msgid="2899431442032305374">"હા"</string>
     <string name="stk_dialog_reject" msgid="1455086565615694879">"નહીં"</string>
     <string name="no_sim_card_inserted" msgid="3177955793136053581">"કૃપા કરીને સિમ ટૂલકિટ લોન્ચ કરવા માટે સિમ શામેલ કરો."</string>
-    <string name="stk_channel_name" msgid="3945765236566954372">"મોબાઇલ સેવાના સંદેશા"</string>
+    <string name="stk_channel_name" msgid="3945765236566954372">"મોબાઇલ સેવાના મેસેજ"</string>
 </resources>
