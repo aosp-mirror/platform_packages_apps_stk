@@ -93,6 +93,7 @@ public class StkMenuActivity extends ListActivity implements View.OnCreateContex
         actionBar.setCustomView(R.layout.stk_title);
         actionBar.setDisplayShowCustomEnabled(true);
 
+        StkApp.setupEdgeToEdge(this);
         // Set the layout for this activity.
         setContentView(R.layout.stk_menu_list);
         mTitleTextView = (TextView) findViewById(R.id.title_text);
