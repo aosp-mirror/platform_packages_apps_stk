@@ -160,7 +160,7 @@ public class StkInputActivity extends AppCompatActivity implements View.OnClickL
             finish();
             return;
         }
-
+        StkApp.setupEdgeToEdge(this);
         // Set the layout for this activity.
         setContentView(R.layout.stk_input);
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
