@@ -57,6 +57,7 @@ public class StkLauncherActivity extends ListActivity {
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
+        StkApp.setupEdgeToEdge(this);
         getWindow().addSystemFlags(
                 WindowManager.LayoutParams.SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS);
         CatLog.d(LOG_TAG, "onCreate+");
